@@ -196,8 +196,6 @@ const EditSourceData = ({
     sourceValues["type"] = selectedSource.type;
     sourceValues["disabled"] = false;
 
-    console.log("source", sourceValues);
-
     onSaveSettings(sourceValues);
   };
 
@@ -222,6 +220,8 @@ const EditSourceData = ({
       }
     }
   };
+
+  console.log("formik", formik.values);
 
   return (
     <Offcanvas
@@ -462,9 +462,13 @@ const EditSourceData = ({
                           id={field.label}
                           onChange={formik.handleChange}
                           value={
-                            field.label === "log.schema"
-                              ? formik.values.log.schema
-                              : formik.values.log.format
+                            formik.values.log
+                              ? field.label === "log.schema"
+                                ? formik.values.log.schema
+                                : formik.values.log.format
+                              : field.label === "log.schema"
+                              ? formik.values["log.schema"]
+                              : formik.values["log.format"]
                           }
                         >
                           <option>Select {field.name}</option>
