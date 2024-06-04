@@ -1,0 +1,966 @@
+{
+  "sources": [
+    {
+      "name": "Windows Events - Winlogbeat",
+      "type": "logstash",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID *",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "host",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "12102",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Permit Origin",
+          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "datatype": "ipcidr"
+        }
+      ]
+    },
+    {
+      "name": "Windows Events - Nxlog",
+      "type": "socket",
+      "mode": "tcp",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID *",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "host",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "12103",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Permit Origin",
+          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "datatype": "ipcidr"
+        }
+      ]
+    },
+    {
+      "name": "Office365 - Filebeat",
+      "type": "logstash",
+      "image": "office",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID *",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "host",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "12104",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Permit Origin",
+          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "datatype": "ipcidr"
+        }
+      ]
+    },
+    {
+      "name": "Azure EventHub - Filebeat",
+      "type": "logstash",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID *",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "host",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "12105",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Permit Origin",
+          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "datatype": "ipcidr"
+        }
+      ]
+    },
+    {
+      "name": "AWS - Filebeat",
+      "type": "logstash",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID *",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "host",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "12106",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Permit Origin",
+          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "datatype": "ipcidr"
+        }
+      ]
+    },
+    {
+      "name": "Syslog-tcp",
+      "type": "syslog",
+      "mode": "tcp",
+      "log.format": "syslog",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID *",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "host",
+          "label": "Host *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "514",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Allowed Origin List",
+          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "datatype": "ipcidr"
+        },
+        {
+          "name": "connection_limit",
+          "label": "Connection Limit",
+          "tooltip": "Max number of TCP connections allowed at any given time.",
+          "datatype": "integer"
+        }
+      ]
+    },
+    {
+      "name": "Syslog-udp",
+      "type": "syslog",
+      "mode": "udp",
+      "log.format": "syslog",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID *",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "host",
+          "label": "Host *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "514",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ]
+    },
+    {
+      "name": "Amazon S3",
+      "type": "aws_s3",
+      "image": "s3",
+      "log.format": "json",
+      "log.schema": "raw",
+      "tooltip": "Source - Amazon S3",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text"
+        },
+        {
+          "name": "queue_url",
+          "label": "Queue URL *",
+          "tooltip": "URL of the SQS queue to poll for bucket notifications.",
+          "datatype": "url",
+          "mandatory": true
+        },
+        {
+          "name": "compression",
+          "label": "Compression",
+          "options": ["auto", "gzip", "zstd", "none"],
+          "tooltip": "Compression scheme used for decompressing objects retrieved from S3.",
+          "default": "auto"
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "tooltip": "AWS region of the target service."
+        }
+      ],
+      "authentication": {
+        "name": "auth",
+        "tooltip": "Configure authentication for interacting with AWS S3 service.",
+        "dropdownOptions": [
+          {
+            "label": "Access Key",
+            "tooltip": "Configure AWS access secret for authenticating with S3",
+            "fieldsToShow": [
+              {
+                "name": "access_key_id",
+                "label": "Access Key *",
+                "placeholder": "AWS access key.",
+                "tooltip": "Access Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "secret_access_key",
+                "label": "Secret Key *",
+                "placeholder": "AWS secret key.",
+                "tooltip": "Secret Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "region",
+                "label": "Region",
+                "placeholder": "select one",
+                "tooltip": "AWS region to send Security Token Service (STS) requests to."
+              }
+            ]
+          },
+          {
+            "label": "Assume Role",
+            "tooltip": "Configure ARN of an IAM role to assume. Helpful in cross account access",
+            "fieldsToShow": [
+              {
+                "name": "assume_role",
+                "label": "Assume Role",
+                "placeholder": "Assume Role",
+                "tooltip": "ARN of an IAM role to assume.",
+                "datatype": "arn"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Amazon SQS",
+      "type": "aws_sqs",
+      "image": "sqs",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text"
+        },
+        {
+          "name": "queue_url",
+          "label": "Queue URL *",
+          "placeholder": "Enter SQS queue URL",
+          "tooltip": "URL of the SQS queue to poll for messages.",
+          "datatype": "url",
+          "mandatory": true
+        },
+        {
+          "name": "delete_message",
+          "label": "Delete messages",
+          "tooltip": "Delete the message once it is processed. (default: true)",
+          "options": ["true", "false"],
+          "default": true,
+          "datatype": "boolean"
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "tooltip": "AWS region of the target service."
+        }
+      ],
+      "authentication": {
+        "name": "auth",
+        "tooltip": "Configure authentication for interacting with AWS SQS.",
+        "dropdownOptions": [
+          {
+            "label": "Access Key",
+            "tooltip": "Configure AWS access secret for authenticating with SQS",
+            "fieldsToShow": [
+              {
+                "name": "access_key_id",
+                "label": "Access Key *",
+                "placeholder": "AWS access key.",
+                "tooltip": "Access Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "secret_access_key",
+                "label": "Secret Key *",
+                "placeholder": "AWS secret key.",
+                "tooltip": "Secret Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "region",
+                "label": "Region",
+                "placeholder": "select one",
+                "tooltip": "AWS region to send Security Token Service (STS) requests to. if empty, Defaults to region configured for the service itself"
+              }
+            ]
+          },
+          {
+            "label": "Assume Role",
+            "tooltip": "Configure ARN of an IAM role to assume. Helpful in cross account access",
+            "fieldsToShow": [
+              {
+                "name": "assume_role",
+                "label": "Assume Role",
+                "placeholder": "Assume Role",
+                "tooltip": "ARN of an IAM role to assume.",
+                "datatype": "arn"
+              }
+            ]
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "endpoint",
+          "label": "Endpoint",
+          "tooltip": "Custom endpoint for use with AWS-compatible services.",
+          "datatype": "url"
+        }
+      ]
+    },
+    {
+      "name": "Kafka",
+      "type": "kafka",
+      "image": "kafka",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID",
+          "prefix": "input_",
+          "tooltip": "Unique ID for this source",
+          "datatype": "text"
+        },
+        {
+          "name": "bootstrap_servers",
+          "label": "Brokers *",
+          "tooltip": "Comma-separated list of Kafka brokers (bootstrap servers) to use in format hostname:port, e.g., brokerip:9093",
+          "datatype": "cs-hostport",
+          "mandatory": true
+        },
+        {
+          "name": "topics",
+          "label": "Topics *",
+          "placeholder": "Comma-separated list of topic names, can degrade throughput if multiple topics are used",
+          "tooltip": "Kafka topic names to read events from, Regular expression syntax is supported, e.g., \"topic-1\",\"^(prefix1|prefix2)-.+\"",
+          "mandatory": true
+        },
+        {
+          "name": "group_id",
+          "label": "Consumer Group *",
+          "tooltip": "Consumer group name to be used to consume events from Kafka",
+          "datatype": "text",
+          "mandatory": true
+        }
+      ],
+      "authentication": {
+        "name": "sasl",
+        "tooltip": "Configure SASL authentication when interacting with Kafka.",
+        "fields": [
+          {
+            "name": "enabled",
+            "label": "SASL Enabled",
+            "tooltip": "Enables SASL authentication.",
+            "options": ["true", "false"],
+            "datatype": "boolean"
+          },
+          {
+            "name": "mechanism",
+            "label": "SASL Mechanism",
+            "options": ["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
+            "tooltip": "Select an SASL mechanism to use."
+          },
+          {
+            "name": "username",
+            "label": "Username",
+            "placeholder": "SASL Username",
+            "tooltip": "SASL Username.",
+            "datatype": "text"
+          },
+          {
+            "name": "password",
+            "label": "Password",
+            "placeholder": "SASL Password",
+            "tooltip": "SASL Password.",
+            "datatype": "password"
+          }
+        ]
+      }
+    }
+  ],
+  "fields": [
+    {
+      "name": "Organization ID",
+      "label": "organization.id",
+      "placeholder": "Enter Organization ID",
+      "tooltip": "Source Organization ID"
+    },
+    {
+      "name": "Log Schema",
+      "label": "log.schema",
+      "options": ["raw", "ecs", "ocsf"],
+      "tooltip": "Select the log schema for this source, DPM will process data accordingly"
+    },
+    {
+      "name": "Log Format",
+      "label": "log.format",
+      "options": ["raw", "json", "syslog", "cef"],
+      "tooltip": "Select the log format for this source, DPM will process data accordingly"
+    }
+  ],
+  "destinations": [
+    {
+      "name": "Amazon S3",
+      "type": "aws_s3",
+      "tooltip": "Source - Amazon S3",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Output-ID *",
+          "prefix": "output_",
+          "tooltip": "Unique ID for this destination",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "inputs",
+          "label": "Inputs",
+          "tooltip": "List of inputs for this destination"
+        },
+        {
+          "name": "bucket *",
+          "label": "S3 Bucket Name",
+          "tooltip": "Name of destination S3 bucket, E.g. my-bucket",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "key_prefix",
+          "label": "Key Prefix",
+          "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
+          "datatype": "text-special"
+        },
+        {
+          "name": "compression",
+          "label": "Compression",
+          "options": ["none", "gzip"],
+          "default": "gzip"
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "tooltip": "Region where the S3 bucket is located."
+        }
+      ],
+      "authentication": {
+        "name": "auth",
+        "tooltip": "Configure authentication for interacting with AWS S3 service.",
+        "dropdownOptions": [
+          {
+            "label": "Access Key",
+            "tooltip": "Configure AWS access secret for authenticating with S3",
+            "fieldsToShow": [
+              {
+                "name": "access_key_id",
+                "label": "Access Key *",
+                "placeholder": "AWS access key.",
+                "tooltip": "Access Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "secret_access_key",
+                "label": "Secret Key *",
+                "placeholder": "AWS secret key.",
+                "tooltip": "Secret Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "region",
+                "label": "Region",
+                "placeholder": "select one",
+                "tooltip": "AWS region to send Security Token Service (STS) requests to."
+              }
+            ]
+          },
+          {
+            "label": "Assume Role",
+            "tooltip": "Configure ARN of an IAM role to assume. Helpful in cross account access",
+            "fieldsToShow": [
+              {
+                "name": "assume_role",
+                "label": "Assume Role",
+                "tooltip": "ARN of an IAM role to assume.",
+                "placeholder": "ARN",
+                "datatype": "arn",
+                "mandatory": true
+              }
+            ]
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "endpoint",
+          "label": "Endpoint",
+          "tooltip": "Custom endpoint for use with AWS-compatible services. If empty, defaults to AWS Region-specific endpoint.",
+          "datatype": "url"
+        },
+        {
+          "name": "acl",
+          "label": "Object ACL",
+          "tooltip": "ACL to apply to the created objects",
+          "default": "private",
+          "options": [
+            "private",
+            "authenticated-read",
+            "public-read",
+            "public-read-write",
+            "aws-exec-read",
+            "bucket-owner-full-control",
+            "bucket-owner-read",
+            "log-delivery-write"
+          ]
+        },
+        {
+          "name": "storage_class",
+          "label": "Storage Class",
+          "tooltip": "Storage class to select for uploaded objects. Defaults to STANDARD, if it's empty",
+          "default": "STANDARD",
+          "options": [
+            {
+              "name": "STANDARD",
+              "label": "Standard Redundancy",
+              "tooltip": "Standard Redundancy"
+            },
+            {
+              "name": "REDUCED_REDUNDANCY",
+              "label": "Reduced Redundancy Storage",
+              "tooltip": "Reduced Redundancy Storage"
+            },
+            {
+              "name": "STANDARD_IA",
+              "label": "Standard-Infrequent Access",
+              "tooltip": "Standard-Infrequent Access"
+            },
+            {
+              "name": "ONEZONE_IA",
+              "label": "One Zone-Infrequent Access",
+              "tooltip": "One Zone-Infrequent Access"
+            },
+            {
+              "name": "INTELLIGENT_TIERING",
+              "label": "Intelligent-Tiering",
+              "tooltip": "Intelligent-Tiering"
+            },
+            {
+              "name": "EXPRESS_ONEZONE",
+              "label": "Express One Zone",
+              "tooltip": "Express One Zone"
+            },
+            {
+              "name": "GLACIER",
+              "label": "Glacier Flexible Retrieval",
+              "tooltip": "Glacier Flexible Retrieval"
+            },
+            {
+              "name": "DEEP_ARCHIVE",
+              "label": "Glacier Deep Archive",
+              "tooltip": "Glacier Deep Archive"
+            }
+          ]
+        },
+        {
+          "name": "server_side_encryption",
+          "label": "Server side encryption",
+          "tooltip": "Server-side encryption for uploaded objects.",
+          "options": [
+            {
+              "name": "AES256",
+              "label": "Amazon S3 Managed Key",
+              "tooltip": "Amazon S3 Managed Key"
+            },
+            {
+              "name": "aws:kms",
+              "label": "AWS KMS Managed Key",
+              "tooltip": "Amazon KMS Managed Key",
+              "fields": {
+                "name": "ssekms_key_id",
+                "label": "KMS key ID",
+                "placeholder": "Enter kms key ID",
+                "tooltip": "Amazon KMS Managed Key"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BluSapphire SDL",
+      "type": "aws_s3",
+      "tooltip": "Source - BluSapphire SDL",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Output-ID *",
+          "prefix": "output_",
+          "tooltip": "Unique ID for this destination",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "inputs",
+          "label": "Inputs",
+          "tooltip": "List of inputs for this destination"
+        },
+        {
+          "name": "bucket",
+          "label": "BluSapphire SDL Bucket Name *",
+          "tooltip": "Name of BluSapphire SDL destination S3 bucket, E.g. sdl-bucket",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "key_prefix",
+          "label": "Key Prefix",
+          "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
+          "datatype": "text-special"
+        },
+        {
+          "name": "compression",
+          "label": "Compression",
+          "options": ["none", "gzip"],
+          "default": "gzip"
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "tooltip": "Region where the S3 bucket is located."
+        }
+      ],
+      "authentication": {
+        "name": "auth",
+        "tooltip": "Configure authentication for interacting with AWS S3 service.",
+        "dropdownOptions": [
+          {
+            "label": "Access Key",
+            "tooltip": "Configure AWS access secret for authenticating with S3",
+            "fieldsToShow": [
+              {
+                "name": "access_key_id",
+                "label": "Access Key *",
+                "placeholder": "AWS access key.",
+                "tooltip": "Access Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "secret_access_key",
+                "label": "Secret Key *",
+                "placeholder": "AWS secret key.",
+                "tooltip": "Secret Key",
+                "datatype": "alphanumeric",
+                "mandatory": true
+              },
+              {
+                "name": "region",
+                "label": "Region",
+                "placeholder": "select one",
+                "tooltip": "AWS region to send Security Token Service (STS) requests to."
+              }
+            ]
+          },
+          {
+            "label": "Assume Role",
+            "tooltip": "Configure ARN of an IAM role to assume. Helpful in cross account access",
+            "fieldsToShow": [
+              {
+                "name": "assume_role",
+                "label": "Assume Role",
+                "tooltip": "ARN of an IAM role to assume.",
+                "datatype": "arn"
+              }
+            ]
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "endpoint",
+          "label": "Endpoint",
+          "tooltip": "Custom endpoint for use with AWS-compatible services. If empty, defaults to AWS Region-specific endpoint.",
+          "datatype": "url"
+        },
+        {
+          "name": "acl",
+          "label": "Object ACL",
+          "tooltip": "ACL to apply to the created objects",
+          "default": "private",
+          "options": [
+            "private",
+            "authenticated-read",
+            "public-read",
+            "public-read-write",
+            "aws-exec-read",
+            "bucket-owner-full-control",
+            "bucket-owner-read",
+            "log-delivery-write"
+          ]
+        },
+        {
+          "name": "storage_class",
+          "label": "Storage class. Defaults to STANDARD, if it's empty",
+          "tooltip": "Storage class to select for uploaded objects. Defaults to STANDARD, if it's empty",
+          "default": "STANDARD",
+          "options": [
+            {
+              "name": "STANDARD",
+              "label": "Standard Redundancy",
+              "tooltip": "Standard Redundancy"
+            },
+            {
+              "name": "REDUCED_REDUNDANCY",
+              "label": "Reduced Redundancy Storage",
+              "tooltip": "Reduced Redundancy Storage"
+            },
+            {
+              "name": "STANDARD_IA",
+              "label": "Standard-Infrequent Access",
+              "tooltip": "Standard-Infrequent Access"
+            },
+            {
+              "name": "ONEZONE_IA",
+              "label": "One Zone-Infrequent Access",
+              "tooltip": "One Zone-Infrequent Access"
+            },
+            {
+              "name": "INTELLIGENT_TIERING",
+              "label": "Intelligent-Tiering",
+              "tooltip": "Intelligent-Tiering"
+            },
+            {
+              "name": "EXPRESS_ONEZONE",
+              "label": "Express One Zone",
+              "tooltip": "Express One Zone"
+            },
+            {
+              "name": "GLACIER",
+              "label": "Glacier Flexible Retrieval",
+              "tooltip": "Glacier Flexible Retrieval"
+            },
+            {
+              "name": "DEEP_ARCHIVE",
+              "label": "Glacier Deep Archive",
+              "tooltip": "Glacier Deep Archive"
+            }
+          ]
+        },
+        {
+          "name": "server_side_encryption",
+          "label": "Server side encryption",
+          "tooltip": "Server-side encryption for uploaded objects.",
+          "options": [
+            {
+              "name": "AES256",
+              "label": "Amazon S3 Managed Key",
+              "tooltip": "Amazon S3 Managed Key"
+            },
+            {
+              "name": "aws:kms",
+              "label": "AWS KMS Managed Key",
+              "tooltip": "Amazon KMS Managed Key",
+              "fields": {
+                "name": "ssekms_key_id",
+                "label": "KMS key ID",
+                "placeholder": "Enter kms key ID",
+                "tooltip": "Amazon KMS Managed Key"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "vector",
+      "type": "vector",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Output-ID *",
+          "prefix": "output_",
+          "tooltip": "Unique ID for this destination",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address of the destination.",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to connect to on the destination host.",
+          "datatype": "integer",
+          "mandatory": true
+        },
+        {
+          "name": "inputs",
+          "label": "Inputs",
+          "tooltip": "List of inputs for this destination",
+          "options": []
+        }
+      ],
+      "advanced": [
+        {
+          "name": "compression",
+          "label": "Compression",
+          "options": ["true", "false"],
+          "tooltip": "If enabled, requests are compressed with gzip. (Default: false)",
+          "datatype": "boolean",
+          "default": false
+        }
+      ]
+    }
+  ]
+}

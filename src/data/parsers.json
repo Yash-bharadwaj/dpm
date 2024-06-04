@@ -1,0 +1,102 @@
+{
+  "observers": [
+    {
+      "name": "Windows Logs",
+      "Description": "Windows Event Logs",
+      "type": "windows",
+      "vendor": "microsoft",
+      "product": "windows",
+      "input_sources": ["Windows Events - Winlogbeat", "Windows Events - Nxlog"]
+    },
+    {
+      "name": "Cloud AWS Logs",
+      "Description": "Amazon Web Service (AWS) Logs",
+      "type": "cloud-aws",
+      "input_sources": ["AWS - Filebeat", "Amazon S3"],
+      "source": [
+        {
+          "name": "Cloudtrail Logs",
+          "description": "AWS logs",
+          "product": "cloudtrail",
+          "vendor": "aws"
+        },
+        {
+          "name": "WAF Logs",
+          "description": "AWS Web Application Firewall Logs",
+          "product": "waf",
+          "vendor": "aws"
+        },
+        {
+          "name": "Guardduty Logs",
+          "description": "AWS Guardduty Logs",
+          "product": "guardduty",
+          "vendor": "aws"
+        },
+        {
+          "name": "ELB Logs",
+          "description": "AWS ElasticLoad Balancer logs",
+          "product": "elb",
+          "vendor": "aws"
+        },
+        {
+          "name": "Inspector Logs",
+          "description": "AWS Inspector logs",
+          "product": "inspector",
+          "vendor": "aws"
+        },
+        {
+          "name": "VPC-Flow Logs",
+          "description": "AWS VPC-Flow logs",
+          "product": "vpcflow",
+          "vendor": "aws"
+        }
+      ]
+    },
+    {
+      "name": "Cloud Azure",
+      "Description": "Azure Active Directory (AD) Logs",
+      "type": "cloud-azure",
+      "input_sources": ["Azure EventHub - Filebeat", "Amazon S3"],
+      "source": [
+        {
+          "name": "Azure Active Directory (AD) Audit Logs",
+          "description": "Provides access to system activity records tracking every logged event in Azure AD",
+          "product": "aad_auditlogs",
+          "vendor": "azure"
+        },
+        {
+          "name": "Azure Active Directory (AD) Sign-in logs",
+          "description": "Provides about sign-ins and how your resources are used by your users",
+          "product": "aad_signinlogs",
+          "vendor": "azure"
+        }
+      ]
+    },
+    {
+      "name": "NGFW Logs",
+      "Description": "Next Generation Firewall Logs",
+      "type": "ngfw",
+      "input_sources": ["Syslog-tcp"],
+      "source": [
+        {
+          "name": "Sophos XG Firewall",
+          "description": "Sophos XG Firewall logs",
+          "product": "xg",
+          "vendor": "sophos"
+        },
+        {
+          "name": "Checkpoint Firewall",
+          "description": "Checkpoint Firewall logs",
+          "product": "firewall",
+          "vendor": "checkpoint"
+        },
+        {
+          "name": "Cisco Meraki Firewall",
+          "description": "Cisco Meraki Firewall logs",
+          "product": "meraki",
+          "vendor": "cisco"
+        }
+      ]
+    }
+  ]
+}
