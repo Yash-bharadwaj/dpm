@@ -22,6 +22,17 @@ const PipelineModal = ({
 }: PipelineModalProps) => {
   const [selectedParser, setSelectedParser] = useState(Array);
   const [selectedProducts, setSelectedProducts] = useState(Array);
+  const [viewAll, setViewAll] = useState(false);
+
+  let matchingPipelines = [];
+
+  parsers.observers.forEach((pipeline) => {
+    addedSources.forEach((source) => {
+      if (pipeline.input_sources.includes(source.name)) {
+        matchingPipelines.push(pipeline);
+      }
+    });
+  });
 
   const onSavePipeline = () => {
     const selectedPipeline = selectedParser[0];
@@ -122,6 +133,10 @@ const PipelineModal = ({
     return checked;
   };
 
+  const onViewAll = () => {
+    setViewAll(!viewAll);
+  };
+
   return (
     <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
       <Modal.Header closeButton>
@@ -129,7 +144,6 @@ const PipelineModal = ({
       </Modal.Header>
 
       <Modal.Body>
-        <Form.Label htmlFor="logschema">Pipelines</Form.Label>
         {/* <Typeahead
           id="basic-typeahead-single"
           labelKey="name"
@@ -145,6 +159,12 @@ const PipelineModal = ({
         /> */}
 
         <div>
+          <div style={{ float: "right", marginBottom: "8px" }}>
+            <Button variant="link" onClick={onViewAll} size="sm">
+              {viewAll ? "View Compatible Pipelines" : "View All Pipelines"}
+            </Button>
+          </div>
+
           <Table striped bordered>
             <thead>
               <tr>
@@ -157,55 +177,57 @@ const PipelineModal = ({
             </thead>
 
             <tbody>
-              {parsers.observers.map((pipeline) => (
-                <>
-                  <tr>
-                    <td>
-                      <Form.Check
-                        name="group1"
-                        type={"radio"}
-                        id={`inline-checkbox-1`}
-                        onChange={(event) => {
-                          onSelectPipeline(event.target.checked, pipeline);
-                        }}
-                        checked={
-                          selectedParser.length !== 0 &&
-                          selectedParser[0].name === pipeline.name
-                        }
-                      />
-                    </td>
+              {(viewAll ? parsers.observers : matchingPipelines).map(
+                (pipeline) => (
+                  <>
+                    <tr>
+                      <td>
+                        <Form.Check
+                          name="group1"
+                          type={"radio"}
+                          id={`inline-checkbox-1`}
+                          onChange={(event) => {
+                            onSelectPipeline(event.target.checked, pipeline);
+                          }}
+                          checked={
+                            selectedParser.length !== 0 &&
+                            selectedParser[0].name === pipeline.name
+                          }
+                        />
+                      </td>
 
-                    <td>{pipeline.name}</td>
-                    <td>{pipeline.type}</td>
-                    <td>{pipeline.vendor}</td>
-                    <td>{pipeline.product}</td>
-                  </tr>
+                      <td>{pipeline.name}</td>
+                      <td>{pipeline.type}</td>
+                      <td>{pipeline.vendor}</td>
+                      <td>{pipeline.product}</td>
+                    </tr>
 
-                  {selectedParser.length !== 0 &&
-                    selectedParser[0].name === pipeline.name &&
-                    pipeline.source &&
-                    pipeline.source.map((source) => (
-                      <tr>
-                        <td>
-                          <Form.Check
-                            name="group1"
-                            type={"checkbox"}
-                            id={`inline-checkbox-1`}
-                            onChange={(event) => {
-                              onSelectProducts(event, source);
-                            }}
-                            checked={getCheckedValue(source)}
-                            style={{ float: "right" }}
-                          />
-                        </td>
-                        <td>{source.name}</td>
-                        <td>{pipeline.type}</td>
-                        <td>{source.vendor}</td>
-                        <td>{source.product}</td>
-                      </tr>
-                    ))}
-                </>
-              ))}
+                    {selectedParser.length !== 0 &&
+                      selectedParser[0].name === pipeline.name &&
+                      pipeline.source &&
+                      pipeline.source.map((source) => (
+                        <tr>
+                          <td>
+                            <Form.Check
+                              name="group1"
+                              type={"checkbox"}
+                              id={`inline-checkbox-1`}
+                              onChange={(event) => {
+                                onSelectProducts(event, source);
+                              }}
+                              checked={getCheckedValue(source)}
+                              style={{ float: "right" }}
+                            />
+                          </td>
+                          <td>{source.name}</td>
+                          <td>{pipeline.type}</td>
+                          <td>{source.vendor}</td>
+                          <td>{source.product}</td>
+                        </tr>
+                      ))}
+                  </>
+                )
+              )}
             </tbody>
           </Table>
         </div>
