@@ -40,7 +40,7 @@ const DestinationDrawer = ({
   };
 
   const getImageSource = (image: string) => {
-    const imageUrl = "../../src/assets/images/destinations/" + image;
+    const imageUrl = "/destinations/" + image;
 
     return imageUrl;
   };

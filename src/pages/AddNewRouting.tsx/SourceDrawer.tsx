@@ -36,7 +36,7 @@ const SourceDrawer = ({ show, handleClose, onAddSource }: any) => {
   };
 
   const getImageSource = (image: string) => {
-    const imageUrl = "../../src/assets/images/sources/" + image;
+    const imageUrl = "/sources/" + image;
 
     return imageUrl;
   };

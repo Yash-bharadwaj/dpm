@@ -237,8 +237,6 @@ const EditSourceData = ({
     }
   };
 
-  console.log("formik", formik.values);
-
   return (
     <Offcanvas
       show={show}
