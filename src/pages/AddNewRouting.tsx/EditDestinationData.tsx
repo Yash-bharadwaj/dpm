@@ -448,7 +448,7 @@ const EditDestinationData = ({
               selectedDestination.authentication.dropdownOptions ? (
               <Form>
                 <Form.Label htmlFor={"auth"}>
-                  Select Authentication{" "}
+                  Select Authentication *{" "}
                   {selectedDestination.authentication.tooltip && (
                     <OverlayTrigger
                       placement="left"
@@ -615,9 +615,21 @@ const EditDestinationData = ({
                 variant="primary"
                 size="sm"
                 onClick={onNextClick}
-                disabled={checkFormValid(formik.values)}
+                disabled={
+                  selectedTab === "setting" ||
+                  (selectedTab === "auth" && selectedDestination.advanced)
+                    ? false
+                    : checkFormValid(formik.values)
+                }
               >
-                {selectedTab === "fields" ? "Save" : "Next"}
+                {/* {selectedDestination.advanced && selectedTab === "advanced"
+                  ? "Save"
+                  : "Next"} */}
+
+                {selectedTab === "setting" ||
+                (selectedTab === "auth" && selectedDestination.advanced)
+                  ? "Next"
+                  : "Save"}
               </Button>
             </div>
           </Col>
