@@ -157,9 +157,16 @@ const EditSourceData = ({
           item === "log.format" ||
           item === "log"
         ) {
+          let schema = formik.values.log
+            ? formik.values.log.schema
+            : formik.values["log.schema"];
+          let format = formik.values.log
+            ? formik.values.log.format
+            : formik.values["log.format"];
+
           sourceValues.log = {
-            schema: formik.values.log.schema,
-            format: formik.values.log.format,
+            schema: schema,
+            format: format,
           };
         } else {
           if (authIndex) {

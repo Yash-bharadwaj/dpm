@@ -1,102 +1,52 @@
 {
   "observers": [
     {
-      "name": "Windows Logs",
-      "Description": "Windows Event Logs",
-      "type": "windows",
-      "vendor": "microsoft",
-      "product": "windows",
-      "input_sources": ["Windows Events - Winlogbeat", "Windows Events - Nxlog"]
+      "name": "AWS CloudTrail Logs",
+      "label": "pipeline_aws_cloutrail_logs",
+      "Description": "Transform AWS CloudTrail logs",
+      "type": "cloud_aws",
+      "vendor": "aws",
+      "product": "cloudtrail"
     },
     {
-      "name": "Cloud AWS Logs",
-      "Description": "Amazon Web Service (AWS) Logs",
-      "type": "cloud-aws",
-      "input_sources": ["AWS - Filebeat", "Amazon S3"],
-      "source": [
-        {
-          "name": "Cloudtrail Logs",
-          "description": "AWS logs",
-          "product": "cloudtrail",
-          "vendor": "aws"
-        },
-        {
-          "name": "WAF Logs",
-          "description": "AWS Web Application Firewall Logs",
-          "product": "waf",
-          "vendor": "aws"
-        },
-        {
-          "name": "Guardduty Logs",
-          "description": "AWS Guardduty Logs",
-          "product": "guardduty",
-          "vendor": "aws"
-        },
-        {
-          "name": "ELB Logs",
-          "description": "AWS ElasticLoad Balancer logs",
-          "product": "elb",
-          "vendor": "aws"
-        },
-        {
-          "name": "Inspector Logs",
-          "description": "AWS Inspector logs",
-          "product": "inspector",
-          "vendor": "aws"
-        },
-        {
-          "name": "VPC-Flow Logs",
-          "description": "AWS VPC-Flow logs",
-          "product": "vpcflow",
-          "vendor": "aws"
-        }
-      ]
+      "name": "AWS ElasticLoadBalancer Logs",
+      "label": "pipeline_aws_elasticloadbalancer_logs",
+      "Description": "Transform AWS ELB logs",
+      "type": "cloud_aws",
+      "vendor": "aws",
+      "product": "elb"
     },
     {
-      "name": "Cloud Azure",
-      "Description": "Azure Active Directory (AD) Logs",
-      "type": "cloud-azure",
-      "input_sources": ["Azure EventHub - Filebeat", "Amazon S3"],
-      "source": [
-        {
-          "name": "Azure Active Directory (AD) Audit Logs",
-          "description": "Provides access to system activity records tracking every logged event in Azure AD",
-          "product": "aad_auditlogs",
-          "vendor": "azure"
-        },
-        {
-          "name": "Azure Active Directory (AD) Sign-in logs",
-          "description": "Provides about sign-ins and how your resources are used by your users",
-          "product": "aad_signinlogs",
-          "vendor": "azure"
-        }
-      ]
+      "name": "AWS Inspector Logs",
+      "label": "pipeline_aws_inspector_logs",
+      "Description": "Transform AWS inspector logs",
+      "type": "cloud_aws",
+      "vendor": "aws",
+      "product": "inspector"
     },
     {
-      "name": "NGFW Logs",
-      "Description": "Next Generation Firewall Logs",
-      "type": "ngfw",
-      "input_sources": ["Syslog-tcp"],
-      "source": [
-        {
-          "name": "Sophos XG Firewall",
-          "description": "Sophos XG Firewall logs",
-          "product": "xg",
-          "vendor": "sophos"
-        },
-        {
-          "name": "Checkpoint Firewall",
-          "description": "Checkpoint Firewall logs",
-          "product": "firewall",
-          "vendor": "checkpoint"
-        },
-        {
-          "name": "Cisco Meraki Firewall",
-          "description": "Cisco Meraki Firewall logs",
-          "product": "meraki",
-          "vendor": "cisco"
-        }
-      ]
+      "name": "AWS VPC-Flow Logs",
+      "label": "pipeline_aws_vpcflow_logs",
+      "Description": "Transform AWS VPC-Flow logs",
+      "type": "cloud_aws",
+      "vendor": "aws",
+      "product": "vpcflow"
+    },
+    {
+      "name": "Azure Active Directory (AD) Audit Logs",
+      "label": "pipeline_azure_active_directory_audit_logs",
+      "Description": "Provides access to system activity records tracking every logged event in Azure AD",
+      "type": "cloud_azure",
+      "vendor": "azure",
+      "product": "aad_auditlogs"
+    },
+    {
+      "name": "Azure Active Directory (AD) Sign-in logs",
+      "label": "pipeline_azure_active_directory_signin_logs",
+      "Description": "Provides about sign-ins and how your resources are used by your users",
+      "type": "cloud_azure",
+      "vendor": "azure",
+      "product": "aad_signinlogs"
     }
   ]
 }
