@@ -84,7 +84,16 @@ const EditDestinationData = ({
 
     mandatoryFields.forEach((field) => {
       if (values[field] === "") {
-        error = true;
+        if (
+          authIndex !== null &&
+          ((authIndex === "0" && field === "assume_role") ||
+            (authIndex === "1" &&
+              (field === "access_key_id" || field === "secret_access_key")))
+        ) {
+          error = false;
+        } else {
+          error = true;
+        }
       }
     });
 

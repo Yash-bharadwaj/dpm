@@ -564,8 +564,8 @@
           "tooltip": "List of inputs for this destination"
         },
         {
-          "name": "bucket *",
-          "label": "S3 Bucket Name",
+          "name": "bucket",
+          "label": "S3 Bucket Name *",
           "tooltip": "Name of destination S3 bucket, E.g. my-bucket",
           "datatype": "text",
           "mandatory": true
@@ -626,7 +626,7 @@
             "fieldsToShow": [
               {
                 "name": "assume_role",
-                "label": "Assume Role",
+                "label": "Assume Role *",
                 "tooltip": "ARN of an IAM role to assume.",
                 "placeholder": "ARN",
                 "datatype": "arn",
@@ -813,9 +813,10 @@
             "fieldsToShow": [
               {
                 "name": "assume_role",
-                "label": "Assume Role",
+                "label": "Assume Role *",
                 "tooltip": "ARN of an IAM role to assume.",
-                "datatype": "arn"
+                "datatype": "arn",
+                "mandatory": true
               }
             ]
           }
