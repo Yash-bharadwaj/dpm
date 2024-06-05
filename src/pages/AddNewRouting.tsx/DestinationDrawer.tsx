@@ -39,6 +39,12 @@ const DestinationDrawer = ({
     setShowAddDestination(false);
   };
 
+  const getImageSource = (image: string) => {
+    const imageUrl = "../../src/assets/images/destinations/" + image;
+
+    return imageUrl;
+  };
+
   return (
     <Offcanvas
       show={show}
@@ -71,21 +77,16 @@ const DestinationDrawer = ({
                     <Card.Body className="main-card-div">
                       <div style={{ width: "100%" }}>
                         <Card.Text className="card-text">
+                          <div>
+                            <img
+                              src={getImageSource(destination.image)}
+                              alt={destination.name}
+                            />
+                          </div>
                           {destination?.name}
                         </Card.Text>
 
                         <div className="overlay-div">
-                          {/* <Button
-                            variant="light"
-                            size="sm"
-                            onClick={() => {
-                              onDestinationSelect(destination);
-                            }}
-                            className="mb-2"
-                          >
-                            Select Existing
-                          </Button> */}
-
                           <Button
                             variant="light"
                             size="sm"

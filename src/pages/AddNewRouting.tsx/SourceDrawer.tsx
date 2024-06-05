@@ -15,11 +15,6 @@ import { useState } from "react";
 
 import EditSourceData from "./EditSourceData";
 
-// import office from "../../assets/images/office.jpg";
-// import kafka from "../../assets/images/kafka.png";
-// import sqs from "../../assets/images/sqs.png";
-// import s3 from "../../assets/images/s3.png";
-
 const SourceDrawer = ({ show, handleClose, onAddSource }: any) => {
   const [showAddSource, setShowAddSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState(Object);
@@ -38,6 +33,12 @@ const SourceDrawer = ({ show, handleClose, onAddSource }: any) => {
   const onSaveSettings = (values: object) => {
     onAddSource(selectedSource, values);
     setShowAddSource(false);
+  };
+
+  const getImageSource = (image: string) => {
+    const imageUrl = "../../src/assets/images/sources/" + image;
+
+    return imageUrl;
   };
 
   return (
@@ -72,24 +73,13 @@ const SourceDrawer = ({ show, handleClose, onAddSource }: any) => {
                     <Card.Body className="main-card-div">
                       <div style={{ width: "100%" }}>
                         <Card.Text className="card-text">
-                          {/* <div>
-                            {source.image ? (
-                              <img
-                                src={
-                                  source.image === "office"
-                                    ? office
-                                    : source.image === "kafka"
-                                    ? kafka
-                                    : source.image === "sqs"
-                                    ? sqs
-                                    : source.image === "s3"
-                                    ? s3
-                                    : null
-                                }
-                                style={{ width: "30%" }}
-                              />
-                            ) : null}
-                          </div> */}
+                          <div>
+                            <img
+                              src={getImageSource(source.image)}
+                              alt={source.name}
+                              style={{ width: "60px" }}
+                            />
+                          </div>
                           {source?.name}
                         </Card.Text>
 

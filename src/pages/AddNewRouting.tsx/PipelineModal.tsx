@@ -6,7 +6,6 @@ import { Button, Form, Modal, Table } from "react-bootstrap";
 import parsers from "../../data/parsers.json";
 
 import { useState } from "react";
-// import { Typeahead } from "react-bootstrap-typeahead";
 
 interface PipelineModalProps {
   show: boolean;
@@ -22,21 +21,45 @@ const PipelineModal = ({
   addedSources,
 }: PipelineModalProps) => {
   const [selectedParser, setSelectedParser] = useState(Array);
+  const [selectedProducts, setSelectedProducts] = useState(Array);
 
   const onSavePipeline = () => {
     const selectedPipeline = selectedParser[0];
 
-    const pipeline = {
-      disabled: false,
-      name: selectedPipeline?.label,
-      observer: {
-        type: selectedPipeline.type,
-        product: selectedPipeline.product,
-        vendor: selectedPipeline.vendor,
-      },
-      inputs: [],
-      outputs: [],
-    };
+    let pipeline = {};
+
+    let pipelineName = "pipeline_" + addedSources[0].id;
+
+    if (selectedPipeline.source) {
+      let products = [];
+
+      selectedProducts.forEach((product) => {
+        products.push({ [product.vendor]: product.product });
+      });
+
+      pipeline = {
+        disabled: false,
+        name: pipelineName,
+        observer: {
+          type: selectedPipeline.type,
+          products: products,
+        },
+        inputs: [],
+        outputs: [],
+      };
+    } else {
+      pipeline = {
+        disabled: false,
+        name: pipelineName,
+        observer: {
+          type: selectedPipeline.type,
+          product: selectedPipeline.product,
+          vendor: selectedPipeline.vendor,
+        },
+        inputs: [],
+        outputs: [],
+      };
+    }
 
     savePipeline(pipeline);
   };
@@ -44,6 +67,10 @@ const PipelineModal = ({
   const onSelectPipeline = (event: boolean, pipeline: object) => {
     if (event) {
       setSelectedParser([pipeline]);
+
+      if (pipeline.source) {
+        setSelectedProducts(pipeline.source);
+      }
     } else {
       const prevColumns = selectedParser;
       let currentIndex = -1;
@@ -58,7 +85,41 @@ const PipelineModal = ({
         ...prevColumns.slice(0, currentIndex),
         ...prevColumns.slice(currentIndex + 1),
       ]);
+
+      setSelectedProducts([]);
     }
+  };
+
+  const onSelectProducts = (event: object, source: object) => {
+    if (event.target.checked) {
+      setSelectedProducts((prevList) => [...prevList, source]);
+    } else {
+      const prevColumns = selectedProducts;
+      let currentIndex = -1;
+
+      prevColumns.forEach((item: unknown, index: number) => {
+        if (item.name === source.name) {
+          currentIndex = index;
+        }
+      });
+
+      setSelectedProducts([
+        ...prevColumns.slice(0, currentIndex),
+        ...prevColumns.slice(currentIndex + 1),
+      ]);
+    }
+  };
+
+  const getCheckedValue = (source) => {
+    let checked = false;
+
+    selectedProducts.forEach((product) => {
+      if (source.name === product.name) {
+        checked = true;
+      }
+    });
+
+    return checked;
   };
 
   return (
@@ -97,27 +158,53 @@ const PipelineModal = ({
 
             <tbody>
               {parsers.observers.map((pipeline) => (
-                <tr>
-                  <td>
-                    <Form.Check
-                      label={pipeline.name}
-                      name="group1"
-                      type={"radio"}
-                      id={`inline-checkbox-1`}
-                      onChange={(event) => {
-                        onSelectPipeline(event.target.checked, pipeline);
-                      }}
-                      checked={
-                        selectedParser.length !== 0 &&
-                        selectedParser[0].name === pipeline.name
-                      }
-                    />
-                  </td>
-                  <td>{pipeline.name}</td>
-                  <td>{pipeline.type}</td>
-                  <td>{pipeline.vendor}</td>
-                  <td>{pipeline.product}</td>
-                </tr>
+                <>
+                  <tr>
+                    <td>
+                      <Form.Check
+                        name="group1"
+                        type={"radio"}
+                        id={`inline-checkbox-1`}
+                        onChange={(event) => {
+                          onSelectPipeline(event.target.checked, pipeline);
+                        }}
+                        checked={
+                          selectedParser.length !== 0 &&
+                          selectedParser[0].name === pipeline.name
+                        }
+                      />
+                    </td>
+
+                    <td>{pipeline.name}</td>
+                    <td>{pipeline.type}</td>
+                    <td>{pipeline.vendor}</td>
+                    <td>{pipeline.product}</td>
+                  </tr>
+
+                  {selectedParser.length !== 0 &&
+                    selectedParser[0].name === pipeline.name &&
+                    pipeline.source &&
+                    pipeline.source.map((source) => (
+                      <tr>
+                        <td>
+                          <Form.Check
+                            name="group1"
+                            type={"checkbox"}
+                            id={`inline-checkbox-1`}
+                            onChange={(event) => {
+                              onSelectProducts(event, source);
+                            }}
+                            checked={getCheckedValue(source)}
+                            style={{ float: "right" }}
+                          />
+                        </td>
+                        <td>{source.name}</td>
+                        <td>{pipeline.type}</td>
+                        <td>{source.vendor}</td>
+                        <td>{source.product}</td>
+                      </tr>
+                    ))}
+                </>
               ))}
             </tbody>
           </Table>

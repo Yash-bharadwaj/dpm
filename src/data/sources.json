@@ -3,6 +3,7 @@
     {
       "name": "Windows Events - Winlogbeat",
       "type": "logstash",
+      "image": "",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -43,6 +44,7 @@
     {
       "name": "Windows Events - Nxlog",
       "type": "socket",
+      "image": "nxlog.svg",
       "mode": "tcp",
       "log.format": "json",
       "log.schema": "raw",
@@ -84,7 +86,7 @@
     {
       "name": "Office365 - Filebeat",
       "type": "logstash",
-      "image": "office",
+      "image": "office-360.svg",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -125,6 +127,7 @@
     {
       "name": "Azure EventHub - Filebeat",
       "type": "logstash",
+      "image": "azure-event-hub.svg",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -165,6 +168,7 @@
     {
       "name": "AWS - Filebeat",
       "type": "logstash",
+      "image": "beats.png",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -205,6 +209,7 @@
     {
       "name": "Syslog-tcp",
       "type": "syslog",
+      "image": "syslog.svg",
       "mode": "tcp",
       "log.format": "syslog",
       "log.schema": "raw",
@@ -250,6 +255,7 @@
     {
       "name": "Syslog-udp",
       "type": "syslog",
+      "image": "syslog.svg",
       "mode": "udp",
       "log.format": "syslog",
       "log.schema": "raw",
@@ -281,7 +287,7 @@
     {
       "name": "Amazon S3",
       "type": "aws_s3",
-      "image": "s3",
+      "image": "amazon-s3.svg",
       "log.format": "json",
       "log.schema": "raw",
       "tooltip": "Source - Amazon S3",
@@ -364,7 +370,7 @@
     {
       "name": "Amazon SQS",
       "type": "aws_sqs",
-      "image": "sqs",
+      "image": "amazon-sqs.svg",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -456,7 +462,7 @@
     {
       "name": "Kafka",
       "type": "kafka",
-      "image": "kafka",
+      "image": "apache-kafka.svg",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -548,6 +554,7 @@
     {
       "name": "Amazon S3",
       "type": "aws_s3",
+      "image": "amazon-s3.svg",
       "tooltip": "Source - Amazon S3",
       "settings": [
         {
@@ -736,6 +743,7 @@
       "name": "BluSapphire SDL",
       "type": "aws_s3",
       "tooltip": "Source - BluSapphire SDL",
+      "image": "blusapphire_sdl.svg",
       "settings": [
         {
           "name": "name",
@@ -921,6 +929,7 @@
     {
       "name": "vector",
       "type": "vector",
+      "image": "vector.svg",
       "settings": [
         {
           "name": "name",
