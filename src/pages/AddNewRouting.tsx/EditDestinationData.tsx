@@ -301,33 +301,32 @@ const EditDestinationData = ({
                   {setting.name !== "inputs" &&
                     (setting.options ? (
                       setting.datatype === "boolean" ? (
-                        <Form.Check // prettier-ignore
-                          type="switch"
-                          id="custom-switch"
-                          label={
-                            <Form.Label
-                              htmlFor="inputID"
-                              style={{ marginRight: "8px" }}
-                            >
-                              {setting.label}
-                              {setting.tooltip && (
-                                <OverlayTrigger
-                                  placement="right"
-                                  overlay={
-                                    <Tooltip id="button-tooltip-2">
-                                      {setting.tooltip}
-                                    </Tooltip>
-                                  }
-                                >
-                                  <QuestionCircle size={14} />
-                                </OverlayTrigger>
-                              )}
-                            </Form.Label>
-                          }
-                          value={formik.values[setting.name]}
-                          defaultChecked={setting.default}
-                          onChange={formik.handleChange}
-                        />
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <Form.Label htmlFor="inputID">
+                            {setting.label}{" "}
+                            {setting.tooltip && (
+                              <OverlayTrigger
+                                placement="left"
+                                overlay={
+                                  <Tooltip id="button-tooltip-2">
+                                    {setting.tooltip}
+                                  </Tooltip>
+                                }
+                              >
+                                <QuestionCircle size={14} />
+                              </OverlayTrigger>
+                            )}
+                          </Form.Label>
+
+                          <Form.Check // prettier-ignore
+                            type="switch"
+                            id="custom-switch"
+                            value={formik.values[setting.name]}
+                            defaultChecked={setting.default}
+                            onChange={formik.handleChange}
+                            style={{ marginLeft: "8px" }}
+                          />
+                        </div>
                       ) : (
                         <Form.Select
                           aria-label="Select"
@@ -395,33 +394,32 @@ const EditDestinationData = ({
 
                   {setting.options ? (
                     setting.datatype === "boolean" ? (
-                      <Form.Check // prettier-ignore
-                        type="switch"
-                        id={setting.name}
-                        label={
-                          <Form.Label
-                            htmlFor="inputID"
-                            style={{ marginRight: "8px" }}
-                          >
-                            {setting.label}
-                            {setting.tooltip && (
-                              <OverlayTrigger
-                                placement="left"
-                                overlay={
-                                  <Tooltip id="button-tooltip-2">
-                                    {setting.tooltip}
-                                  </Tooltip>
-                                }
-                              >
-                                <QuestionCircle size={14} />
-                              </OverlayTrigger>
-                            )}
-                          </Form.Label>
-                        }
-                        value={formik.values[setting.name]}
-                        defaultChecked={setting.default}
-                        onChange={formik.handleChange}
-                      />
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <Form.Label htmlFor="inputID">
+                          {setting.label}{" "}
+                          {setting.tooltip && (
+                            <OverlayTrigger
+                              placement="left"
+                              overlay={
+                                <Tooltip id="button-tooltip-2">
+                                  {setting.tooltip}
+                                </Tooltip>
+                              }
+                            >
+                              <QuestionCircle size={14} />
+                            </OverlayTrigger>
+                          )}
+                        </Form.Label>
+
+                        <Form.Check // prettier-ignore
+                          type="switch"
+                          id={setting.name}
+                          value={formik.values[setting.name]}
+                          defaultChecked={setting.default}
+                          onChange={formik.handleChange}
+                          style={{ marginLeft: "8px" }}
+                        />
+                      </div>
                     ) : (
                       <Form.Select
                         aria-label="Select"

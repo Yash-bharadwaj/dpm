@@ -62,6 +62,10 @@ button:focus-visible {
   background-color: #008ac1 !important;
 }
 
+.form-check-input {
+  border: 1px solid #999;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

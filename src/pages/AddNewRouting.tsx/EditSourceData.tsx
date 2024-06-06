@@ -330,30 +330,32 @@ const EditSourceData = ({
 
                   {setting.options ? (
                     setting.datatype === "boolean" ? (
-                      <Form.Check // prettier-ignore
-                        type="switch"
-                        id={setting.name}
-                        label={
-                          <Form.Label htmlFor="inputID">
-                            {setting.label}{" "}
-                            {setting.tooltip && (
-                              <OverlayTrigger
-                                placement="right"
-                                overlay={
-                                  <Tooltip id="button-tooltip-2">
-                                    {setting.tooltip}
-                                  </Tooltip>
-                                }
-                              >
-                                <QuestionCircle size={14} />
-                              </OverlayTrigger>
-                            )}
-                          </Form.Label>
-                        }
-                        value={formik.values[setting.name]}
-                        defaultChecked={setting.default}
-                        onChange={formik.handleChange}
-                      />
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <Form.Label htmlFor="inputID">
+                          {setting.label}{" "}
+                          {setting.tooltip && (
+                            <OverlayTrigger
+                              placement="right"
+                              overlay={
+                                <Tooltip id="button-tooltip-2">
+                                  {setting.tooltip}
+                                </Tooltip>
+                              }
+                            >
+                              <QuestionCircle size={14} />
+                            </OverlayTrigger>
+                          )}
+                        </Form.Label>
+
+                        <Form.Check // prettier-ignore
+                          type="switch"
+                          id={setting.name}
+                          value={formik.values[setting.name]}
+                          defaultChecked={setting.default}
+                          onChange={formik.handleChange}
+                          style={{ marginLeft: "8px" }}
+                        />
+                      </div>
                     ) : (
                       <Form.Select
                         aria-label="Select"
@@ -636,55 +638,54 @@ const EditSourceData = ({
             ) : (
               selectedSource.authentication?.fields.map((setting: any) => (
                 <>
-                  {((selectedSource.authentication.name !== "sasl" &&
-                    setting.datatype !== "boolean") ||
-                    (selectedSource.authentication.name === "sasl" &&
-                      formik.values.enabled !== "" &&
-                      formik.values.enabled !== false &&
-                      setting.datatype !== "boolean")) && (
-                    <Form.Label htmlFor="inputID">
-                      {setting.label}{" "}
-                      {setting.tooltip && (
-                        <OverlayTrigger
-                          placement="right"
-                          overlay={
-                            <Tooltip id="button-tooltip-2">
-                              {setting.tooltip}
-                            </Tooltip>
-                          }
-                        >
-                          <QuestionCircle size={14} />
-                        </OverlayTrigger>
-                      )}
-                    </Form.Label>
-                  )}
+                  {selectedSource.authentication.name === "sasl" &&
+                    formik.values.enabled !== "" &&
+                    formik.values.enabled !== false &&
+                    setting.datatype !== "boolean" && (
+                      <Form.Label htmlFor="inputID">
+                        {setting.label}{" "}
+                        {setting.tooltip && (
+                          <OverlayTrigger
+                            placement="right"
+                            overlay={
+                              <Tooltip id="button-tooltip-2">
+                                {setting.tooltip}
+                              </Tooltip>
+                            }
+                          >
+                            <QuestionCircle size={14} />
+                          </OverlayTrigger>
+                        )}
+                      </Form.Label>
+                    )}
 
                   {setting.options ? (
                     setting.datatype === "boolean" ? (
-                      <Form.Check // prettier-ignore
-                        type="switch"
-                        id={setting.name}
-                        label={
-                          <Form.Label htmlFor="inputID">
-                            {setting.label}{" "}
-                            {setting.tooltip && (
-                              <OverlayTrigger
-                                placement="right"
-                                overlay={
-                                  <Tooltip id="button-tooltip-2">
-                                    {setting.tooltip}
-                                  </Tooltip>
-                                }
-                              >
-                                <QuestionCircle size={14} />
-                              </OverlayTrigger>
-                            )}
-                          </Form.Label>
-                        }
-                        value={formik.values[setting.name]}
-                        defaultChecked={setting.default}
-                        onChange={formik.handleChange}
-                      />
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <Form.Label htmlFor="inputID">
+                          {setting.label}{" "}
+                          {setting.tooltip && (
+                            <OverlayTrigger
+                              placement="right"
+                              overlay={
+                                <Tooltip id="button-tooltip-2">
+                                  {setting.tooltip}
+                                </Tooltip>
+                              }
+                            >
+                              <QuestionCircle size={14} />
+                            </OverlayTrigger>
+                          )}
+                        </Form.Label>
+                        <Form.Check // prettier-ignore
+                          type="switch"
+                          id={setting.name}
+                          value={formik.values[setting.name]}
+                          defaultChecked={setting.default}
+                          onChange={formik.handleChange}
+                          style={{ marginLeft: "8px" }}
+                        />
+                      </div>
                     ) : selectedSource.authentication.name === "sasl" &&
                       (formik.values.enabled === false ||
                         formik.values.enabled === "") ? null : (
