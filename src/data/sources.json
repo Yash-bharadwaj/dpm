@@ -855,7 +855,7 @@
         },
         {
           "name": "storage_class",
-          "label": "Storage class. Defaults to STANDARD, if it's empty",
+          "label": "Storage class",
           "tooltip": "Storage class to select for uploaded objects. Defaults to STANDARD, if it's empty",
           "default": "STANDARD",
           "options": [

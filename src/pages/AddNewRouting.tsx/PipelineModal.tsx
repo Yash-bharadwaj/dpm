@@ -26,8 +26,6 @@ const PipelineModal = ({
   const [selectedProducts, setSelectedProducts] = useState(Object);
   const [viewAll, setViewAll] = useState(true);
 
-  console.log("addedPipelines", addedPipelines);
-
   let matchingPipelines = [];
 
   parsers.observers.forEach((pipeline) => {
@@ -65,7 +63,7 @@ const PipelineModal = ({
       pipeline = {
         name: pipelineName,
         observer: {
-          type: selectedPipeline.type,
+          type: selectedProducts.type,
           product: selectedProducts.product,
           vendor: selectedProducts.vendor,
         },
@@ -207,8 +205,8 @@ const PipelineModal = ({
                               style={{ float: "right" }}
                             />
                           </td>
-                          <td>{source.name}</td>
-                          <td>{pipeline.type}</td>
+                          <td>{source.label}</td>
+                          <td>{source.type}</td>
                           <td>{source.vendor}</td>
                           <td>{source.product}</td>
                         </tr>

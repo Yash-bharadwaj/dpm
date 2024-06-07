@@ -112,7 +112,6 @@ const DestinationDrawer = ({
           show={showAddDest}
           onHide={handleCloseDest}
           selectedDestination={selectedDestination}
-          addedSources={addedSources}
           onSaveSettings={onSaveSettings}
         />
       )}

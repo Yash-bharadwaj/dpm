@@ -1,100 +1,108 @@
 {
   "observers": [
     {
-      "name": "Windows Logs",
-      "Description": "Windows Event Logs",
+      "name": "Windows Event Logs",
+      "Description": "Windows Logs",
       "type": "windows",
       "vendor": "microsoft",
       "product": "windows",
       "input_sources": ["Windows Events - Winlogbeat", "Windows Events - Nxlog"]
     },
     {
-      "name": "Cloud AWS Logs",
+      "name": "Amazon Web Service (AWS) Logs",
       "Description": "Amazon Web Service (AWS) Logs",
-      "type": "cloud-aws",
-      "input_sources": ["AWS - Filebeat", "Amazon S3"],
+      "input_sources": ["AWS - Filebeat", "Amazon S3", "Amazon SQS"],
       "source": [
         {
-          "name": "Cloudtrail Logs",
-          "description": "AWS logs",
-          "product": "cloudtrail",
-          "vendor": "aws"
+          "label": "Amazon Cloudtrail Logs",
+          "description": "Amazon logs",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "cloudtrail"
         },
         {
-          "name": "WAF Logs",
-          "description": "AWS Web Application Firewall Logs",
-          "product": "waf",
-          "vendor": "aws"
+          "label": "Amazon Web Application Firewall Logs",
+          "description": "Amazon Web Application Firewall Logs",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "waf"
         },
         {
-          "name": "Guardduty Logs",
-          "description": "AWS Guardduty Logs",
-          "product": "guardduty",
-          "vendor": "aws"
+          "label": "Amazon Guardduty Logs",
+          "description": "Amazon Guardduty Logs",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "guardduty"
         },
         {
-          "name": "ELB Logs",
-          "description": "AWS ElasticLoad Balancer logs",
-          "product": "elb",
-          "vendor": "aws"
+          "label": "Amazon ElasticLoad Balancer Logs",
+          "description": "Amazon ElasticLoad Balancer logs",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "elb"
         },
         {
-          "name": "Inspector Logs",
-          "description": "AWS Inspector logs",
-          "product": "inspector",
-          "vendor": "aws"
+          "label": "Amazon Inspector Logs",
+          "description": "Amazon Inspector logs",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "inspector"
         },
         {
-          "name": "VPC-Flow Logs",
-          "description": "AWS VPC-Flow logs",
-          "product": "vpcflow",
-          "vendor": "aws"
+          "label": "Amazon VPC Flow Logs",
+          "description": "Amazon VPC-Flow logs",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "vpcflow"
         }
       ]
     },
     {
-      "name": "Cloud Azure",
+      "name": "Cloud Azure Active Directory (AD) Logs",
       "Description": "Azure Active Directory (AD) Logs",
-      "type": "cloud-azure",
-      "input_sources": ["Azure EventHub - Filebeat", "Amazon S3"],
+      "input_sources": ["Azure EventHub - Filebeat", "Kafka"],
       "source": [
         {
-          "name": "Azure Active Directory (AD) Audit Logs",
+          "label": "Azure Active Directory (AD) Audit Logs",
           "description": "Provides access to system activity records tracking every logged event in Azure AD",
-          "product": "aad_auditlogs",
-          "vendor": "azure"
+          "type": "cloud-azure",
+          "vendor": "azure",
+          "product": "aad_auditlogs"
         },
         {
-          "name": "Azure Active Directory (AD) Sign-in logs",
+          "label": "Azure Active Directory (AD) Sign-in logs",
           "description": "Provides about sign-ins and how your resources are used by your users",
-          "product": "aad_signinlogs",
-          "vendor": "azure"
+          "type": "cloud-azure",
+          "vendor": "azure",
+          "product": "aad_signinlogs"
         }
       ]
     },
     {
-      "name": "NGFW Logs",
+      "name": "Next Generation Firewall (NGFW) Logs",
       "Description": "Next Generation Firewall Logs",
-      "type": "ngfw",
-      "input_sources": ["Syslog-tcp"],
+      "input_sources": ["Syslog-tcp", "Amazon S3", "Amazon SQS"],
       "source": [
         {
-          "name": "Sophos XG Firewall",
+          "label": "Sophos XG Firewall",
           "description": "Sophos XG Firewall logs",
-          "product": "xg",
-          "vendor": "sophos"
+          "type": "ngfw",
+          "vendor": "sophos",
+          "product": "xg"
         },
         {
-          "name": "Checkpoint Firewall",
+          "label": "Checkpoint Firewall",
           "description": "Checkpoint Firewall logs",
-          "product": "firewall",
-          "vendor": "checkpoint"
+          "type": "ngfw",
+          "vendor": "checkpoint",
+          "product": "firewall"
         },
         {
-          "name": "Cisco Meraki Firewall",
+          "label": "Cisco Meraki Firewall",
           "description": "Cisco Meraki Firewall logs",
-          "product": "meraki",
-          "vendor": "cisco"
+          "type": "ngfw",
+          "vendor": "cisco",
+          "product": "meraki"
         }
       ]
     }

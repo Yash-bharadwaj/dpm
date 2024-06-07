@@ -21,7 +21,6 @@ const EditDestinationData = ({
   onHide,
   selectedDestination,
   onSaveSettings,
-  addedSources,
   selectedNode,
 }: any) => {
   const [selectedTab, setSelectedTab] = useState("setting");
@@ -420,21 +419,64 @@ const EditDestinationData = ({
                         />
                       </div>
                     ) : (
-                      <Form.Select
-                        aria-label="Select"
-                        className="mb-3"
-                        size="sm"
-                        id={setting.name}
-                        onChange={formik.handleChange}
-                        value={formik.values[setting.name]}
-                      >
-                        <option>Select Option</option>
-                        {setting.options?.map((option: any) => (
-                          <option value={option.name || option}>
-                            {option.label || option}
-                          </option>
-                        ))}
-                      </Form.Select>
+                      <>
+                        <Form.Select
+                          aria-label="Select"
+                          className="mb-3"
+                          size="sm"
+                          id={setting.name}
+                          onChange={formik.handleChange}
+                          value={formik.values[setting.name]}
+                        >
+                          <option>Select Option</option>
+                          {setting.options?.map((option: any) => (
+                            <option value={option.name || option}>
+                              {option.label || option}
+                            </option>
+                          ))}
+                        </Form.Select>
+
+                        {formik.values[setting.name] !== "" &&
+                          setting.options.map((option: any) => {
+                            if (
+                              option.name === formik.values[setting.name] &&
+                              option.fields
+                            ) {
+                              return (
+                                <>
+                                  <Form.Label htmlFor="inputID">
+                                    {option.label}{" "}
+                                    {option.tooltip && (
+                                      <OverlayTrigger
+                                        placement="left"
+                                        overlay={
+                                          <Tooltip id="button-tooltip-2">
+                                            {option.tooltip}
+                                          </Tooltip>
+                                        }
+                                      >
+                                        <QuestionCircle size={14} />
+                                      </OverlayTrigger>
+                                    )}
+                                  </Form.Label>
+
+                                  <Form.Control
+                                    placeholder={`Enter ${option.fields.label}`}
+                                    aria-label={option.fields.name}
+                                    aria-describedby={option.fields.name}
+                                    className="mb-3"
+                                    size="sm"
+                                    id={option.fields.name}
+                                    onChange={formik.handleChange}
+                                    value={formik.values[option.fields.name]}
+                                  />
+                                </>
+                              );
+                            } else {
+                              return null;
+                            }
+                          })}
+                      </>
                     )
                   ) : (
                     <Form.Control
@@ -628,10 +670,6 @@ const EditDestinationData = ({
                     : checkFormValid(formik.values)
                 }
               >
-                {/* {selectedDestination.advanced && selectedTab === "advanced"
-                  ? "Save"
-                  : "Next"} */}
-
                 {selectedTab === "setting" ||
                 (selectedTab === "auth" && selectedDestination.advanced)
                   ? "Next"

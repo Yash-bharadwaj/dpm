@@ -246,6 +246,7 @@ const Routing = () => {
 
         if (sourceId === node.id && node.data.type === "pipeline") {
           let nodeData = node.data.nodeData;
+
           if (nodeData.outputs) {
             if (!nodeData.outputs.includes(destId)) {
               nodeData.outputs.push(destId);
@@ -275,6 +276,7 @@ const Routing = () => {
 
         if (sourceId === node.id && node.data.type === "enrichment") {
           let nodeData = node.data.nodeData;
+
           if (nodeData.outputs) {
             if (!nodeData.outputs.includes(destId)) {
               nodeData.outputs.push(destId);
@@ -289,6 +291,7 @@ const Routing = () => {
 
         if (destId === node.id && node.data.type === "enrichment") {
           let nodeData = node.data.nodeData;
+
           if (nodeData.inputs) {
             if (!nodeData.inputs.includes(sourceId)) {
               nodeData.inputs.push(sourceId);
@@ -451,7 +454,6 @@ const Routing = () => {
           show={showDestination}
           handleClose={handleClose}
           onAddDestination={onAddDestination}
-          addedSources={nodes}
         />
 
         {showPipelines && (
@@ -489,7 +491,6 @@ const Routing = () => {
             onHide={handleCloseEdit}
             selectedDestination={selectedSource}
             onSaveSettings={onEditSettings}
-            addedSources={addedSources}
             selectedNode={selectedNode}
           />
         )}

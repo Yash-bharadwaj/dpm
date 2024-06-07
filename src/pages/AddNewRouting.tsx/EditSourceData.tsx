@@ -379,7 +379,9 @@ const EditSourceData = ({
                     >
                       <option>Select Option</option>
                       {regions?.regions?.map((option: any) => (
-                        <option value={option.value}>{option.name}</option>
+                        <option value={option.value}>
+                          {option.name} ({option.value})
+                        </option>
                       ))}
                     </Form.Select>
                   ) : (
@@ -743,7 +745,11 @@ const EditSourceData = ({
                 variant="primary"
                 size="sm"
                 onClick={onNextClick}
-                disabled={checkFormValid(formik.values)}
+                disabled={
+                  selectedTab !== "fields"
+                    ? false
+                    : checkFormValid(formik.values)
+                }
               >
                 {selectedTab === "fields" ? "Save" : "Next"}
               </Button>
