@@ -203,10 +203,18 @@ const Routing = () => {
   const onSave = () => {
     let config = {
       node: {
-        sources: {},
-        pipelines: {},
-        enrichments: {},
-        destinations: {},
+        sources: {
+          disabled: true,
+        },
+        pipelines: {
+          disabled: true,
+        },
+        enrichments: {
+          disabled: true,
+        },
+        destinations: {
+          disabled: true,
+        },
       },
     };
 
@@ -233,6 +241,7 @@ const Routing = () => {
           }
 
           config.node.sources[nodeData.name] = nodeData;
+          config.node.sources.disabled = false;
         }
 
         if (sourceId === node.id && node.data.type === "pipeline") {
@@ -246,6 +255,7 @@ const Routing = () => {
           }
 
           config.node.pipelines[nodeData.name] = nodeData;
+          config.node.pipelines.disabled = false;
         }
 
         if (destId === node.id && node.data.type === "pipeline") {
@@ -260,6 +270,7 @@ const Routing = () => {
           }
 
           config.node.pipelines[nodeData.name] = nodeData;
+          config.node.pipelines.disabled = false;
         }
 
         if (sourceId === node.id && node.data.type === "enrichment") {
@@ -273,6 +284,7 @@ const Routing = () => {
           }
 
           config.node.enrichments[nodeData.name] = nodeData;
+          config.node.enrichments.disabled = false;
         }
 
         if (destId === node.id && node.data.type === "enrichment") {
@@ -286,6 +298,7 @@ const Routing = () => {
           }
 
           config.node.enrichments[nodeData.name] = nodeData;
+          config.node.enrichments.disabled = false;
         }
 
         if (destId === node.id && node.data.type === "destination") {
@@ -301,12 +314,9 @@ const Routing = () => {
           }
 
           config.node.destinations[nodeData.name] = nodeData;
+          config.node.destinations.disabled = false;
         }
       });
-
-      //   if (destId === "process_enrichment") {
-      //     enrichmentObj.inputs = [sourceId];
-      //   }
     });
 
     const yaml = convert(config);
@@ -414,7 +424,7 @@ const Routing = () => {
                 </div>
               </div>
 
-              <div style={{ height: "350px" }}>
+              <div style={{ height: "65vh" }}>
                 <ReactFlow
                   nodes={nodes}
                   onNodesChange={onNodesChange}
@@ -450,6 +460,7 @@ const Routing = () => {
             handleClose={handleClose}
             savePipeline={savePipeline}
             addedSources={addedSources}
+            addedPipelines={addedPipelines}
           />
         )}
 

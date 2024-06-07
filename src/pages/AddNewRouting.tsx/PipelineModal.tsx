@@ -12,6 +12,7 @@ interface PipelineModalProps {
   handleClose: any;
   savePipeline: any;
   addedSources: any;
+  addedPipelines: any;
 }
 
 const PipelineModal = ({
@@ -19,10 +20,13 @@ const PipelineModal = ({
   handleClose,
   savePipeline,
   addedSources,
+  addedPipelines,
 }: PipelineModalProps) => {
   const [selectedParser, setSelectedParser] = useState(Array);
-  const [selectedProducts, setSelectedProducts] = useState(Array);
-  const [viewAll, setViewAll] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState(Object);
+  const [viewAll, setViewAll] = useState(true);
+
+  console.log("addedPipelines", addedPipelines);
 
   let matchingPipelines = [];
 
@@ -37,30 +41,39 @@ const PipelineModal = ({
   const onSavePipeline = () => {
     const selectedPipeline = selectedParser[0];
 
-    let pipeline = {};
+    const pipelineCount = addedPipelines.length + 1;
+    const pipelineNumber =
+      pipelineCount <= 10 ? "0" + pipelineCount : pipelineCount;
 
-    let pipelineName = "pipeline_" + addedSources[0].id;
+    let pipeline = {};
+    const observerProduct = selectedPipeline.source
+      ? selectedProducts.product
+      : selectedPipeline.product;
+    const observerVendor = selectedPipeline.source
+      ? selectedProducts.vendor
+      : selectedPipeline.vendor;
+
+    const pipelineName =
+      "pipeline_" +
+      observerVendor +
+      "_" +
+      observerProduct +
+      "_" +
+      pipelineNumber;
 
     if (selectedPipeline.source) {
-      let products = [];
-
-      selectedProducts.forEach((product) => {
-        products.push({ [product.vendor]: product.product });
-      });
-
       pipeline = {
-        disabled: false,
         name: pipelineName,
         observer: {
           type: selectedPipeline.type,
-          products: products,
+          product: selectedProducts.product,
+          vendor: selectedProducts.vendor,
         },
         inputs: [],
         outputs: [],
       };
     } else {
       pipeline = {
-        disabled: false,
         name: pipelineName,
         observer: {
           type: selectedPipeline.type,
@@ -72,16 +85,15 @@ const PipelineModal = ({
       };
     }
 
+    console.log("pipeline", pipeline);
+
     savePipeline(pipeline);
   };
 
   const onSelectPipeline = (event: boolean, pipeline: object) => {
     if (event) {
       setSelectedParser([pipeline]);
-
-      if (pipeline.source) {
-        setSelectedProducts(pipeline.source);
-      }
+      setSelectedProducts({});
     } else {
       const prevColumns = selectedParser;
       let currentIndex = -1;
@@ -97,40 +109,14 @@ const PipelineModal = ({
         ...prevColumns.slice(currentIndex + 1),
       ]);
 
-      setSelectedProducts([]);
+      setSelectedProducts({});
     }
   };
 
-  const onSelectProducts = (event: object, source: object) => {
-    if (event.target.checked) {
-      setSelectedProducts((prevList) => [...prevList, source]);
-    } else {
-      const prevColumns = selectedProducts;
-      let currentIndex = -1;
-
-      prevColumns.forEach((item: unknown, index: number) => {
-        if (item.name === source.name) {
-          currentIndex = index;
-        }
-      });
-
-      setSelectedProducts([
-        ...prevColumns.slice(0, currentIndex),
-        ...prevColumns.slice(currentIndex + 1),
-      ]);
+  const onSelectProducts = (event: boolean, source: object) => {
+    if (event) {
+      setSelectedProducts(source);
     }
-  };
-
-  const getCheckedValue = (source) => {
-    let checked = false;
-
-    selectedProducts.forEach((product) => {
-      if (source.name === product.name) {
-        checked = true;
-      }
-    });
-
-    return checked;
   };
 
   const onViewAll = () => {
@@ -183,7 +169,7 @@ const PipelineModal = ({
                     <tr>
                       <td>
                         <Form.Check
-                          name="group1"
+                          name="pipeline"
                           type={"radio"}
                           id={`inline-checkbox-1`}
                           onChange={(event) => {
@@ -195,7 +181,6 @@ const PipelineModal = ({
                           }
                         />
                       </td>
-
                       <td>{pipeline.name}</td>
                       <td>{pipeline.type}</td>
                       <td>{pipeline.vendor}</td>
@@ -209,13 +194,16 @@ const PipelineModal = ({
                         <tr>
                           <td>
                             <Form.Check
-                              name="group1"
-                              type={"checkbox"}
-                              id={`inline-checkbox-1`}
+                              name="product"
+                              type={"radio"}
+                              id={`inline-checkbox-2`}
                               onChange={(event) => {
-                                onSelectProducts(event, source);
+                                onSelectProducts(event.target.checked, source);
                               }}
-                              checked={getCheckedValue(source)}
+                              checked={
+                                selectedProducts.name &&
+                                selectedProducts.name === source.name
+                              }
                               style={{ float: "right" }}
                             />
                           </td>

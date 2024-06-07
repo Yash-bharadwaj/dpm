@@ -210,7 +210,6 @@ const EditSourceData = ({
     });
 
     sourceValues["type"] = selectedSource.type;
-    sourceValues["disabled"] = false;
 
     onSaveSettings(sourceValues);
   };

@@ -173,7 +173,6 @@ const EditDestinationData = ({
     });
 
     sourceValues["type"] = selectedDestination.type;
-    sourceValues["disabled"] = false;
 
     onSaveSettings(sourceValues);
   };

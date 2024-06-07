@@ -39,17 +39,17 @@ const EnrichmentModal = ({
   };
 
   const onSave = () => {
-    let disabled = false;
+    // let disabled = false;
 
-    if (
-      !selectedEnrichment.includes("geoip") &&
-      !selectedEnrichment.includes("iana")
-    ) {
-      disabled = true;
-    }
+    // if (
+    //   !selectedEnrichment.includes("geoip") &&
+    //   !selectedEnrichment.includes("iana")
+    // ) {
+    //   disabled = true;
+    // }
 
     const enrichment = {
-      disabled: disabled,
+      //   disabled: disabled,
       name: "enrich_" + addedSources[0].id,
       enrich: {
         geoip: selectedEnrichment.includes("geoip"),
