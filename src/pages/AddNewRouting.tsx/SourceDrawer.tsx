@@ -32,6 +32,8 @@ const SourceDrawer = ({ show, handleClose, onAddSource }: any) => {
 
   const onSaveSettings = (values: object) => {
     onAddSource(selectedSource, values);
+
+    setSelectedSource({});
     setShowAddSource(false);
   };
 

@@ -230,7 +230,7 @@ const PipelineModal = ({
           disabled={selectedParser.length === 0}
           size="sm"
         >
-          Save Pipeline
+          Add Pipeline
         </Button>
       </Modal.Footer>
     </Modal>

@@ -105,7 +105,7 @@ const Routing = () => {
       data: { label: sourceValues.name, type: "source", nodeData },
       type: "input",
       sourcePosition: Position.Right,
-      position: { x: 0, y: 100 },
+      position: { x: -150, y: 0 },
     };
 
     addNode(newNode);

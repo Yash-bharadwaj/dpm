@@ -36,6 +36,8 @@ const DestinationDrawer = ({
 
   const onSaveSettings = (values: object) => {
     onAddDestination(selectedDestination, values);
+
+    setSelectedDestination({});
     setShowAddDestination(false);
   };
 

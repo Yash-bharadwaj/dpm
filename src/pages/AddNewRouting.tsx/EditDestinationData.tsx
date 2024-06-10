@@ -146,11 +146,14 @@ const EditDestinationData = ({
 
     const keys = Object.keys(formik.values);
 
+    console.log("keys", keys);
+
     keys.forEach((item) => {
       if (formik.values[item] !== "") {
         if (item === "name") {
           if (selectedNode === undefined) {
-            sourceValues.name = "output_" + formik.values.name;
+            const name = formik.values.name.replace(" ", "_");
+            sourceValues.name = "output_" + name;
           }
         } else if (item === "inputs") {
           sourceValues[item] = [];
@@ -164,8 +167,18 @@ const EditDestinationData = ({
               (field) =>
                 (sourceValues.auth[field.name] = formik.values[field.name])
             );
-          } else {
+          }
+
+          if (sourceValues.auth && sourceValues.auth[item] === undefined) {
             sourceValues[item] = formik.values[item];
+          } else {
+            if (
+              item !== "assume_role" &&
+              item !== "access_key_id" &&
+              item !== "secret_access_key"
+            ) {
+              sourceValues[item] = formik.values[item];
+            }
           }
         }
       }
@@ -318,8 +331,8 @@ const EditDestinationData = ({
 
                           <Form.Check // prettier-ignore
                             type="switch"
-                            id="custom-switch"
-                            value={formik.values[setting.name]}
+                            id={setting.name}
+                            checked={formik.values[setting.name]}
                             defaultChecked={setting.default}
                             onChange={formik.handleChange}
                             style={{ marginLeft: "8px" }}
@@ -412,7 +425,7 @@ const EditDestinationData = ({
                         <Form.Check // prettier-ignore
                           type="switch"
                           id={setting.name}
-                          value={formik.values[setting.name]}
+                          checked={formik.values[setting.name]}
                           defaultChecked={setting.default}
                           onChange={formik.handleChange}
                           style={{ marginLeft: "8px" }}

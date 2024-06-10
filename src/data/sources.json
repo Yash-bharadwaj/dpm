@@ -226,7 +226,8 @@
           "label": "Host *",
           "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
           "datatype": "ipaddress",
-          "mandatory": true
+          "mandatory": true,
+          "default": "0.0.0.0"
         },
         {
           "name": "port",
@@ -272,7 +273,8 @@
           "label": "Host *",
           "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
           "datatype": "ipaddress",
-          "mandatory": true
+          "mandatory": true,
+          "default": "0.0.0.0"
         },
         {
           "name": "port",
@@ -468,10 +470,11 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID",
+          "label": "Input-ID *",
           "prefix": "input_",
           "tooltip": "Unique ID for this source",
-          "datatype": "text"
+          "datatype": "text",
+          "mandatory": true
         },
         {
           "name": "bootstrap_servers",

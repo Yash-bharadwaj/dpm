@@ -159,7 +159,8 @@ const EditSourceData = ({
       if (formik.values[item] !== "") {
         if (item === "name") {
           if (selectedNode === undefined) {
-            sourceValues.name = "input_" + formik.values.name;
+            const name = formik.values.name.replace(" ", "_");
+            sourceValues.name = "input_" + name;
           }
         } else if (
           item === "log.schema" ||
@@ -188,7 +189,8 @@ const EditSourceData = ({
                 (sourceValues.auth[field.name] = formik.values[field.name])
             );
           }
-          if (formik.values.enabled) {
+
+          if (formik.values.enabled && formik.values.enabled.length !== 0) {
             sourceValues["sasl"] = {};
 
             selectedSource.authentication.fields.map(
@@ -235,6 +237,8 @@ const EditSourceData = ({
       }
     }
   };
+
+  console.log("values", formik.values);
 
   return (
     <Offcanvas
@@ -310,13 +314,13 @@ const EditSourceData = ({
               selectedSource.settings?.map((setting: any) => (
                 <>
                   {setting.datatype !== "boolean" && (
-                    <Form.Label htmlFor="inputID">
+                    <Form.Label htmlFor={setting.name}>
                       {setting.label}{" "}
                       {setting.tooltip && (
                         <OverlayTrigger
                           placement="right"
                           overlay={
-                            <Tooltip id="button-tooltip-2">
+                            <Tooltip id={setting.name}>
                               {setting.tooltip}
                             </Tooltip>
                           }
@@ -330,13 +334,13 @@ const EditSourceData = ({
                   {setting.options ? (
                     setting.datatype === "boolean" ? (
                       <div style={{ display: "flex", alignItems: "center" }}>
-                        <Form.Label htmlFor="inputID">
+                        <Form.Label htmlFor={setting.name}>
                           {setting.label}{" "}
                           {setting.tooltip && (
                             <OverlayTrigger
                               placement="right"
                               overlay={
-                                <Tooltip id="button-tooltip-2">
+                                <Tooltip id={setting.name}>
                                   {setting.tooltip}
                                 </Tooltip>
                               }
@@ -349,7 +353,7 @@ const EditSourceData = ({
                         <Form.Check // prettier-ignore
                           type="switch"
                           id={setting.name}
-                          value={formik.values[setting.name]}
+                          checked={formik.values[setting.name]}
                           defaultChecked={setting.default}
                           onChange={formik.handleChange}
                           style={{ marginLeft: "8px" }}
@@ -416,7 +420,7 @@ const EditSourceData = ({
                   >
                     {field.datatype !== "boolean" && (
                       <Form.Label
-                        htmlFor="inputID"
+                        htmlFor={field.name}
                         style={{
                           marginRight: "8px",
                           display: "flex",
@@ -428,9 +432,7 @@ const EditSourceData = ({
                           <OverlayTrigger
                             placement="right"
                             overlay={
-                              <Tooltip id="button-tooltip-2">
-                                {field.tooltip}
-                              </Tooltip>
+                              <Tooltip id={field.name}>{field.tooltip}</Tooltip>
                             }
                           >
                             <QuestionCircle
@@ -449,7 +451,7 @@ const EditSourceData = ({
                           id={field.name}
                           label={
                             <Form.Label
-                              htmlFor="inputID"
+                              htmlFor={field.name}
                               style={{ marginRight: "8px" }}
                             >
                               {field.label}
@@ -457,7 +459,7 @@ const EditSourceData = ({
                                 <OverlayTrigger
                                   placement="right"
                                   overlay={
-                                    <Tooltip id="button-tooltip-2">
+                                    <Tooltip id={field.name}>
                                       {field.tooltip}
                                     </Tooltip>
                                   }
@@ -467,7 +469,7 @@ const EditSourceData = ({
                               )}
                             </Form.Label>
                           }
-                          value={formik.values[field.name]}
+                          checked={formik.values[field.name]}
                           defaultChecked={field.default}
                           onChange={formik.handleChange}
                         />
@@ -509,17 +511,15 @@ const EditSourceData = ({
                 ))}
               </div>
             ) : selectedTab === "advanced" ? (
-              selectedSource.advanced?.map((setting: any) => (
+              selectedSource.advanced?.map((option: any) => (
                 <>
-                  <Form.Label htmlFor="inputID">
-                    {setting.label}{" "}
-                    {setting.tooltip && (
+                  <Form.Label htmlFor={option.name}>
+                    {option.label}{" "}
+                    {option.tooltip && (
                       <OverlayTrigger
                         placement="right"
                         overlay={
-                          <Tooltip id="button-tooltip-2">
-                            {setting.tooltip}
-                          </Tooltip>
+                          <Tooltip id={option.name}>{option.tooltip}</Tooltip>
                         }
                       >
                         <QuestionCircle size={14} />
@@ -528,14 +528,14 @@ const EditSourceData = ({
                   </Form.Label>
 
                   <Form.Control
-                    placeholder={`Enter ${setting.label}`}
-                    aria-label={setting.name}
-                    aria-describedby={setting.name}
+                    placeholder={`Enter ${option.label}`}
+                    aria-label={option.name}
+                    aria-describedby={option.name}
                     className="mb-3"
                     size="sm"
-                    id={setting.name}
+                    id={option.name}
                     onChange={formik.handleChange}
-                    value={formik.values[setting.name]}
+                    value={formik.values[option.name]}
                   />
                 </>
               ))
@@ -547,7 +547,7 @@ const EditSourceData = ({
                     <OverlayTrigger
                       placement="left"
                       overlay={
-                        <Tooltip id="button-tooltip-2">
+                        <Tooltip id={"auth"}>
                           {selectedSource.authentication.tooltip}
                         </Tooltip>
                       }
@@ -582,7 +582,7 @@ const EditSourceData = ({
                       <OverlayTrigger
                         placement="left"
                         overlay={
-                          <Tooltip id="button-tooltip-2">
+                          <Tooltip id={selectedSource.authentication.name}>
                             {
                               selectedSource.authentication.dropdownOptions[
                                 authIndex
@@ -611,7 +611,7 @@ const EditSourceData = ({
                             <OverlayTrigger
                               placement="right"
                               overlay={
-                                <Tooltip id="button-tooltip-2">
+                                <Tooltip id={setting.name}>
                                   {setting.tooltip}
                                 </Tooltip>
                               }
@@ -637,20 +637,20 @@ const EditSourceData = ({
                 )}
               </Form>
             ) : (
-              selectedSource.authentication?.fields.map((setting: any) => (
+              selectedSource.authentication?.fields.map((authFields: any) => (
                 <>
                   {selectedSource.authentication.name === "sasl" &&
                     formik.values.enabled !== "" &&
-                    formik.values.enabled !== false &&
-                    setting.datatype !== "boolean" && (
-                      <Form.Label htmlFor="inputID">
-                        {setting.label}{" "}
-                        {setting.tooltip && (
+                    formik.values.enabled.length !== 0 &&
+                    authFields.datatype !== "boolean" && (
+                      <Form.Label htmlFor={authFields.name}>
+                        {authFields.label}{" "}
+                        {authFields.tooltip && (
                           <OverlayTrigger
                             placement="right"
                             overlay={
-                              <Tooltip id="button-tooltip-2">
-                                {setting.tooltip}
+                              <Tooltip id={authFields.name}>
+                                {authFields.tooltip}
                               </Tooltip>
                             }
                           >
@@ -660,17 +660,17 @@ const EditSourceData = ({
                       </Form.Label>
                     )}
 
-                  {setting.options ? (
-                    setting.datatype === "boolean" ? (
+                  {authFields.options ? (
+                    authFields.datatype === "boolean" ? (
                       <div style={{ display: "flex", alignItems: "center" }}>
-                        <Form.Label htmlFor="inputID">
-                          {setting.label}{" "}
-                          {setting.tooltip && (
+                        <Form.Label htmlFor={authFields.name}>
+                          {authFields.label}{" "}
+                          {authFields.tooltip && (
                             <OverlayTrigger
                               placement="right"
                               overlay={
-                                <Tooltip id="button-tooltip-2">
-                                  {setting.tooltip}
+                                <Tooltip id={authFields.name}>
+                                  {authFields.tooltip}
                                 </Tooltip>
                               }
                             >
@@ -678,43 +678,44 @@ const EditSourceData = ({
                             </OverlayTrigger>
                           )}
                         </Form.Label>
+
                         <Form.Check // prettier-ignore
                           type="switch"
-                          id={setting.name}
-                          value={formik.values[setting.name]}
-                          defaultChecked={setting.default}
+                          id={authFields.name}
+                          defaultChecked={authFields.default}
                           onChange={formik.handleChange}
                           style={{ marginLeft: "8px" }}
+                          checked={formik.values[authFields.name].length !== 0}
                         />
                       </div>
                     ) : selectedSource.authentication.name === "sasl" &&
-                      (formik.values.enabled === false ||
+                      (formik.values.enabled.length === 0 ||
                         formik.values.enabled === "") ? null : (
                       <Form.Select
                         aria-label="Select"
                         className="mb-3"
                         size="sm"
-                        id={setting.name}
+                        id={authFields.name}
                         onChange={formik.handleChange}
                       >
                         <option>Select Option</option>
-                        {setting.options?.map((option: any) => (
+                        {authFields.options?.map((option: any) => (
                           <option value={option}>{option}</option>
                         ))}
                       </Form.Select>
                     )
                   ) : selectedSource.authentication.name === "sasl" &&
-                    (formik.values.enabled === false ||
+                    (formik.values.enabled.length === 0 ||
                       formik.values.enabled === "") ? null : (
                     <Form.Control
-                      placeholder={`Enter ${setting.placeholder}`}
-                      aria-label={setting.name}
-                      aria-describedby={setting.name}
+                      placeholder={`Enter ${authFields.placeholder}`}
+                      aria-label={authFields.name}
+                      aria-describedby={authFields.name}
                       className="mb-3"
                       size="sm"
-                      id={setting.name}
+                      id={authFields.name}
                       onChange={formik.handleChange}
-                      value={formik.values[setting.label]}
+                      value={formik.values[authFields.label]}
                     />
                   )}
                 </>
