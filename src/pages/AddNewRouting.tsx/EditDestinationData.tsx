@@ -439,6 +439,7 @@ const EditDestinationData = ({
                           size="sm"
                           onChange={formik.handleChange}
                           id={setting.name}
+                          value={formik.values[setting.name]}
                         >
                           <option>Select Option</option>
                           {setting.options.map((option: string) => (

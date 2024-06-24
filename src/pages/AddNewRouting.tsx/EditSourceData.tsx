@@ -121,6 +121,12 @@ const EditSourceData = ({
 
   const onCheck = (index: number) => {
     setAuthIndex(index);
+
+    selectedSource.authentication.dropdownOptions[index].fieldsToShow.forEach(
+      (field: object) => {
+        formik.setFieldValue(field?.name, "");
+      }
+    );
   };
 
   const onNextClick = () => {
@@ -209,10 +215,34 @@ const EditSourceData = ({
             (sourceValues.auth && sourceValues.auth[item] === undefined) ||
             (sourceValues.sasl && sourceValues.sasl[item] === undefined)
           ) {
-            sourceValues[item] = formik.values[item];
+            if (
+              item !== "enabled" &&
+              item !== "access_key_id" &&
+              item !== "secret_access_key" &&
+              item !== "assume_role"
+            ) {
+              if (formik.values[item] !== "") {
+                if (item === "queue_url" && selectedSource.type === "aws_s3") {
+                  sourceValues["sqs"] = {
+                    queue_url: formik.values["queue_url"],
+                  };
+                } else sourceValues[item] = formik.values[item];
+              }
+            }
           } else {
-            if (item !== "enabled") {
-              sourceValues[item] = formik.values[item];
+            if (
+              item !== "enabled" &&
+              item !== "access_key_id" &&
+              item !== "secret_access_key" &&
+              item !== "assume_role"
+            ) {
+              if (formik.values[item] !== "") {
+                if (item === "queue_url" && selectedSource.type === "aws_s3") {
+                  sourceValues["sqs"] = {
+                    queue_url: formik.values["queue_url"],
+                  };
+                } else sourceValues[item] = formik.values[item];
+              }
             }
           }
         }
@@ -224,8 +254,6 @@ const EditSourceData = ({
     if (selectedSource.mode) {
       sourceValues["mode"] = selectedSource.mode;
     }
-
-    console.log("source", sourceValues);
 
     onSaveSettings(sourceValues);
   };
@@ -346,8 +374,6 @@ const EditSourceData = ({
 
     return tabInvalid;
   };
-
-  console.log("values", formik.values);
 
   return (
     <Offcanvas
@@ -475,6 +501,7 @@ const EditSourceData = ({
                         size="sm"
                         onChange={formik.handleChange}
                         id={setting.name}
+                        value={formik.values[setting.name]}
                       >
                         <option>Select Option</option>
                         {setting.options.map((option: string) => (
@@ -489,6 +516,7 @@ const EditSourceData = ({
                       size="sm"
                       id={setting.name}
                       onChange={formik.handleChange}
+                      value={formik.values[setting.name]}
                     >
                       <option>Select Option</option>
                       {regions?.regions?.map((option: any) => (
@@ -775,33 +803,51 @@ const EditSourceData = ({
                           )}
                         </Form.Label>
 
-                        <Form.Control
-                          placeholder={`Enter ${setting.placeholder}`}
-                          aria-label={setting.name}
-                          aria-describedby={setting.name}
-                          className="mb-3"
-                          size="sm"
-                          id={setting.name}
-                          onChange={formik.handleChange}
-                          value={formik.values[setting.name]}
-                          maxLength={
-                            setting.datatype === "integer"
-                              ? 5
-                              : setting.label === "organization.id"
-                              ? 8
-                              : setting.name === "group_id"
-                              ? 25
-                              : setting.name === "bootstrap_servers"
-                              ? 50
-                              : setting.datatype === "arn"
-                              ? 150
-                              : 20
-                          }
-                          type={
-                            setting.datatype === "integer" ? "number" : "text"
-                          }
-                          isInvalid={invalidCheck(setting)}
-                        />
+                        {setting.name === "region" ? (
+                          <Form.Select
+                            aria-label="Select"
+                            className="mb-3"
+                            size="sm"
+                            id={setting.name}
+                            onChange={formik.handleChange}
+                            value={formik.values[setting.name]}
+                          >
+                            <option>Select Option</option>
+                            {regions?.regions?.map((option: any) => (
+                              <option value={option.value}>
+                                {option.name} ({option.value})
+                              </option>
+                            ))}
+                          </Form.Select>
+                        ) : (
+                          <Form.Control
+                            placeholder={`Enter ${setting.placeholder}`}
+                            aria-label={setting.name}
+                            aria-describedby={setting.name}
+                            className="mb-3"
+                            size="sm"
+                            id={setting.name}
+                            onChange={formik.handleChange}
+                            value={formik.values[setting.name]}
+                            maxLength={
+                              setting.datatype === "integer"
+                                ? 5
+                                : setting.label === "organization.id"
+                                ? 8
+                                : setting.name === "group_id"
+                                ? 25
+                                : setting.name === "bootstrap_servers"
+                                ? 50
+                                : setting.datatype === "arn"
+                                ? 150
+                                : 20
+                            }
+                            type={
+                              setting.datatype === "integer" ? "number" : "text"
+                            }
+                            isInvalid={invalidCheck(setting)}
+                          />
+                        )}
                       </>
                     ))}
                   </>
@@ -868,6 +914,7 @@ const EditSourceData = ({
                         size="sm"
                         id={authFields.name}
                         onChange={formik.handleChange}
+                        value={formik.values[authFields.name]}
                       >
                         <option>Select Option</option>
                         {authFields.options?.map((option: any) => (
@@ -886,7 +933,7 @@ const EditSourceData = ({
                       size="sm"
                       id={authFields.name}
                       onChange={formik.handleChange}
-                      value={formik.values[authFields.label]}
+                      value={formik.values[authFields.name]}
                       maxLength={
                         authFields.datatype === "integer"
                           ? 5
