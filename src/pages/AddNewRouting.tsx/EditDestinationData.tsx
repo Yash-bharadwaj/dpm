@@ -146,8 +146,6 @@ const EditDestinationData = ({
 
     const keys = Object.keys(formik.values);
 
-    console.log("keys", keys);
-
     keys.forEach((item) => {
       if (formik.values[item] !== "") {
         if (item === "name") {

@@ -12,6 +12,7 @@
   "dependencies": {
     "@catalystic/json-to-yaml": "^1.0.0",
     "bootstrap": "^5.3.3",
+    "cidr-regex": "^4.1.1",
     "formik": "^2.4.6",
     "history": "^5.3.0",
     "js-yaml": "^4.1.0",

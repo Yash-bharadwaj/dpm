@@ -16,6 +16,7 @@ import sources from "../../data/sources.json";
 
 import { useState } from "react";
 import { useFormik } from "formik";
+import { checkValueWithRegex } from "./helper";
 
 const EditSourceData = ({
   show,
@@ -238,7 +239,98 @@ const EditSourceData = ({
     }
   };
 
-  console.log("values", formik.values);
+  const invalidCheck = (setting: object) => {
+    let invalid = false;
+    const value = formik.values[setting.name];
+
+    if (value !== "") {
+      if (
+        setting.datatype === "ipaddress" ||
+        setting.datatype === "ipcidr" ||
+        setting.datatype === "alphanumeric" ||
+        setting.datatype === "url" ||
+        setting.datatype === "cs-hostport"
+      ) {
+        const check = checkValueWithRegex(value, setting.datatype);
+        invalid = !check;
+      }
+    }
+
+    return invalid;
+  };
+
+  const checkNonEmptyValues = (value: string, datatype: string) => {
+    let invalid = true;
+
+    if (
+      datatype === "ipaddress" ||
+      datatype === "ipcidr" ||
+      datatype === "alphanumeric" ||
+      datatype === "url" ||
+      datatype === "cs-hostport"
+    ) {
+      const check = checkValueWithRegex(value, datatype);
+      if (check) {
+        invalid = false;
+      }
+    } else {
+      invalid = false;
+    }
+
+    return invalid;
+  };
+
+  const checkTabValues = () => {
+    const { values } = formik;
+    let tabInvalid = false;
+
+    if (selectedTab === "setting") {
+      selectedSource.settings.forEach((setting: object) => {
+        Object.keys(values).forEach((value: string) => {
+          if (
+            !setting.options &&
+            setting.name === value &&
+            values[value] !== "" &&
+            setting.datatype !== "integer"
+          ) {
+            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          }
+        });
+      });
+    }
+
+    if (selectedTab === "advanced") {
+      selectedSource.advanced.forEach((setting: object) => {
+        Object.keys(values).forEach((value: string) => {
+          if (
+            !setting.options &&
+            setting.name === value &&
+            values[value] !== "" &&
+            setting.datatype !== "integer"
+          ) {
+            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          }
+        });
+      });
+    }
+
+    if (selectedTab === "fields") {
+      selectedSource.fields.forEach((setting: object) => {
+        Object.keys(values).forEach((value: string) => {
+          if (
+            !setting.options &&
+            setting.name === value &&
+            values[value] !== "" &&
+            setting.datatype !== "integer"
+          ) {
+            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          }
+        });
+      });
+    }
+
+    return tabInvalid;
+  };
 
   return (
     <Offcanvas
@@ -398,6 +490,19 @@ const EditSourceData = ({
                       id={setting.name}
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
+                      maxLength={
+                        setting.datatype === "integer"
+                          ? 5
+                          : setting.label === "organization.id"
+                          ? 8
+                          : setting.name === "group_id"
+                          ? 25
+                          : setting.name === "bootstrap_servers"
+                          ? 50
+                          : 20
+                      }
+                      type={setting.datatype === "integer" ? "number" : "text"}
+                      isInvalid={invalidCheck(setting)}
                     />
                   )}
                 </>
@@ -505,6 +610,15 @@ const EditSourceData = ({
                         id={field.label}
                         onChange={formik.handleChange}
                         value={formik.values[field.name]}
+                        maxLength={
+                          field.datatype === "integer"
+                            ? 5
+                            : field.label === "organization.id"
+                            ? 8
+                            : 20
+                        }
+                        type={field.datatype === "integer" ? "number" : "text"}
+                        isInvalid={invalidCheck(field)}
                       />
                     )}
                   </div>
@@ -536,6 +650,17 @@ const EditSourceData = ({
                     id={option.name}
                     onChange={formik.handleChange}
                     value={formik.values[option.name]}
+                    maxLength={
+                      option.datatype === "integer"
+                        ? 5
+                        : option.label === "organization.id"
+                        ? 8
+                        : option.name === "group_id"
+                        ? 25
+                        : 20
+                    }
+                    type={option.datatype === "integer" ? "number" : "text"}
+                    isInvalid={invalidCheck(option)}
                   />
                 </>
               ))
@@ -716,6 +841,19 @@ const EditSourceData = ({
                       id={authFields.name}
                       onChange={formik.handleChange}
                       value={formik.values[authFields.label]}
+                      maxLength={
+                        authFields.datatype === "integer"
+                          ? 5
+                          : authFields.label === "organization.id"
+                          ? 8
+                          : authFields.name === "group_id"
+                          ? 25
+                          : 20
+                      }
+                      type={
+                        authFields.datatype === "integer" ? "number" : "text"
+                      }
+                      isInvalid={invalidCheck(authFields)}
                     />
                   )}
                 </>
@@ -748,7 +886,7 @@ const EditSourceData = ({
                 onClick={onNextClick}
                 disabled={
                   selectedTab !== "fields"
-                    ? false
+                    ? checkTabValues()
                     : checkFormValid(formik.values)
                 }
               >

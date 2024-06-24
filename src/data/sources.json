@@ -538,7 +538,8 @@
       "name": "Organization ID",
       "label": "organization.id",
       "placeholder": "Enter Organization ID",
-      "tooltip": "Source Organization ID"
+      "tooltip": "Source Organization ID",
+      "datatype": "alphanumeric"
     },
     {
       "name": "Log Schema",
