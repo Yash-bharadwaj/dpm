@@ -194,10 +194,15 @@ const EditSourceData = ({
           if (formik.values.enabled && formik.values.enabled.length !== 0) {
             sourceValues["sasl"] = {};
 
-            selectedSource.authentication.fields.map(
-              (field: string) =>
-                (sourceValues.sasl[field.name] = formik.values[field.name])
-            );
+            selectedSource.authentication.fields.map((field: string) => {
+              if (field.name === "enabled") {
+                sourceValues.sasl.enabled = true;
+              } else {
+                if (formik.values[field.name] !== "") {
+                  sourceValues.sasl[field.name] = formik.values[field.name];
+                }
+              }
+            });
           }
 
           if (
@@ -206,13 +211,21 @@ const EditSourceData = ({
           ) {
             sourceValues[item] = formik.values[item];
           } else {
-            sourceValues[item] = formik.values[item];
+            if (item !== "enabled") {
+              sourceValues[item] = formik.values[item];
+            }
           }
         }
       }
     });
 
     sourceValues["type"] = selectedSource.type;
+
+    if (selectedSource.mode) {
+      sourceValues["mode"] = selectedSource.mode;
+    }
+
+    console.log("source", sourceValues);
 
     onSaveSettings(sourceValues);
   };
@@ -249,7 +262,8 @@ const EditSourceData = ({
         setting.datatype === "ipcidr" ||
         setting.datatype === "alphanumeric" ||
         setting.datatype === "url" ||
-        setting.datatype === "cs-hostport"
+        setting.datatype === "cs-hostport" ||
+        setting.datatype === "arn"
       ) {
         const check = checkValueWithRegex(value, setting.datatype);
         invalid = !check;
@@ -267,7 +281,8 @@ const EditSourceData = ({
       datatype === "ipcidr" ||
       datatype === "alphanumeric" ||
       datatype === "url" ||
-      datatype === "cs-hostport"
+      datatype === "cs-hostport" ||
+      datatype === "arn"
     ) {
       const check = checkValueWithRegex(value, datatype);
       if (check) {
@@ -331,6 +346,8 @@ const EditSourceData = ({
 
     return tabInvalid;
   };
+
+  console.log("values", formik.values);
 
   return (
     <Offcanvas
@@ -499,6 +516,8 @@ const EditSourceData = ({
                           ? 25
                           : setting.name === "bootstrap_servers"
                           ? 50
+                          : setting.datatype === "arn"
+                          ? 150
                           : 20
                       }
                       type={setting.datatype === "integer" ? "number" : "text"}
@@ -615,6 +634,12 @@ const EditSourceData = ({
                             ? 5
                             : field.label === "organization.id"
                             ? 8
+                            : field.name === "group_id"
+                            ? 25
+                            : field.name === "bootstrap_servers"
+                            ? 50
+                            : field.datatype === "arn"
+                            ? 150
                             : 20
                         }
                         type={field.datatype === "integer" ? "number" : "text"}
@@ -657,6 +682,10 @@ const EditSourceData = ({
                         ? 8
                         : option.name === "group_id"
                         ? 25
+                        : option.name === "bootstrap_servers"
+                        ? 50
+                        : option.datatype === "arn"
+                        ? 150
                         : 20
                     }
                     type={option.datatype === "integer" ? "number" : "text"}
@@ -755,6 +784,23 @@ const EditSourceData = ({
                           id={setting.name}
                           onChange={formik.handleChange}
                           value={formik.values[setting.name]}
+                          maxLength={
+                            setting.datatype === "integer"
+                              ? 5
+                              : setting.label === "organization.id"
+                              ? 8
+                              : setting.name === "group_id"
+                              ? 25
+                              : setting.name === "bootstrap_servers"
+                              ? 50
+                              : setting.datatype === "arn"
+                              ? 150
+                              : 20
+                          }
+                          type={
+                            setting.datatype === "integer" ? "number" : "text"
+                          }
+                          isInvalid={invalidCheck(setting)}
                         />
                       </>
                     ))}
@@ -848,6 +894,10 @@ const EditSourceData = ({
                           ? 8
                           : authFields.name === "group_id"
                           ? 25
+                          : authFields.name === "bootstrap_servers"
+                          ? 50
+                          : authFields.datatype === "arn"
+                          ? 150
                           : 20
                       }
                       type={

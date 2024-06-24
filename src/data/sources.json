@@ -736,7 +736,8 @@
                 "name": "ssekms_key_id",
                 "label": "KMS key ID",
                 "placeholder": "Enter kms key ID",
-                "tooltip": "Amazon KMS Managed Key"
+                "tooltip": "Amazon KMS Managed Key",
+                "datatype": "alphanumeric"
               }
             }
           ]

@@ -15,6 +15,7 @@ import regions from "../../data/regions.json";
 
 import { useState } from "react";
 import { useFormik } from "formik";
+import { checkValueWithRegex } from "./helper";
 
 const EditDestinationData = ({
   show,
@@ -215,6 +216,101 @@ const EditDestinationData = ({
     onHide();
   };
 
+  const invalidCheck = (setting: object) => {
+    let invalid = false;
+    const value = formik.values[setting.name];
+
+    if (value !== "") {
+      if (
+        setting.datatype === "ipaddress" ||
+        setting.datatype === "ipcidr" ||
+        setting.datatype === "alphanumeric" ||
+        setting.datatype === "url" ||
+        setting.datatype === "cs-hostport" ||
+        setting.datatype === "arn"
+      ) {
+        const check = checkValueWithRegex(value, setting.datatype);
+        invalid = !check;
+      }
+    }
+
+    return invalid;
+  };
+
+  const checkNonEmptyValues = (value: string, datatype: string) => {
+    let invalid = true;
+
+    if (
+      datatype === "ipaddress" ||
+      datatype === "ipcidr" ||
+      datatype === "alphanumeric" ||
+      datatype === "url" ||
+      datatype === "cs-hostport" ||
+      datatype === "arn"
+    ) {
+      const check = checkValueWithRegex(value, datatype);
+      if (check) {
+        invalid = false;
+      }
+    } else {
+      invalid = false;
+    }
+
+    return invalid;
+  };
+
+  const checkTabValues = () => {
+    const { values } = formik;
+    let tabInvalid = false;
+
+    if (selectedTab === "setting") {
+      selectedDestination.settings.forEach((setting: object) => {
+        Object.keys(values).forEach((value: string) => {
+          if (
+            !setting.options &&
+            setting.name === value &&
+            values[value] !== "" &&
+            setting.datatype !== "integer"
+          ) {
+            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          }
+        });
+      });
+    }
+
+    if (selectedTab === "advanced") {
+      selectedDestination.advanced.forEach((setting: object) => {
+        Object.keys(values).forEach((value: string) => {
+          if (
+            !setting.options &&
+            setting.name === value &&
+            values[value] !== "" &&
+            setting.datatype !== "integer"
+          ) {
+            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          }
+        });
+      });
+    }
+
+    if (selectedTab === "fields") {
+      selectedDestination.fields.forEach((setting: object) => {
+        Object.keys(values).forEach((value: string) => {
+          if (
+            !setting.options &&
+            setting.name === value &&
+            values[value] !== "" &&
+            setting.datatype !== "integer"
+          ) {
+            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          }
+        });
+      });
+    }
+
+    return tabInvalid;
+  };
+
   return (
     <Offcanvas
       show={show}
@@ -376,6 +472,23 @@ const EditDestinationData = ({
                         id={setting.name}
                         onChange={formik.handleChange}
                         value={formik.values[setting.name]}
+                        maxLength={
+                          setting.datatype === "integer"
+                            ? 5
+                            : setting.label === "organization.id"
+                            ? 8
+                            : setting.name === "group_id"
+                            ? 25
+                            : setting.name === "bootstrap_servers"
+                            ? 50
+                            : setting.datatype === "arn"
+                            ? 150
+                            : 20
+                        }
+                        type={
+                          setting.datatype === "integer" ? "number" : "text"
+                        }
+                        isInvalid={invalidCheck(setting)}
                       />
                     ))}
                 </>
@@ -480,6 +593,25 @@ const EditDestinationData = ({
                                     id={option.fields.name}
                                     onChange={formik.handleChange}
                                     value={formik.values[option.fields.name]}
+                                    maxLength={
+                                      setting.datatype === "integer"
+                                        ? 5
+                                        : setting.label === "organization.id"
+                                        ? 8
+                                        : setting.name === "group_id"
+                                        ? 25
+                                        : setting.name === "bootstrap_servers"
+                                        ? 50
+                                        : setting.datatype === "arn"
+                                        ? 150
+                                        : 20
+                                    }
+                                    type={
+                                      setting.datatype === "integer"
+                                        ? "number"
+                                        : "text"
+                                    }
+                                    isInvalid={invalidCheck(setting)}
                                   />
                                 </>
                               );
@@ -499,6 +631,21 @@ const EditDestinationData = ({
                       id={setting.name}
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
+                      maxLength={
+                        setting.datatype === "integer"
+                          ? 5
+                          : setting.label === "organization.id"
+                          ? 8
+                          : setting.name === "group_id"
+                          ? 25
+                          : setting.name === "bootstrap_servers"
+                          ? 50
+                          : setting.datatype === "arn"
+                          ? 150
+                          : 20
+                      }
+                      type={setting.datatype === "integer" ? "number" : "text"}
+                      isInvalid={invalidCheck(setting)}
                     />
                   )}
                 </>
@@ -595,6 +742,23 @@ const EditDestinationData = ({
                           id={setting.name}
                           onChange={formik.handleChange}
                           value={formik.values[setting.name]}
+                          maxLength={
+                            setting.datatype === "integer"
+                              ? 5
+                              : setting.label === "organization.id"
+                              ? 8
+                              : setting.name === "group_id"
+                              ? 25
+                              : setting.name === "bootstrap_servers"
+                              ? 50
+                              : setting.datatype === "arn"
+                              ? 150
+                              : 20
+                          }
+                          type={
+                            setting.datatype === "integer" ? "number" : "text"
+                          }
+                          isInvalid={invalidCheck(setting)}
                         />
                       </>
                     ))}
@@ -644,6 +808,21 @@ const EditDestinationData = ({
                       id={setting.name}
                       onChange={formik.handleChange}
                       value={formik.values[setting.label]}
+                      maxLength={
+                        setting.datatype === "integer"
+                          ? 5
+                          : setting.label === "organization.id"
+                          ? 8
+                          : setting.name === "group_id"
+                          ? 25
+                          : setting.name === "bootstrap_servers"
+                          ? 50
+                          : setting.datatype === "arn"
+                          ? 150
+                          : 20
+                      }
+                      type={setting.datatype === "integer" ? "number" : "text"}
+                      isInvalid={invalidCheck(setting)}
                     />
                   )}
                 </>
@@ -677,7 +856,7 @@ const EditDestinationData = ({
                 disabled={
                   selectedTab === "setting" ||
                   (selectedTab === "auth" && selectedDestination.advanced)
-                    ? false
+                    ? checkTabValues()
                     : checkFormValid(formik.values)
                 }
               >

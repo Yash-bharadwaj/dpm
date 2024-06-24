@@ -4,8 +4,7 @@ const ipRegex = /^((25[0-5]|(2[0-4]|1[0-9]|[1-9]|)[0-9])(.(?!$)|$)){4}$/;
 
 const alphaNumericRegex = /^[a-z0-9]+$/i;
 
-const arnRegex =
-  /^arn:aws:connect:\w+(?:-\w+)+:\d{12}:role\/[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$/;
+const arnRegex = /^arn:aws:iam::\d{12}:role\/[A-Za-z0-9-]+$/;
 
 const urlRegex =
   /^[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
