@@ -170,7 +170,7 @@ const EditSourceData = ({
     const keys = Object.keys(formik.values);
 
     keys.forEach((item) => {
-      if (formik.values[item] !== "") {
+      if (formik.values[item] !== "" || item === "tls" || item === "enabled") {
         if (item === "name") {
           if (selectedNode === undefined) {
             const name = formik.values.name.replace(" ", "_");
@@ -192,6 +192,23 @@ const EditSourceData = ({
             schema: schema,
             format: format,
           };
+        } else if (item === "tls" || item === "codec") {
+          if (item === "tls") {
+            if (
+              formik.values["tls"].length !== 0 &&
+              formik.values["tls"][0] === "on"
+            ) {
+              sourceValues["tls"] = {
+                enabled: true,
+              };
+            } else {
+              sourceValues["tls"] = { enabled: false };
+            }
+          } else {
+            sourceValues["decoding"] = {
+              codec: formik.values["codec"],
+            };
+          }
         } else {
           if (authIndex) {
             sourceValues["auth"] = {};
@@ -219,6 +236,10 @@ const EditSourceData = ({
                 }
               }
             });
+          } else {
+            sourceValues["sasl"] = {
+              enabled: false,
+            };
           }
 
           if (
@@ -285,7 +306,7 @@ const EditSourceData = ({
 
     console.log("source values", sourceValues);
 
-    onSaveSettings(sourceValues);
+    // onSaveSettings(sourceValues);
   };
 
   const onBackClick = () => {
@@ -321,10 +342,20 @@ const EditSourceData = ({
         setting.datatype === "alphanumeric" ||
         setting.datatype === "url" ||
         setting.datatype === "cs-hostport" ||
-        setting.datatype === "arn"
+        setting.datatype === "arn" ||
+        setting.datatype === "alphanumericSpecial" ||
+        setting.datatype === "password"
       ) {
         const check = checkValueWithRegex(value, setting.datatype);
         invalid = !check;
+      } else {
+        if (setting.name === "port") {
+          if (value > 65535) {
+            invalid = true;
+          }
+        } else {
+          invalid = false;
+        }
       }
     }
 
@@ -340,7 +371,9 @@ const EditSourceData = ({
       datatype === "alphanumeric" ||
       datatype === "url" ||
       datatype === "cs-hostport" ||
-      datatype === "arn"
+      datatype === "arn" ||
+      datatype === "alphanumericSpecial" ||
+      datatype === "password"
     ) {
       const check = checkValueWithRegex(value, datatype);
       if (check) {
@@ -367,6 +400,12 @@ const EditSourceData = ({
             setting.datatype !== "integer"
           ) {
             tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          } else {
+            if (setting.datatype === "integer" && setting.name === "port") {
+              if (values[value] > 65535) {
+                tabInvalid = true;
+              }
+            }
           }
         });
       });
@@ -382,6 +421,12 @@ const EditSourceData = ({
             setting.datatype !== "integer"
           ) {
             tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          } else {
+            if (setting.datatype === "integer" && setting.name === "port") {
+              if (values[value] > 65535) {
+                tabInvalid = true;
+              }
+            }
           }
         });
       });
@@ -397,6 +442,12 @@ const EditSourceData = ({
             setting.datatype !== "integer"
           ) {
             tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          } else {
+            if (setting.datatype === "integer" && setting.name === "port") {
+              if (values[value] > 65535) {
+                tabInvalid = true;
+              }
+            }
           }
         });
       });
@@ -425,6 +476,8 @@ const EditSourceData = ({
 
     setTopics((prevList) => [...prevTopics]);
   };
+
+  //   console.log("formik", formik.values);
 
   return (
     <Offcanvas
@@ -631,21 +684,11 @@ const EditSourceData = ({
                       id={setting.name}
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
-                      maxLength={
-                        setting.datatype === "integer"
-                          ? 5
-                          : setting.label === "organization.id"
-                          ? 8
-                          : setting.name === "group_id"
-                          ? 25
-                          : setting.name === "bootstrap_servers"
-                          ? 50
-                          : setting.datatype === "arn"
-                          ? 150
-                          : 20
-                      }
+                      maxLength={setting.maxChar || 20}
                       type={setting.datatype === "integer" ? "number" : "text"}
                       isInvalid={invalidCheck(setting)}
+                      min={0}
+                      max={65535}
                     />
                   )}
                 </>
@@ -753,19 +796,7 @@ const EditSourceData = ({
                         id={field.label}
                         onChange={formik.handleChange}
                         value={formik.values[field.name]}
-                        maxLength={
-                          field.datatype === "integer"
-                            ? 5
-                            : field.label === "organization.id"
-                            ? 8
-                            : field.name === "group_id"
-                            ? 25
-                            : field.name === "bootstrap_servers"
-                            ? 50
-                            : field.datatype === "arn"
-                            ? 150
-                            : 20
-                        }
+                        maxLength={field.maxChar || 20}
                         type={field.datatype === "integer" ? "number" : "text"}
                         isInvalid={invalidCheck(field)}
                       />
@@ -776,45 +807,80 @@ const EditSourceData = ({
             ) : selectedTab === "advanced" ? (
               selectedSource.advanced?.map((option: any) => (
                 <>
-                  <Form.Label htmlFor={option.name}>
-                    {option.label}{" "}
-                    {option.tooltip && (
-                      <OverlayTrigger
-                        placement="right"
-                        overlay={
-                          <Tooltip id={option.name}>{option.tooltip}</Tooltip>
-                        }
-                      >
-                        <QuestionCircle size={14} />
-                      </OverlayTrigger>
-                    )}
-                  </Form.Label>
+                  {option.datatype !== "boolean" && (
+                    <Form.Label htmlFor={option.name}>
+                      {option.label}{" "}
+                      {option.tooltip && (
+                        <OverlayTrigger
+                          placement="right"
+                          overlay={
+                            <Tooltip id={option.name}>{option.tooltip}</Tooltip>
+                          }
+                        >
+                          <QuestionCircle size={14} />
+                        </OverlayTrigger>
+                      )}
+                    </Form.Label>
+                  )}
 
-                  <Form.Control
-                    placeholder={`Enter ${option.label}`}
-                    aria-label={option.name}
-                    aria-describedby={option.name}
-                    className="mb-3"
-                    size="sm"
-                    id={option.name}
-                    onChange={formik.handleChange}
-                    value={formik.values[option.name]}
-                    maxLength={
-                      option.datatype === "integer"
-                        ? 5
-                        : option.label === "organization.id"
-                        ? 8
-                        : option.name === "group_id"
-                        ? 25
-                        : option.name === "bootstrap_servers"
-                        ? 50
-                        : option.datatype === "arn"
-                        ? 150
-                        : 20
-                    }
-                    type={option.datatype === "integer" ? "number" : "text"}
-                    isInvalid={invalidCheck(option)}
-                  />
+                  {option.options ? (
+                    option.datatype === "boolean" ? (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <Form.Label htmlFor={option.name}>
+                          {option.label}{" "}
+                          {option.tooltip && (
+                            <OverlayTrigger
+                              placement="right"
+                              overlay={
+                                <Tooltip id={option.name}>
+                                  {option.tooltip}
+                                </Tooltip>
+                              }
+                            >
+                              <QuestionCircle size={14} />
+                            </OverlayTrigger>
+                          )}
+                        </Form.Label>
+
+                        <Form.Check // prettier-ignore
+                          type="switch"
+                          id={option.name}
+                          checked={formik.values[option.name]}
+                          defaultChecked={option.default}
+                          onChange={formik.handleChange}
+                          style={{ marginLeft: "8px" }}
+                        />
+                      </div>
+                    ) : (
+                      <Form.Select
+                        aria-label="Select"
+                        className="mb-3"
+                        size="sm"
+                        onChange={formik.handleChange}
+                        id={option.name}
+                        value={formik.values[option.name]}
+                      >
+                        <option>Select Option</option>
+                        {option.options.map((option: string) => (
+                          <option value={option}>{option}</option>
+                        ))}
+                      </Form.Select>
+                    )
+                  ) : (
+                    <Form.Control
+                      placeholder={`Enter ${option.label}`}
+                      aria-label={option.name}
+                      aria-describedby={option.name}
+                      className="mb-3"
+                      size="sm"
+                      id={option.name}
+                      onChange={formik.handleChange}
+                      value={formik.values[option.name]}
+                      maxLength={option.maxChar || 20}
+                      type={option.datatype === "integer" ? "number" : "text"}
+                      isInvalid={invalidCheck(option)}
+                    />
+                  )}
                 </>
               ))
             ) : selectedSource.authentication.dropdownOptions ? (
@@ -925,19 +991,7 @@ const EditSourceData = ({
                             id={setting.name}
                             onChange={formik.handleChange}
                             value={formik.values[setting.name]}
-                            maxLength={
-                              setting.datatype === "integer"
-                                ? 5
-                                : setting.label === "organization.id"
-                                ? 8
-                                : setting.name === "group_id"
-                                ? 25
-                                : setting.name === "bootstrap_servers"
-                                ? 50
-                                : setting.datatype === "arn"
-                                ? 150
-                                : 20
-                            }
+                            maxLength={setting.maxChar || 20}
                             type={
                               setting.datatype === "integer" ? "number" : "text"
                             }
@@ -1030,19 +1084,7 @@ const EditSourceData = ({
                       id={authFields.name}
                       onChange={formik.handleChange}
                       value={formik.values[authFields.name]}
-                      maxLength={
-                        authFields.datatype === "integer"
-                          ? 5
-                          : authFields.label === "organization.id"
-                          ? 8
-                          : authFields.name === "group_id"
-                          ? 25
-                          : authFields.name === "bootstrap_servers"
-                          ? 50
-                          : authFields.datatype === "arn"
-                          ? 150
-                          : 20
-                      }
+                      maxLength={authFields.maxChar || 20}
                       type={
                         authFields.datatype === "integer" ? "number" : "text"
                       }

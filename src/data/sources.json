@@ -9,11 +9,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "host",
@@ -51,11 +52,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "host",
@@ -92,11 +94,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "host",
@@ -133,11 +136,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "host",
@@ -174,11 +178,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "host",
@@ -216,10 +221,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
-          "tooltip": "Unique ID for this source",
+          "label": "Input-ID (App Name)*",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "host",
@@ -263,10 +270,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
-          "tooltip": "Unique ID for this source",
+          "label": "Input-ID (App Name)*",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "host",
@@ -296,17 +305,20 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
-          "datatype": "text"
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "queue_url",
           "label": "Queue URL *",
           "tooltip": "URL of the SQS queue to poll for bucket notifications.",
           "datatype": "url",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 120
         },
         {
           "name": "compression",
@@ -335,15 +347,17 @@
                 "placeholder": "AWS access key.",
                 "tooltip": "Access Key",
                 "datatype": "alphanumeric",
-                "mandatory": true
+                "mandatory": true,
+                "maxChar": 20
               },
               {
                 "name": "secret_access_key",
                 "label": "Secret Key *",
                 "placeholder": "AWS secret key.",
                 "tooltip": "Secret Key",
-                "datatype": "alphanumeric",
-                "mandatory": true
+                "datatype": "alphanumericSpecial",
+                "mandatory": true,
+                "maxChar": 40
               },
               {
                 "name": "auth_region",
@@ -378,10 +392,12 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
-          "datatype": "text"
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "queue_url",
@@ -389,7 +405,8 @@
           "placeholder": "Enter SQS queue URL",
           "tooltip": "URL of the SQS queue to poll for messages.",
           "datatype": "url",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 120
         },
         {
           "name": "delete_message",
@@ -419,15 +436,17 @@
                 "placeholder": "AWS access key.",
                 "tooltip": "Access Key",
                 "datatype": "alphanumeric",
-                "mandatory": true
+                "mandatory": true,
+                "maxChar": 20
               },
               {
                 "name": "secret_access_key",
                 "label": "Secret Key *",
                 "placeholder": "AWS secret key.",
                 "tooltip": "Secret Key",
-                "datatype": "alphanumeric",
-                "mandatory": true
+                "datatype": "alphanumericSpecial",
+                "mandatory": true,
+                "maxChar": 40
               },
               {
                 "name": "auth_region",
@@ -457,7 +476,8 @@
           "name": "endpoint",
           "label": "Endpoint",
           "tooltip": "Custom endpoint for use with AWS-compatible services.",
-          "datatype": "url"
+          "datatype": "url",
+          "maxChar": 80
         }
       ]
     },
@@ -470,18 +490,20 @@
       "settings": [
         {
           "name": "name",
-          "label": "Input-ID *",
+          "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique ID for this source",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "bootstrap_servers",
           "label": "Brokers *",
-          "tooltip": "Comma-separated list of Kafka brokers (bootstrap servers) to use in format hostname:port, e.g., brokerip:9093",
+          "tooltip": "Comma-separated list of Kafka brokers (bootstrap servers) to use in format hostname:port, e.g., 192.168.11.35:9093",
           "datatype": "cs-hostport",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 300
         },
         {
           "name": "topics",
@@ -495,7 +517,8 @@
           "label": "Consumer Group *",
           "tooltip": "Consumer group name to be used to consume events from Kafka",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 25
         }
       ],
       "authentication": {
@@ -527,10 +550,27 @@
             "label": "Password",
             "placeholder": "SASL Password",
             "tooltip": "SASL Password.",
-            "datatype": "password"
+            "datatype": "password",
+            "maxChar": 180
           }
         ]
-      }
+      },
+      "advanced": [
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "options": ["true", "false"],
+          "tooltip": "TLS for outgoing connections",
+          "datatype": "boolean"
+        },
+        {
+          "name": "codec",
+          "label": "Codec",
+          "options": ["json", "syslog"],
+          "tooltip": "Codec to use for decoding events",
+          "default": "json"
+        }
+      ]
     }
   ],
   "fields": [
@@ -539,7 +579,8 @@
       "label": "organization.id",
       "placeholder": "Enter Organization ID",
       "tooltip": "Source Organization ID",
-      "datatype": "alphanumeric"
+      "datatype": "alphanumeric",
+      "maxChar": 8
     },
     {
       "name": "Log Schema",
@@ -579,13 +620,15 @@
           "label": "S3 Bucket Name *",
           "tooltip": "Name of destination S3 bucket, E.g. my-bucket",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "key_prefix",
           "label": "Key Prefix",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
-          "datatype": "text-special"
+          "datatype": "text-special",
+          "maxChar": 60
         },
         {
           "name": "compression",
@@ -613,15 +656,17 @@
                 "placeholder": "AWS access key.",
                 "tooltip": "Access Key",
                 "datatype": "alphanumeric",
-                "mandatory": true
+                "mandatory": true,
+                "maxChar": 20
               },
               {
                 "name": "secret_access_key",
                 "label": "Secret Key *",
                 "placeholder": "AWS secret key.",
                 "tooltip": "Secret Key",
-                "datatype": "alphanumeric",
-                "mandatory": true
+                "datatype": "alphanumericSpecial",
+                "mandatory": true,
+                "maxChar": 40
               },
               {
                 "name": "region",
@@ -641,7 +686,8 @@
                 "tooltip": "ARN of an IAM role to assume.",
                 "placeholder": "ARN",
                 "datatype": "arn",
-                "mandatory": true
+                "mandatory": true,
+                "maxChar": 150
               }
             ]
           }
@@ -652,7 +698,8 @@
           "name": "endpoint",
           "label": "Endpoint",
           "tooltip": "Custom endpoint for use with AWS-compatible services. If empty, defaults to AWS Region-specific endpoint.",
-          "datatype": "url"
+          "datatype": "url",
+          "maxChar": 80
         },
         {
           "name": "acl",
@@ -768,13 +815,15 @@
           "label": "BluSapphire SDL Bucket Name *",
           "tooltip": "Name of BluSapphire SDL destination S3 bucket, E.g. sdl-bucket",
           "datatype": "text",
-          "mandatory": true
+          "mandatory": true,
+          "maxChar": 30
         },
         {
           "name": "key_prefix",
           "label": "Key Prefix",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
-          "datatype": "text-special"
+          "datatype": "text-special",
+          "maxChar": 60
         },
         {
           "name": "compression",
@@ -802,15 +851,17 @@
                 "placeholder": "AWS access key.",
                 "tooltip": "Access Key",
                 "datatype": "alphanumeric",
-                "mandatory": true
+                "mandatory": true,
+                "maxChar": 20
               },
               {
                 "name": "secret_access_key",
                 "label": "Secret Key *",
                 "placeholder": "AWS secret key.",
                 "tooltip": "Secret Key",
-                "datatype": "alphanumeric",
-                "mandatory": true
+                "datatype": "alphanumericSpecial",
+                "mandatory": true,
+                "maxChar": 40
               },
               {
                 "name": "region",
@@ -840,7 +891,8 @@
           "name": "endpoint",
           "label": "Endpoint",
           "tooltip": "Custom endpoint for use with AWS-compatible services. If empty, defaults to AWS Region-specific endpoint.",
-          "datatype": "url"
+          "datatype": "url",
+          "maxChar": 80
         },
         {
           "name": "acl",

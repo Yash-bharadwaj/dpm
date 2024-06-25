@@ -239,10 +239,20 @@ const EditDestinationData = ({
         setting.datatype === "alphanumeric" ||
         setting.datatype === "url" ||
         setting.datatype === "cs-hostport" ||
-        setting.datatype === "arn"
+        setting.datatype === "arn" ||
+        setting.datatype === "alphanumericSpecial" ||
+        setting.datatype === "password"
       ) {
         const check = checkValueWithRegex(value, setting.datatype);
         invalid = !check;
+      } else {
+        if (setting.name === "port") {
+          if (value > 65535) {
+            invalid = true;
+          }
+        } else {
+          invalid = false;
+        }
       }
     }
 
@@ -258,7 +268,9 @@ const EditDestinationData = ({
       datatype === "alphanumeric" ||
       datatype === "url" ||
       datatype === "cs-hostport" ||
-      datatype === "arn"
+      datatype === "arn" ||
+      datatype === "alphanumericSpecial" ||
+      datatype === "password"
     ) {
       const check = checkValueWithRegex(value, datatype);
       if (check) {
@@ -285,6 +297,12 @@ const EditDestinationData = ({
             setting.datatype !== "integer"
           ) {
             tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          } else {
+            if (setting.datatype === "integer" && setting.name === "port") {
+              if (values[value] > 65535) {
+                tabInvalid = true;
+              }
+            }
           }
         });
       });
@@ -300,6 +318,12 @@ const EditDestinationData = ({
             setting.datatype !== "integer"
           ) {
             tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          } else {
+            if (setting.datatype === "integer" && setting.name === "port") {
+              if (values[value] > 65535) {
+                tabInvalid = true;
+              }
+            }
           }
         });
       });
@@ -315,6 +339,12 @@ const EditDestinationData = ({
             setting.datatype !== "integer"
           ) {
             tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+          } else {
+            if (setting.datatype === "integer" && setting.name === "port") {
+              if (values[value] > 65535) {
+                tabInvalid = true;
+              }
+            }
           }
         });
       });
@@ -485,19 +515,7 @@ const EditDestinationData = ({
                         id={setting.name}
                         onChange={formik.handleChange}
                         value={formik.values[setting.name]}
-                        maxLength={
-                          setting.datatype === "integer"
-                            ? 5
-                            : setting.label === "organization.id"
-                            ? 8
-                            : setting.name === "group_id"
-                            ? 25
-                            : setting.name === "bootstrap_servers"
-                            ? 50
-                            : setting.datatype === "arn"
-                            ? 150
-                            : 20
-                        }
+                        maxLength={setting.maxChar || 20}
                         type={
                           setting.datatype === "integer" ? "number" : "text"
                         }
@@ -606,19 +624,7 @@ const EditDestinationData = ({
                                     id={option.fields.name}
                                     onChange={formik.handleChange}
                                     value={formik.values[option.fields.name]}
-                                    maxLength={
-                                      setting.datatype === "integer"
-                                        ? 5
-                                        : setting.label === "organization.id"
-                                        ? 8
-                                        : setting.name === "group_id"
-                                        ? 25
-                                        : setting.name === "bootstrap_servers"
-                                        ? 50
-                                        : setting.datatype === "arn"
-                                        ? 150
-                                        : 20
-                                    }
+                                    maxLength={option.fields.maxChar || 20}
                                     type={
                                       setting.datatype === "integer"
                                         ? "number"
@@ -644,19 +650,7 @@ const EditDestinationData = ({
                       id={setting.name}
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
-                      maxLength={
-                        setting.datatype === "integer"
-                          ? 5
-                          : setting.label === "organization.id"
-                          ? 8
-                          : setting.name === "group_id"
-                          ? 25
-                          : setting.name === "bootstrap_servers"
-                          ? 50
-                          : setting.datatype === "arn"
-                          ? 150
-                          : 20
-                      }
+                      maxLength={setting.maxChar || 20}
                       type={setting.datatype === "integer" ? "number" : "text"}
                       isInvalid={invalidCheck(setting)}
                     />
@@ -755,19 +749,7 @@ const EditDestinationData = ({
                           id={setting.name}
                           onChange={formik.handleChange}
                           value={formik.values[setting.name]}
-                          maxLength={
-                            setting.datatype === "integer"
-                              ? 5
-                              : setting.label === "organization.id"
-                              ? 8
-                              : setting.name === "group_id"
-                              ? 25
-                              : setting.name === "bootstrap_servers"
-                              ? 50
-                              : setting.datatype === "arn"
-                              ? 150
-                              : 20
-                          }
+                          maxLength={setting.maxChar || 20}
                           type={
                             setting.datatype === "integer" ? "number" : "text"
                           }
@@ -821,19 +803,7 @@ const EditDestinationData = ({
                       id={setting.name}
                       onChange={formik.handleChange}
                       value={formik.values[setting.label]}
-                      maxLength={
-                        setting.datatype === "integer"
-                          ? 5
-                          : setting.label === "organization.id"
-                          ? 8
-                          : setting.name === "group_id"
-                          ? 25
-                          : setting.name === "bootstrap_servers"
-                          ? 50
-                          : setting.datatype === "arn"
-                          ? 150
-                          : 20
-                      }
+                      maxLength={setting.maxChar || 20}
                       type={setting.datatype === "integer" ? "number" : "text"}
                       isInvalid={invalidCheck(setting)}
                     />
