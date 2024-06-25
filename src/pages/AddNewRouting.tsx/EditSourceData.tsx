@@ -27,6 +27,7 @@ const EditSourceData = ({
 }: any) => {
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
+  const [topics, setTopics] = useState([""]);
 
   let sourceInitialValues = {};
   let mandatoryFields = [];
@@ -88,7 +89,13 @@ const EditSourceData = ({
 
     mandatoryFields.forEach((field) => {
       if (values[field] === "") {
-        if (
+        if (field === "topics") {
+          if (topics[0] !== "") {
+            error = false;
+          } else {
+            error = true;
+          }
+        } else if (
           authIndex !== null &&
           ((authIndex === "0" && field === "assume_role") ||
             (authIndex === "1" &&
@@ -191,10 +198,13 @@ const EditSourceData = ({
 
             selectedSource.authentication.dropdownOptions[
               authIndex
-            ].fieldsToShow.map(
-              (field: string) =>
-                (sourceValues.auth[field.name] = formik.values[field.name])
-            );
+            ].fieldsToShow.map((field: string) => {
+              if (field.name === "auth_region") {
+                sourceValues.auth["region"] = formik.values[field.name];
+              } else {
+                sourceValues.auth[field.name] = formik.values[field.name];
+              }
+            });
           }
 
           if (formik.values.enabled && formik.values.enabled.length !== 0) {
@@ -219,7 +229,11 @@ const EditSourceData = ({
               item !== "enabled" &&
               item !== "access_key_id" &&
               item !== "secret_access_key" &&
-              item !== "assume_role"
+              item !== "assume_role" &&
+              item !== "mechanism" &&
+              item !== "username" &&
+              item !== "password" &&
+              item !== "auth_region"
             ) {
               if (formik.values[item] !== "") {
                 if (item === "queue_url" && selectedSource.type === "aws_s3") {
@@ -234,7 +248,11 @@ const EditSourceData = ({
               item !== "enabled" &&
               item !== "access_key_id" &&
               item !== "secret_access_key" &&
-              item !== "assume_role"
+              item !== "assume_role" &&
+              item !== "mechanism" &&
+              item !== "username" &&
+              item !== "password" &&
+              item !== "auth_region"
             ) {
               if (formik.values[item] !== "") {
                 if (item === "queue_url" && selectedSource.type === "aws_s3") {
@@ -247,6 +265,16 @@ const EditSourceData = ({
           }
         }
       }
+
+      if (item === "topics") {
+        let addedTopics = [];
+
+        if (topics[0] !== "") {
+          topics.map((topic) => addedTopics.push(topic));
+        }
+
+        sourceValues["topics"] = addedTopics;
+      }
     });
 
     sourceValues["type"] = selectedSource.type;
@@ -254,6 +282,8 @@ const EditSourceData = ({
     if (selectedSource.mode) {
       sourceValues["mode"] = selectedSource.mode;
     }
+
+    console.log("source values", sourceValues);
 
     onSaveSettings(sourceValues);
   };
@@ -373,6 +403,27 @@ const EditSourceData = ({
     }
 
     return tabInvalid;
+  };
+
+  const onTopicChange = (value: string, index: number) => {
+    let currentTopics = topics;
+
+    currentTopics[index] = value;
+
+    setTopics((prevList) => [...currentTopics]);
+  };
+
+  const onAddTopic = () => {
+    const topic = "";
+
+    setTopics((prevList) => [...prevList, topic]);
+  };
+
+  const onRemoveTopic = (index: number) => {
+    let prevTopics = topics;
+    prevTopics.splice(index, 1);
+
+    setTopics((prevList) => [...prevTopics]);
   };
 
   return (
@@ -525,6 +576,51 @@ const EditSourceData = ({
                         </option>
                       ))}
                     </Form.Select>
+                  ) : setting.name === "topics" ? (
+                    topics.map((topic, index) => (
+                      <div>
+                        <div
+                          style={{ display: "flex", alignItems: "baseline" }}
+                        >
+                          <Form.Control
+                            placeholder={`Enter ${setting.label}`}
+                            aria-label={setting.name}
+                            aria-describedby={setting.name}
+                            className="mb-3"
+                            size="sm"
+                            id={setting.name}
+                            onChange={(event) => {
+                              onTopicChange(event.target.value, index);
+                            }}
+                            value={topic}
+                            maxLength={80}
+                            type={"text"}
+                          />
+
+                          {index === 0 ? (
+                            <Button
+                              onClick={() => {
+                                onAddTopic();
+                              }}
+                              style={{ marginLeft: "8px" }}
+                              size="sm"
+                            >
+                              +
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => {
+                                onRemoveTopic(index);
+                              }}
+                              style={{ marginLeft: "8px" }}
+                              size="sm"
+                            >
+                              -
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))
                   ) : (
                     <Form.Control
                       placeholder={`Enter ${setting.label}`}
@@ -803,7 +899,7 @@ const EditSourceData = ({
                           )}
                         </Form.Label>
 
-                        {setting.name === "region" ? (
+                        {setting.name === "auth_region" ? (
                           <Form.Select
                             aria-label="Select"
                             className="mb-3"

@@ -346,7 +346,7 @@
                 "mandatory": true
               },
               {
-                "name": "region",
+                "name": "auth_region",
                 "label": "Region",
                 "placeholder": "select one",
                 "tooltip": "AWS region to send Security Token Service (STS) requests to."
@@ -430,7 +430,7 @@
                 "mandatory": true
               },
               {
-                "name": "region",
+                "name": "auth_region",
                 "label": "Region",
                 "placeholder": "select one",
                 "tooltip": "AWS region to send Security Token Service (STS) requests to. if empty, Defaults to region configured for the service itself"

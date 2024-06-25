@@ -156,6 +156,16 @@ const EditDestinationData = ({
           }
         } else if (item === "inputs") {
           sourceValues[item] = [];
+        } else if (item === "compression") {
+          if (formik.values["compression"].length !== 0) {
+            if (formik.values["compression"][0] === "on") {
+              sourceValues["compression"] = true;
+            } else {
+              sourceValues["compression"] = false;
+            }
+          } else {
+            sourceValues["compression"] = formik.values["compression"];
+          }
         } else {
           if (authIndex) {
             sourceValues["auth"] = {};
@@ -184,6 +194,8 @@ const EditDestinationData = ({
     });
 
     sourceValues["type"] = selectedDestination.type;
+
+    console.log("source", sourceValues);
 
     onSaveSettings(sourceValues);
   };
