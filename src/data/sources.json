@@ -38,7 +38,8 @@
           "name": "permit_origin",
           "label": "Permit Origin",
           "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
-          "datatype": "ipcidr"
+          "datatype": "ipcidr",
+          "maxChar": 180
         }
       ]
     },
@@ -81,7 +82,8 @@
           "name": "permit_origin",
           "label": "Permit Origin",
           "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
-          "datatype": "ipcidr"
+          "datatype": "ipcidr",
+          "maxChar": 180
         }
       ]
     },
@@ -123,7 +125,8 @@
           "name": "permit_origin",
           "label": "Permit Origin",
           "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
-          "datatype": "ipcidr"
+          "datatype": "ipcidr",
+          "maxChar": 180
         }
       ]
     },
@@ -165,7 +168,8 @@
           "name": "permit_origin",
           "label": "Permit Origin",
           "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
-          "datatype": "ipcidr"
+          "datatype": "ipcidr",
+          "maxChar": 180
         }
       ]
     },
@@ -207,7 +211,8 @@
           "name": "permit_origin",
           "label": "Permit Origin",
           "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
-          "datatype": "ipcidr"
+          "datatype": "ipcidr",
+          "maxChar": 180
         }
       ]
     },
@@ -250,7 +255,8 @@
           "name": "permit_origin",
           "label": "Allowed Origin List",
           "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
-          "datatype": "ipcidr"
+          "datatype": "ipcidr",
+          "maxChar": 180
         },
         {
           "name": "connection_limit",

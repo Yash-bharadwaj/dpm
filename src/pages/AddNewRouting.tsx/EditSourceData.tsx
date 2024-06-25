@@ -209,6 +209,15 @@ const EditSourceData = ({
               codec: formik.values["codec"],
             };
           }
+        } else if (item === "bootstrap_servers" || item === "permit_origin") {
+          const formValue =
+            item === "bootstrap_servers"
+              ? formik.values["bootstrap_servers"]
+              : formik.values["permit_origin"];
+
+          const value = formValue.split(",");
+
+          sourceValues[item] = value;
         } else {
           if (authIndex) {
             sourceValues["auth"] = {};
@@ -304,9 +313,7 @@ const EditSourceData = ({
       sourceValues["mode"] = selectedSource.mode;
     }
 
-    console.log("source values", sourceValues);
-
-    // onSaveSettings(sourceValues);
+    onSaveSettings(sourceValues);
   };
 
   const onBackClick = () => {
@@ -476,8 +483,6 @@ const EditSourceData = ({
 
     setTopics((prevList) => [...prevTopics]);
   };
-
-  //   console.log("formik", formik.values);
 
   return (
     <Offcanvas

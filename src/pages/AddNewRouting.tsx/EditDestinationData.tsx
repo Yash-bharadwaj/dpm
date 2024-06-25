@@ -195,8 +195,6 @@ const EditDestinationData = ({
 
     sourceValues["type"] = selectedDestination.type;
 
-    console.log("source", sourceValues);
-
     onSaveSettings(sourceValues);
   };
 
@@ -241,7 +239,8 @@ const EditDestinationData = ({
         setting.datatype === "cs-hostport" ||
         setting.datatype === "arn" ||
         setting.datatype === "alphanumericSpecial" ||
-        setting.datatype === "password"
+        setting.datatype === "password" ||
+        setting.datatype === "text-special"
       ) {
         const check = checkValueWithRegex(value, setting.datatype);
         invalid = !check;
@@ -270,7 +269,8 @@ const EditDestinationData = ({
       datatype === "cs-hostport" ||
       datatype === "arn" ||
       datatype === "alphanumericSpecial" ||
-      datatype === "password"
+      datatype === "password" ||
+      datatype === "text-special"
     ) {
       const check = checkValueWithRegex(value, datatype);
       if (check) {
