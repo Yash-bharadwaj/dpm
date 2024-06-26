@@ -166,7 +166,7 @@ const EditDestinationData = ({
         }
 
         if (selectedNode === undefined) {
-          const enteredName = name.replace(" ", "_");
+          const enteredName = name.replaceAll(" ", "_");
           const inputName = "output_" + enteredName;
 
           if (node.data.nodeData.name === inputName) {
@@ -199,13 +199,13 @@ const EditDestinationData = ({
         if (formik.values[item] !== "") {
           if (item === "name") {
             if (selectedNode === undefined) {
-              const name = formik.values.name.replace(" ", "_");
+              const name = formik.values.name.replaceAll(" ", "_");
               sourceValues.name = "output_" + name;
             }
           } else if (item === "inputs") {
             sourceValues[item] = [];
           } else if (item === "compression") {
-            if (formik.values["compression"].length !== 0) {
+            if (Array.isArray(formik.values["compression"])) {
               if (formik.values["compression"][0] === "on") {
                 sourceValues["compression"] = true;
               } else {
@@ -220,10 +220,13 @@ const EditDestinationData = ({
 
               selectedDestination.authentication.dropdownOptions[
                 authIndex
-              ].fieldsToShow.map(
-                (field: any) =>
-                  (sourceValues.auth[field.name] = formik.values[field.name])
-              );
+              ].fieldsToShow.map((field: string) => {
+                if (field.name === "auth_region") {
+                  sourceValues.auth["region"] = formik.values[field.name];
+                } else {
+                  sourceValues.auth[field.name] = formik.values[field.name];
+                }
+              });
             }
 
             if (sourceValues.auth && sourceValues.auth[item] === undefined) {
@@ -232,7 +235,8 @@ const EditDestinationData = ({
               if (
                 item !== "assume_role" &&
                 item !== "access_key_id" &&
-                item !== "secret_access_key"
+                item !== "secret_access_key" &&
+                item !== "auth_region"
               ) {
                 sourceValues[item] = formik.values[item];
               }
@@ -243,7 +247,9 @@ const EditDestinationData = ({
 
       sourceValues["type"] = selectedDestination.type;
 
-      onSaveSettings(sourceValues);
+      console.log("source values", sourceValues);
+
+      //   onSaveSettings(sourceValues);
     }
   };
 
@@ -789,21 +795,39 @@ const EditDestinationData = ({
                           )}
                         </Form.Label>
 
-                        <Form.Control
-                          placeholder={`Enter ${setting.placeholder}`}
-                          aria-label={setting.name}
-                          aria-describedby={setting.name}
-                          className="mb-3"
-                          size="sm"
-                          id={setting.name}
-                          onChange={formik.handleChange}
-                          value={formik.values[setting.name]}
-                          maxLength={setting.maxChar || 20}
-                          type={
-                            setting.datatype === "integer" ? "number" : "text"
-                          }
-                          isInvalid={invalidCheck(setting)}
-                        />
+                        {setting.name === "auth_region" ? (
+                          <Form.Select
+                            aria-label="Select"
+                            className="mb-3"
+                            size="sm"
+                            id={setting.name}
+                            onChange={formik.handleChange}
+                            value={formik.values[setting.name]}
+                          >
+                            <option>Select Option</option>
+                            {regions?.regions?.map((option: any) => (
+                              <option value={option.value}>
+                                {option.name} ({option.value})
+                              </option>
+                            ))}
+                          </Form.Select>
+                        ) : (
+                          <Form.Control
+                            placeholder={`Enter ${setting.placeholder}`}
+                            aria-label={setting.name}
+                            aria-describedby={setting.name}
+                            className="mb-3"
+                            size="sm"
+                            id={setting.name}
+                            onChange={formik.handleChange}
+                            value={formik.values[setting.name]}
+                            maxLength={setting.maxChar || 20}
+                            type={
+                              setting.datatype === "integer" ? "number" : "text"
+                            }
+                            isInvalid={invalidCheck(setting)}
+                          />
+                        )}
                       </>
                     ))}
                   </>

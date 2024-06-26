@@ -379,10 +379,12 @@
             "fieldsToShow": [
               {
                 "name": "assume_role",
-                "label": "Assume Role",
-                "placeholder": "Assume Role",
+                "label": "Assume Role *",
                 "tooltip": "ARN of an IAM role to assume.",
-                "datatype": "arn"
+                "placeholder": "ARN",
+                "datatype": "arn",
+                "mandatory": true,
+                "maxChar": 150
               }
             ]
           }
@@ -468,10 +470,12 @@
             "fieldsToShow": [
               {
                 "name": "assume_role",
-                "label": "Assume Role",
-                "placeholder": "Assume Role",
+                "label": "Assume Role *",
                 "tooltip": "ARN of an IAM role to assume.",
-                "datatype": "arn"
+                "placeholder": "ARN",
+                "datatype": "arn",
+                "mandatory": true,
+                "maxChar": 150
               }
             ]
           }
@@ -675,7 +679,7 @@
                 "maxChar": 40
               },
               {
-                "name": "region",
+                "name": "auth_region",
                 "label": "Region",
                 "placeholder": "select one",
                 "tooltip": "AWS region to send Security Token Service (STS) requests to."
@@ -790,7 +794,8 @@
                 "label": "KMS key ID",
                 "placeholder": "Enter kms key ID",
                 "tooltip": "Amazon KMS Managed Key",
-                "datatype": "alphanumeric"
+                "datatype": "alphanumeric",
+                "maxChar": 300
               }
             }
           ]
@@ -870,7 +875,7 @@
                 "maxChar": 40
               },
               {
-                "name": "region",
+                "name": "auth_region",
                 "label": "Region",
                 "placeholder": "select one",
                 "tooltip": "AWS region to send Security Token Service (STS) requests to."
@@ -885,8 +890,10 @@
                 "name": "assume_role",
                 "label": "Assume Role *",
                 "tooltip": "ARN of an IAM role to assume.",
+                "placeholder": "ARN",
                 "datatype": "arn",
-                "mandatory": true
+                "mandatory": true,
+                "maxChar": 150
               }
             ]
           }
@@ -982,7 +989,9 @@
                 "name": "ssekms_key_id",
                 "label": "KMS key ID",
                 "placeholder": "Enter kms key ID",
-                "tooltip": "Amazon KMS Managed Key"
+                "tooltip": "Amazon KMS Managed Key",
+                "datatype": "alphanumeric",
+                "maxChar": 300
               }
             }
           ]

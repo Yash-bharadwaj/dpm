@@ -187,7 +187,7 @@ const EditSourceData = ({
         }
 
         if (selectedNode === undefined) {
-          const enteredName = name.replace(" ", "_");
+          const enteredName = name.replaceAll(" ", "_");
           const inputName = "input_" + enteredName;
 
           if (node.data.nodeData.name === inputName) {
@@ -224,8 +224,12 @@ const EditSourceData = ({
         ) {
           if (item === "name") {
             if (selectedNode === undefined) {
-              const name = formik.values.name.replace(" ", "_");
+              const name = formik.values.name.replaceAll(" ", "_");
               sourceValues.name = "input_" + name;
+            }
+          } else if (item === "organization") {
+            if (formik.values["organization"].id !== "") {
+              sourceValues["organization"] = formik.values["organization"];
             }
           } else if (
             item === "log.schema" ||
@@ -260,11 +264,8 @@ const EditSourceData = ({
                 codec: formik.values["codec"],
               };
             }
-          } else if (item === "bootstrap_servers" || item === "permit_origin") {
-            const formValue =
-              item === "bootstrap_servers"
-                ? formik.values["bootstrap_servers"]
-                : formik.values["permit_origin"];
+          } else if (item === "permit_origin") {
+            const formValue = formik.values["permit_origin"];
 
             const value = formValue.split(",");
 
@@ -285,7 +286,9 @@ const EditSourceData = ({
             }
 
             if (formik.values.enabled && formik.values.enabled.length !== 0) {
-              sourceValues["sasl"] = {};
+              sourceValues["sasl"] = {
+                enabled: false,
+              };
 
               selectedSource.authentication.fields.map((field: string) => {
                 if (field.name === "enabled") {
@@ -296,10 +299,6 @@ const EditSourceData = ({
                   }
                 }
               });
-            } else {
-              sourceValues["sasl"] = {
-                enabled: false,
-              };
             }
 
             if (
@@ -370,7 +369,9 @@ const EditSourceData = ({
         sourceValues["mode"] = selectedSource.mode;
       }
 
-      onSaveSettings(sourceValues);
+      console.log("source values", sourceValues);
+
+      //   onSaveSettings(sourceValues);
     }
   };
 
