@@ -19,7 +19,7 @@ const DestinationDrawer = ({
   show,
   handleClose,
   onAddDestination,
-  addedSources,
+  addedNodes,
 }: any) => {
   const [showAddDest, setShowAddDestination] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState(Object);
@@ -115,6 +115,7 @@ const DestinationDrawer = ({
           onHide={handleCloseDest}
           selectedDestination={selectedDestination}
           onSaveSettings={onSaveSettings}
+          addedNodes={addedNodes}
         />
       )}
     </Offcanvas>

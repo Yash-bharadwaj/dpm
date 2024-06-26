@@ -21,6 +21,11 @@ import { convert } from "@catalystic/json-to-yaml";
 import EditSourceData from "./AddNewRouting.tsx/EditSourceData";
 import EditDestinationData from "./AddNewRouting.tsx/EditDestinationData";
 
+import toast, { toastConfig } from "react-simple-toasts";
+import "react-simple-toasts/dist/theme/dark.css";
+
+toastConfig({ theme: "dark" });
+
 const initialEdges = [];
 const initialNodes = [];
 
@@ -224,107 +229,114 @@ const Routing = () => {
       };
     }
 
-    edges.map((edge) => {
-      let sourceId = edge.source;
-      let destId = edge.target;
+    if (edges.length !== 0) {
+      edges.map((edge) => {
+        let sourceId = edge.source;
+        let destId = edge.target;
 
-      nodes.forEach((node) => {
-        if (sourceId === node.id && node.data.type === "source") {
-          let nodeData = node.data.nodeData;
+        nodes.forEach((node) => {
+          if (sourceId === node.id && node.data.type === "source") {
+            let nodeData = node.data.nodeData;
 
-          if (nodeData.outputs) {
-            if (!nodeData.outputs.includes(destId)) {
-              nodeData.outputs.push(destId);
+            if (nodeData.outputs) {
+              if (!nodeData.outputs.includes(destId)) {
+                nodeData.outputs.push(destId);
+              }
+            } else {
+              nodeData.outputs = [destId];
             }
-          } else {
-            nodeData.outputs = [destId];
+
+            config.node.sources[nodeData.name] = nodeData;
+            config.node.sources.disabled = false;
           }
 
-          config.node.sources[nodeData.name] = nodeData;
-          config.node.sources.disabled = false;
-        }
+          if (sourceId === node.id && node.data.type === "pipeline") {
+            let nodeData = node.data.nodeData;
 
-        if (sourceId === node.id && node.data.type === "pipeline") {
-          let nodeData = node.data.nodeData;
-
-          if (nodeData.outputs) {
-            if (!nodeData.outputs.includes(destId)) {
-              nodeData.outputs.push(destId);
+            if (nodeData.outputs) {
+              if (!nodeData.outputs.includes(destId)) {
+                nodeData.outputs.push(destId);
+              }
+            } else {
+              nodeData.outputs = [destId];
             }
-          } else {
-            nodeData.outputs = [destId];
+
+            config.node.pipelines[nodeData.name] = nodeData;
+            config.node.pipelines.disabled = false;
           }
 
-          config.node.pipelines[nodeData.name] = nodeData;
-          config.node.pipelines.disabled = false;
-        }
+          if (destId === node.id && node.data.type === "pipeline") {
+            let nodeData = node.data.nodeData;
 
-        if (destId === node.id && node.data.type === "pipeline") {
-          let nodeData = node.data.nodeData;
-
-          if (nodeData.inputs) {
-            if (!nodeData.inputs.includes(sourceId)) {
-              nodeData.inputs.push(sourceId);
+            if (nodeData.inputs) {
+              if (!nodeData.inputs.includes(sourceId)) {
+                nodeData.inputs.push(sourceId);
+              }
+            } else {
+              nodeData.inputs = [sourceId];
             }
-          } else {
-            nodeData.inputs = [sourceId];
+
+            config.node.pipelines[nodeData.name] = nodeData;
+            config.node.pipelines.disabled = false;
           }
 
-          config.node.pipelines[nodeData.name] = nodeData;
-          config.node.pipelines.disabled = false;
-        }
+          if (sourceId === node.id && node.data.type === "enrichment") {
+            let nodeData = node.data.nodeData;
 
-        if (sourceId === node.id && node.data.type === "enrichment") {
-          let nodeData = node.data.nodeData;
-
-          if (nodeData.outputs) {
-            if (!nodeData.outputs.includes(destId)) {
-              nodeData.outputs.push(destId);
+            if (nodeData.outputs) {
+              if (!nodeData.outputs.includes(destId)) {
+                nodeData.outputs.push(destId);
+              }
+            } else {
+              nodeData.outputs = [destId];
             }
-          } else {
-            nodeData.outputs = [destId];
+
+            config.node.enrichments[nodeData.name] = nodeData;
+            config.node.enrichments.disabled = false;
           }
 
-          config.node.enrichments[nodeData.name] = nodeData;
-          config.node.enrichments.disabled = false;
-        }
+          if (destId === node.id && node.data.type === "enrichment") {
+            let nodeData = node.data.nodeData;
 
-        if (destId === node.id && node.data.type === "enrichment") {
-          let nodeData = node.data.nodeData;
-
-          if (nodeData.inputs) {
-            if (!nodeData.inputs.includes(sourceId)) {
-              nodeData.inputs.push(sourceId);
+            if (nodeData.inputs) {
+              if (!nodeData.inputs.includes(sourceId)) {
+                nodeData.inputs.push(sourceId);
+              }
+            } else {
+              nodeData.inputs = [sourceId];
             }
-          } else {
-            nodeData.inputs = [sourceId];
+
+            config.node.enrichments[nodeData.name] = nodeData;
+            config.node.enrichments.disabled = false;
           }
 
-          config.node.enrichments[nodeData.name] = nodeData;
-          config.node.enrichments.disabled = false;
-        }
+          if (destId === node.id && node.data.type === "destination") {
+            let nodeData = node.data.nodeData;
 
-        if (destId === node.id && node.data.type === "destination") {
-          let nodeData = node.data.nodeData;
-
-          if (nodeData.inputs) {
-            if (!nodeData.inputs.includes(sourceId)) {
-              nodeData.inputs.push(sourceId);
+            if (nodeData.inputs) {
+              if (!nodeData.inputs.includes(sourceId)) {
+                nodeData.inputs.push(sourceId);
+              }
+            } else {
+              nodeData.inputs = [];
+              nodeData.inputs = [sourceId];
             }
-          } else {
-            nodeData.inputs = [];
-            nodeData.inputs = [sourceId];
-          }
 
-          config.node.destinations[nodeData.name] = nodeData;
-          config.node.destinations.disabled = false;
-        }
+            config.node.destinations[nodeData.name] = nodeData;
+            config.node.destinations.disabled = false;
+          }
+        });
       });
-    });
 
-    const yaml = convert(config);
+      const yaml = convert(config);
 
-    console.log("yaml string", yaml);
+      console.log("yaml string", yaml);
+    } else {
+      toast("No source-destination connections found!", {
+        position: "top-right",
+        zIndex: 9999,
+      });
+    }
   };
 
   const handleCloseEdit = () => {
@@ -448,12 +460,14 @@ const Routing = () => {
           show={showSource}
           handleClose={handleClose}
           onAddSource={onAddSource}
+          addedNodes={nodes}
         />
 
         <DestinationDrawer
           show={showDestination}
           handleClose={handleClose}
           onAddDestination={onAddDestination}
+          addedNodes={nodes}
         />
 
         {showPipelines && (
@@ -471,7 +485,7 @@ const Routing = () => {
             show={showEnrichment}
             handleClose={handleClose}
             onAddEnrichment={onAddEnrichment}
-            addedSources={addedSources}
+            enrichments={enrichments}
           />
         )}
 

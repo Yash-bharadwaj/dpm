@@ -15,7 +15,7 @@ import { useState } from "react";
 
 import EditSourceData from "./EditSourceData";
 
-const SourceDrawer = ({ show, handleClose, onAddSource }: any) => {
+const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
   const [showAddSource, setShowAddSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState(Object);
 
@@ -123,6 +123,7 @@ const SourceDrawer = ({ show, handleClose, onAddSource }: any) => {
           onClose={handleCloseSource}
           selectedSource={selectedSource}
           onSaveSettings={onSaveSettings}
+          addedNodes={addedNodes}
         />
       )}
     </Offcanvas>

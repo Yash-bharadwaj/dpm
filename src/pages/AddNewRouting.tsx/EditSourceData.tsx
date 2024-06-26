@@ -18,12 +18,18 @@ import { useState } from "react";
 import { useFormik } from "formik";
 import { checkValueWithRegex } from "./helper";
 
+import toast, { toastConfig } from "react-simple-toasts";
+import "react-simple-toasts/dist/theme/dark.css";
+
+toastConfig({ theme: "dark" });
+
 const EditSourceData = ({
   show,
   onClose,
   selectedSource,
   onSaveSettings,
   selectedNode,
+  addedNodes,
 }: any) => {
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
@@ -166,154 +172,206 @@ const EditSourceData = ({
 
   const saveSettings = () => {
     const sourceValues = {};
+    let portAvailable = true;
+    let nameAvailable = true;
 
-    const keys = Object.keys(formik.values);
+    if (addedNodes.length !== 0) {
+      const portNumber = formik.values["port"];
+      const name = formik.values["name"];
 
-    keys.forEach((item) => {
-      if (formik.values[item] !== "" || item === "tls" || item === "enabled") {
-        if (item === "name") {
-          if (selectedNode === undefined) {
-            const name = formik.values.name.replace(" ", "_");
-            sourceValues.name = "input_" + name;
-          }
-        } else if (
-          item === "log.schema" ||
-          item === "log.format" ||
-          item === "log"
-        ) {
-          let schema = formik.values.log
-            ? formik.values.log.schema
-            : formik.values["log.schema"];
-          let format = formik.values.log
-            ? formik.values.log.format
-            : formik.values["log.format"];
-
-          sourceValues.log = {
-            schema: schema,
-            format: format,
-          };
-        } else if (item === "tls" || item === "codec") {
-          if (item === "tls") {
-            if (
-              formik.values["tls"].length !== 0 &&
-              formik.values["tls"][0] === "on"
-            ) {
-              sourceValues["tls"] = {
-                enabled: true,
-              };
-            } else {
-              sourceValues["tls"] = { enabled: false };
-            }
-          } else {
-            sourceValues["decoding"] = {
-              codec: formik.values["codec"],
-            };
-          }
-        } else if (item === "bootstrap_servers" || item === "permit_origin") {
-          const formValue =
-            item === "bootstrap_servers"
-              ? formik.values["bootstrap_servers"]
-              : formik.values["permit_origin"];
-
-          const value = formValue.split(",");
-
-          sourceValues[item] = value;
-        } else {
-          if (authIndex) {
-            sourceValues["auth"] = {};
-
-            selectedSource.authentication.dropdownOptions[
-              authIndex
-            ].fieldsToShow.map((field: string) => {
-              if (field.name === "auth_region") {
-                sourceValues.auth["region"] = formik.values[field.name];
-              } else {
-                sourceValues.auth[field.name] = formik.values[field.name];
-              }
-            });
-          }
-
-          if (formik.values.enabled && formik.values.enabled.length !== 0) {
-            sourceValues["sasl"] = {};
-
-            selectedSource.authentication.fields.map((field: string) => {
-              if (field.name === "enabled") {
-                sourceValues.sasl.enabled = true;
-              } else {
-                if (formik.values[field.name] !== "") {
-                  sourceValues.sasl[field.name] = formik.values[field.name];
-                }
-              }
-            });
-          } else {
-            sourceValues["sasl"] = {
-              enabled: false,
-            };
-          }
-
-          if (
-            (sourceValues.auth && sourceValues.auth[item] === undefined) ||
-            (sourceValues.sasl && sourceValues.sasl[item] === undefined)
-          ) {
-            if (
-              item !== "enabled" &&
-              item !== "access_key_id" &&
-              item !== "secret_access_key" &&
-              item !== "assume_role" &&
-              item !== "mechanism" &&
-              item !== "username" &&
-              item !== "password" &&
-              item !== "auth_region"
-            ) {
-              if (formik.values[item] !== "") {
-                if (item === "queue_url" && selectedSource.type === "aws_s3") {
-                  sourceValues["sqs"] = {
-                    queue_url: formik.values["queue_url"],
-                  };
-                } else sourceValues[item] = formik.values[item];
-              }
-            }
-          } else {
-            if (
-              item !== "enabled" &&
-              item !== "access_key_id" &&
-              item !== "secret_access_key" &&
-              item !== "assume_role" &&
-              item !== "mechanism" &&
-              item !== "username" &&
-              item !== "password" &&
-              item !== "auth_region"
-            ) {
-              if (formik.values[item] !== "") {
-                if (item === "queue_url" && selectedSource.type === "aws_s3") {
-                  sourceValues["sqs"] = {
-                    queue_url: formik.values["queue_url"],
-                  };
-                } else sourceValues[item] = formik.values[item];
-              }
-            }
+      addedNodes.forEach((node) => {
+        if (node.data.type === "source") {
+          if (parseInt(node.data.nodeData.port) === parseInt(portNumber)) {
+            portAvailable = false;
           }
         }
-      }
 
-      if (item === "topics") {
-        let addedTopics = [];
+        if (selectedNode === undefined) {
+          const enteredName = name.replace(" ", "_");
+          const inputName = "input_" + enteredName;
 
-        if (topics[0] !== "") {
-          topics.map((topic) => addedTopics.push(topic));
+          if (node.data.nodeData.name === inputName) {
+            nameAvailable = false;
+          }
         }
-
-        sourceValues["topics"] = addedTopics;
-      }
-    });
-
-    sourceValues["type"] = selectedSource.type;
-
-    if (selectedSource.mode) {
-      sourceValues["mode"] = selectedSource.mode;
+      });
     }
 
-    onSaveSettings(sourceValues);
+    if (!portAvailable) {
+      toast(
+        "Entered port is already used in configuration, please choose a different port",
+        {
+          position: "top-right",
+          zIndex: 9999,
+        }
+      );
+    } else if (!nameAvailable) {
+      toast(
+        "Source name is already used in configuration, please enter a different name.",
+        {
+          position: "top-right",
+          zIndex: 9999,
+        }
+      );
+    } else {
+      const keys = Object.keys(formik.values);
+
+      keys.forEach((item) => {
+        if (
+          formik.values[item] !== "" ||
+          item === "tls" ||
+          item === "enabled"
+        ) {
+          if (item === "name") {
+            if (selectedNode === undefined) {
+              const name = formik.values.name.replace(" ", "_");
+              sourceValues.name = "input_" + name;
+            }
+          } else if (
+            item === "log.schema" ||
+            item === "log.format" ||
+            item === "log"
+          ) {
+            let schema = formik.values.log
+              ? formik.values.log.schema
+              : formik.values["log.schema"];
+            let format = formik.values.log
+              ? formik.values.log.format
+              : formik.values["log.format"];
+
+            sourceValues.log = {
+              schema: schema,
+              format: format,
+            };
+          } else if (item === "tls" || item === "codec") {
+            if (item === "tls") {
+              if (
+                formik.values["tls"].length !== 0 &&
+                formik.values["tls"][0] === "on"
+              ) {
+                sourceValues["tls"] = {
+                  enabled: true,
+                };
+              } else {
+                sourceValues["tls"] = { enabled: false };
+              }
+            } else {
+              sourceValues["decoding"] = {
+                codec: formik.values["codec"],
+              };
+            }
+          } else if (item === "bootstrap_servers" || item === "permit_origin") {
+            const formValue =
+              item === "bootstrap_servers"
+                ? formik.values["bootstrap_servers"]
+                : formik.values["permit_origin"];
+
+            const value = formValue.split(",");
+
+            sourceValues[item] = value;
+          } else {
+            if (authIndex) {
+              sourceValues["auth"] = {};
+
+              selectedSource.authentication.dropdownOptions[
+                authIndex
+              ].fieldsToShow.map((field: string) => {
+                if (field.name === "auth_region") {
+                  sourceValues.auth["region"] = formik.values[field.name];
+                } else {
+                  sourceValues.auth[field.name] = formik.values[field.name];
+                }
+              });
+            }
+
+            if (formik.values.enabled && formik.values.enabled.length !== 0) {
+              sourceValues["sasl"] = {};
+
+              selectedSource.authentication.fields.map((field: string) => {
+                if (field.name === "enabled") {
+                  sourceValues.sasl.enabled = true;
+                } else {
+                  if (formik.values[field.name] !== "") {
+                    sourceValues.sasl[field.name] = formik.values[field.name];
+                  }
+                }
+              });
+            } else {
+              sourceValues["sasl"] = {
+                enabled: false,
+              };
+            }
+
+            if (
+              (sourceValues.auth && sourceValues.auth[item] === undefined) ||
+              (sourceValues.sasl && sourceValues.sasl[item] === undefined)
+            ) {
+              if (
+                item !== "enabled" &&
+                item !== "access_key_id" &&
+                item !== "secret_access_key" &&
+                item !== "assume_role" &&
+                item !== "mechanism" &&
+                item !== "username" &&
+                item !== "password" &&
+                item !== "auth_region"
+              ) {
+                if (formik.values[item] !== "") {
+                  if (
+                    item === "queue_url" &&
+                    selectedSource.type === "aws_s3"
+                  ) {
+                    sourceValues["sqs"] = {
+                      queue_url: formik.values["queue_url"],
+                    };
+                  } else sourceValues[item] = formik.values[item];
+                }
+              }
+            } else {
+              if (
+                item !== "enabled" &&
+                item !== "access_key_id" &&
+                item !== "secret_access_key" &&
+                item !== "assume_role" &&
+                item !== "mechanism" &&
+                item !== "username" &&
+                item !== "password" &&
+                item !== "auth_region"
+              ) {
+                if (formik.values[item] !== "") {
+                  if (
+                    item === "queue_url" &&
+                    selectedSource.type === "aws_s3"
+                  ) {
+                    sourceValues["sqs"] = {
+                      queue_url: formik.values["queue_url"],
+                    };
+                  } else sourceValues[item] = formik.values[item];
+                }
+              }
+            }
+          }
+        }
+
+        if (item === "topics") {
+          let addedTopics = [];
+
+          if (topics[0] !== "") {
+            topics.map((topic) => addedTopics.push(topic));
+          }
+
+          sourceValues["topics"] = addedTopics;
+        }
+      });
+
+      sourceValues["type"] = selectedSource.type;
+
+      if (selectedSource.mode) {
+        sourceValues["mode"] = selectedSource.mode;
+      }
+
+      onSaveSettings(sourceValues);
+    }
   };
 
   const onBackClick = () => {

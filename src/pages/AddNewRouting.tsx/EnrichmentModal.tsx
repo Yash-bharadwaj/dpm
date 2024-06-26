@@ -7,14 +7,14 @@ interface EnrichmentModalProps {
   show: boolean;
   handleClose: any;
   onAddEnrichment: any;
-  addedSources: any;
+  enrichments: any;
 }
 
 const EnrichmentModal = ({
   show,
   handleClose,
   onAddEnrichment,
-  addedSources,
+  enrichments,
 }: EnrichmentModalProps) => {
   const [selectedEnrichment, setSelectedEnrichment] = useState(Array);
 
@@ -39,18 +39,34 @@ const EnrichmentModal = ({
   };
 
   const onSave = () => {
-    // let disabled = false;
+    let name = "";
 
-    // if (
-    //   !selectedEnrichment.includes("geoip") &&
-    //   !selectedEnrichment.includes("iana")
-    // ) {
-    //   disabled = true;
-    // }
+    let geoCount = 1;
+    let ianaCount = 1;
+
+    enrichments.forEach((enrichment: any) => {
+      if (enrichment.enrich.geoip && !enrichment.enrich.iana) {
+        geoCount++;
+      } else if (!enrichment.enrich.geoip && enrichment.enrich.iana) {
+        ianaCount++;
+      }
+    });
+
+    if (
+      selectedEnrichment.includes("geoip") &&
+      selectedEnrichment.includes("iana")
+    ) {
+      name = "enrich_all";
+    } else if (selectedEnrichment.includes("geoip")) {
+      const count = geoCount < 10 ? "0" + geoCount : geoCount;
+      name = "enrich_geoip_" + count;
+    } else if (selectedEnrichment.includes("iana")) {
+      const count = ianaCount < 10 ? "0" + ianaCount : ianaCount;
+      name = "enrich_iana_" + count;
+    }
 
     const enrichment = {
-      //   disabled: disabled,
-      name: "enrich_" + addedSources[0].id,
+      name: name,
       enrich: {
         geoip: selectedEnrichment.includes("geoip"),
         iana: selectedEnrichment.includes("iana"),

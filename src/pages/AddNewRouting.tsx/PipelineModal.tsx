@@ -41,7 +41,7 @@ const PipelineModal = ({
 
     const pipelineCount = addedPipelines.length + 1;
     const pipelineNumber =
-      pipelineCount <= 10 ? "0" + pipelineCount : pipelineCount;
+      pipelineCount < 10 ? "0" + pipelineCount : pipelineCount;
 
     let pipeline = {};
     const observerProduct = selectedPipeline.source

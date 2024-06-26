@@ -17,12 +17,18 @@ import { useState } from "react";
 import { useFormik } from "formik";
 import { checkValueWithRegex } from "./helper";
 
+import toast, { toastConfig } from "react-simple-toasts";
+import "react-simple-toasts/dist/theme/dark.css";
+
+toastConfig({ theme: "dark" });
+
 const EditDestinationData = ({
   show,
   onHide,
   selectedDestination,
   onSaveSettings,
   selectedNode,
+  addedNodes,
 }: any) => {
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
@@ -145,57 +151,100 @@ const EditDestinationData = ({
   const saveSettings = () => {
     const sourceValues = {};
 
-    const keys = Object.keys(formik.values);
+    let portAvailable = true;
+    let nameAvailable = true;
 
-    keys.forEach((item) => {
-      if (formik.values[item] !== "") {
-        if (item === "name") {
-          if (selectedNode === undefined) {
-            const name = formik.values.name.replace(" ", "_");
-            sourceValues.name = "output_" + name;
+    if (addedNodes.length !== 0) {
+      const portNumber = formik.values["port"];
+      const name = formik.values["name"];
+
+      addedNodes.forEach((node) => {
+        if (node.data.type === "destination") {
+          if (parseInt(node.data.nodeData.port) === parseInt(portNumber)) {
+            portAvailable = false;
           }
-        } else if (item === "inputs") {
-          sourceValues[item] = [];
-        } else if (item === "compression") {
-          if (formik.values["compression"].length !== 0) {
-            if (formik.values["compression"][0] === "on") {
-              sourceValues["compression"] = true;
+        }
+
+        if (selectedNode === undefined) {
+          const enteredName = name.replace(" ", "_");
+          const inputName = "output_" + enteredName;
+
+          if (node.data.nodeData.name === inputName) {
+            nameAvailable = false;
+          }
+        }
+      });
+    }
+
+    if (!portAvailable) {
+      toast(
+        "Entered port is already used in configuration, please choose a different port",
+        {
+          position: "top-right",
+          zIndex: 9999,
+        }
+      );
+    } else if (!nameAvailable) {
+      toast(
+        "Destination name is already used in configuration, please enter a different name.",
+        {
+          position: "top-right",
+          zIndex: 9999,
+        }
+      );
+    } else {
+      const keys = Object.keys(formik.values);
+
+      keys.forEach((item) => {
+        if (formik.values[item] !== "") {
+          if (item === "name") {
+            if (selectedNode === undefined) {
+              const name = formik.values.name.replace(" ", "_");
+              sourceValues.name = "output_" + name;
+            }
+          } else if (item === "inputs") {
+            sourceValues[item] = [];
+          } else if (item === "compression") {
+            if (formik.values["compression"].length !== 0) {
+              if (formik.values["compression"][0] === "on") {
+                sourceValues["compression"] = true;
+              } else {
+                sourceValues["compression"] = false;
+              }
             } else {
-              sourceValues["compression"] = false;
+              sourceValues["compression"] = formik.values["compression"];
             }
           } else {
-            sourceValues["compression"] = formik.values["compression"];
-          }
-        } else {
-          if (authIndex) {
-            sourceValues["auth"] = {};
+            if (authIndex) {
+              sourceValues["auth"] = {};
 
-            selectedDestination.authentication.dropdownOptions[
-              authIndex
-            ].fieldsToShow.map(
-              (field) =>
-                (sourceValues.auth[field.name] = formik.values[field.name])
-            );
-          }
+              selectedDestination.authentication.dropdownOptions[
+                authIndex
+              ].fieldsToShow.map(
+                (field: any) =>
+                  (sourceValues.auth[field.name] = formik.values[field.name])
+              );
+            }
 
-          if (sourceValues.auth && sourceValues.auth[item] === undefined) {
-            sourceValues[item] = formik.values[item];
-          } else {
-            if (
-              item !== "assume_role" &&
-              item !== "access_key_id" &&
-              item !== "secret_access_key"
-            ) {
+            if (sourceValues.auth && sourceValues.auth[item] === undefined) {
               sourceValues[item] = formik.values[item];
+            } else {
+              if (
+                item !== "assume_role" &&
+                item !== "access_key_id" &&
+                item !== "secret_access_key"
+              ) {
+                sourceValues[item] = formik.values[item];
+              }
             }
           }
         }
-      }
-    });
+      });
 
-    sourceValues["type"] = selectedDestination.type;
+      sourceValues["type"] = selectedDestination.type;
 
-    onSaveSettings(sourceValues);
+      onSaveSettings(sourceValues);
+    }
   };
 
   const onBackClick = () => {
