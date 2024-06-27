@@ -371,7 +371,7 @@ const EditSourceData = ({
 
       console.log("source values", sourceValues);
 
-      //   onSaveSettings(sourceValues);
+      onSaveSettings(sourceValues);
     }
   };
 

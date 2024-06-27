@@ -249,7 +249,7 @@ const EditDestinationData = ({
 
       console.log("source values", sourceValues);
 
-      //   onSaveSettings(sourceValues);
+      onSaveSettings(sourceValues);
     }
   };
 
