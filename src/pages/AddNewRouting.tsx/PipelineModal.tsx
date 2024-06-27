@@ -67,6 +67,7 @@ const PipelineModal = ({
           product: selectedProducts.product,
           vendor: selectedProducts.vendor,
         },
+        type: "remap",
         inputs: [],
         outputs: [],
       };
@@ -78,6 +79,7 @@ const PipelineModal = ({
           product: selectedPipeline.product,
           vendor: selectedPipeline.vendor,
         },
+        type: "remap",
         inputs: [],
         outputs: [],
       };

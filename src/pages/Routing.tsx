@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Button, Col, Container, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
@@ -345,8 +347,68 @@ const Routing = () => {
     setSelectedSource(Object);
   };
 
-  const onEditSettings = () => {
-    console.log("edit");
+  const onEditSettings = (value: any) => {
+    setShowEditSource(false);
+
+    if (value === "delete") {
+      let selectedIndex = -1;
+      let nodeIndex = -1;
+
+      addedSources.forEach((source, index) => {
+        if (source.id === selectedSource.id) {
+          selectedIndex = index;
+        }
+      });
+
+      nodes.forEach((node, index) => {
+        if (node.id === selectedSource.id) {
+          nodeIndex = index;
+        }
+      });
+
+      let prevSources = addedSources;
+      prevSources.splice(selectedIndex, 1);
+
+      let prevNodes = nodes;
+      prevNodes.splice(nodeIndex, 1);
+
+      setAddedSources((prevList) => [...prevSources]);
+      setNodes((prevList) => [...prevNodes]);
+    } else {
+      console.log("edit");
+    }
+  };
+
+  const onEditDestSettings = (value: any) => {
+    setShowEditDestination(false);
+
+    if (value === "delete") {
+      let selectedIndex = -1;
+      let nodeIndex = -1;
+
+      addedDestinations.forEach((source, index) => {
+        if (source.id === selectedSource.id) {
+          selectedIndex = index;
+        }
+      });
+
+      nodes.forEach((node, index) => {
+        if (node.id === selectedSource.id) {
+          nodeIndex = index;
+        }
+      });
+
+      let prevSources = addedDestinations;
+      prevSources.splice(selectedIndex, 1);
+
+      let prevNodes = nodes;
+      prevNodes.splice(nodeIndex, 1);
+
+      setAddedDestinations((prevList) => [...prevSources]);
+      setNodes((prevList) => [...prevNodes]);
+    } else {
+      console.log("edit");
+    }
   };
 
   return (
@@ -496,6 +558,7 @@ const Routing = () => {
             selectedSource={selectedSource}
             onSaveSettings={onEditSettings}
             selectedNode={selectedNode}
+            addedNodes={nodes}
           />
         )}
 
@@ -504,8 +567,9 @@ const Routing = () => {
             show={showEditDestination}
             onHide={handleCloseEdit}
             selectedDestination={selectedSource}
-            onSaveSettings={onEditSettings}
+            onSaveSettings={onEditDestSettings}
             selectedNode={selectedNode}
+            addedNodes={nodes}
           />
         )}
       </div>

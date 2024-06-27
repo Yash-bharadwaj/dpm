@@ -3,7 +3,7 @@
     {
       "name": "Windows Events - Winlogbeat",
       "type": "logstash",
-      "image": "",
+      "image": "windows-logo.svg",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -650,6 +650,13 @@
           "name": "region",
           "label": "Region",
           "tooltip": "Region where the S3 bucket is located."
+        },
+        {
+          "name": "codec",
+          "label": "Encoding",
+          "options": ["json", "raw_message"],
+          "tooltip": "Configure how events are encoded while storing",
+          "default": "json"
         }
       ],
       "authentication": {
@@ -846,6 +853,13 @@
           "name": "region",
           "label": "Region",
           "tooltip": "Region where the S3 bucket is located."
+        },
+        {
+          "name": "codec",
+          "label": "Encoding",
+          "options": ["json", "raw_message"],
+          "tooltip": "Configure how events are encoded while storing",
+          "default": "json"
         }
       ],
       "authentication": {
@@ -1012,7 +1026,7 @@
           "mandatory": true
         },
         {
-          "name": "address",
+          "name": "host",
           "label": "Address *",
           "tooltip": "Address of the destination.",
           "default": "0.0.0.0",

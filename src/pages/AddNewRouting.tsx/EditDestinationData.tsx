@@ -4,6 +4,7 @@ import {
   Button,
   Col,
   Form,
+  Modal,
   Offcanvas,
   OverlayTrigger,
   Row,
@@ -32,6 +33,7 @@ const EditDestinationData = ({
 }: any) => {
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   let destInitialValues = {};
   let mandatoryFields = [];
@@ -151,20 +153,12 @@ const EditDestinationData = ({
   const saveSettings = () => {
     const sourceValues = {};
 
-    let portAvailable = true;
     let nameAvailable = true;
 
     if (addedNodes.length !== 0) {
-      const portNumber = formik.values["port"];
       const name = formik.values["name"];
 
       addedNodes.forEach((node) => {
-        if (node.data.type === "destination") {
-          if (parseInt(node.data.nodeData.port) === parseInt(portNumber)) {
-            portAvailable = false;
-          }
-        }
-
         if (selectedNode === undefined) {
           const enteredName = name.replaceAll(" ", "_");
           const inputName = "output_" + enteredName;
@@ -176,15 +170,7 @@ const EditDestinationData = ({
       });
     }
 
-    if (!portAvailable) {
-      toast(
-        "Entered port is already used in configuration, please choose a different port",
-        {
-          position: "top-right",
-          zIndex: 9999,
-        }
-      );
-    } else if (!nameAvailable) {
+    if (!nameAvailable) {
       toast(
         "Destination name is already used in configuration, please enter a different name.",
         {
@@ -202,6 +188,10 @@ const EditDestinationData = ({
               const name = formik.values.name.replaceAll(" ", "_");
               sourceValues.name = "output_" + name;
             }
+          } else if (item === "codec") {
+            sourceValues["encoding"] = {
+              codec: formik.values["codec"],
+            };
           } else if (item === "inputs") {
             sourceValues[item] = [];
           } else if (item === "compression") {
@@ -408,6 +398,19 @@ const EditDestinationData = ({
     return tabInvalid;
   };
 
+  const onDeleteClick = () => {
+    setConfirmDelete(true);
+  };
+
+  const onDeleteConfirm = () => {
+    setConfirmDelete(false);
+    onSaveSettings("delete");
+  };
+
+  const handleClose = () => {
+    setConfirmDelete(false);
+  };
+
   return (
     <Offcanvas
       show={show}
@@ -538,7 +541,6 @@ const EditDestinationData = ({
                           id={setting.name}
                           value={formik.values[setting.name]}
                         >
-                          <option>Select Option</option>
                           {setting.options.map((option: string) => (
                             <option value={option}>{option}</option>
                           ))}
@@ -553,7 +555,6 @@ const EditDestinationData = ({
                         onChange={formik.handleChange}
                         value={formik.values[setting.name]}
                       >
-                        <option>Select Option</option>
                         {regions?.regions?.map((option: any) => (
                           <option value={option.value}>
                             {option.name} ({option.value})
@@ -638,7 +639,6 @@ const EditDestinationData = ({
                           onChange={formik.handleChange}
                           value={formik.values[setting.name]}
                         >
-                          <option>Select Option</option>
                           {setting.options?.map((option: any) => (
                             <option value={option.name || option}>
                               {option.label || option}
@@ -742,7 +742,6 @@ const EditDestinationData = ({
                     }}
                     value={authIndex}
                   >
-                    <option>Select Option</option>
                     {selectedDestination.authentication.dropdownOptions?.map(
                       (option: any, index: number) => (
                         <option value={index}>{option.label}</option>
@@ -804,7 +803,6 @@ const EditDestinationData = ({
                             onChange={formik.handleChange}
                             value={formik.values[setting.name]}
                           >
-                            <option>Select Option</option>
                             {regions?.regions?.map((option: any) => (
                               <option value={option.value}>
                                 {option.name} ({option.value})
@@ -861,7 +859,6 @@ const EditDestinationData = ({
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
                     >
-                      <option>Select Option</option>
                       {setting.options?.map((option: any) => (
                         <option value={option}>{option}</option>
                       ))}
@@ -888,7 +885,24 @@ const EditDestinationData = ({
         </Row>
 
         <Row>
-          <Col xl={12} lg={12} md={12} sm={12}>
+          <Col xl={4} lg={4} md={4} sm={4}></Col>
+          <Col
+            lg={8}
+            style={{ display: "flex", justifyContent: "space-between" }}
+          >
+            <div>
+              {selectedNode !== undefined && (
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={onDeleteClick}
+                  style={{ marginRight: "8px" }}
+                >
+                  Delete Node
+                </Button>
+              )}
+            </div>
+
             <div
               style={{
                 display: "flex",
@@ -924,6 +938,28 @@ const EditDestinationData = ({
             </div>
           </Col>
         </Row>
+
+        {confirmDelete && (
+          <Modal show={confirmDelete} onHide={handleClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>Delete Source?</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              Are you sure you want to delete this destination node?
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleClose}>
+                No
+              </Button>
+
+              <Button variant="primary" onClick={onDeleteConfirm}>
+                Yes
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        )}
       </Offcanvas.Body>
     </Offcanvas>
   );

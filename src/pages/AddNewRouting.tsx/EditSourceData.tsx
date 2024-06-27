@@ -4,6 +4,7 @@ import {
   Button,
   Col,
   Form,
+  Modal,
   Offcanvas,
   OverlayTrigger,
   Row,
@@ -34,6 +35,7 @@ const EditSourceData = ({
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
   const [topics, setTopics] = useState([""]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   let sourceInitialValues = {};
   let mandatoryFields = [];
@@ -180,13 +182,13 @@ const EditSourceData = ({
       const name = formik.values["name"];
 
       addedNodes.forEach((node) => {
-        if (node.data.type === "source") {
-          if (parseInt(node.data.nodeData.port) === parseInt(portNumber)) {
-            portAvailable = false;
-          }
-        }
-
         if (selectedNode === undefined) {
+          if (node.data.type === "source") {
+            if (parseInt(node.data.nodeData.port) === parseInt(portNumber)) {
+              portAvailable = false;
+            }
+          }
+
           const enteredName = name.replaceAll(" ", "_");
           const inputName = "input_" + enteredName;
 
@@ -543,6 +545,19 @@ const EditSourceData = ({
     setTopics((prevList) => [...prevTopics]);
   };
 
+  const onDeleteClick = () => {
+    setConfirmDelete(true);
+  };
+
+  const onDeleteConfirm = () => {
+    setConfirmDelete(false);
+    onSaveSettings("delete");
+  };
+
+  const handleClose = () => {
+    setConfirmDelete(false);
+  };
+
   return (
     <Offcanvas
       show={show}
@@ -671,7 +686,6 @@ const EditSourceData = ({
                         id={setting.name}
                         value={formik.values[setting.name]}
                       >
-                        <option>Select Option</option>
                         {setting.options.map((option: string) => (
                           <option value={option}>{option}</option>
                         ))}
@@ -686,7 +700,6 @@ const EditSourceData = ({
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
                     >
-                      <option>Select Option</option>
                       {regions?.regions?.map((option: any) => (
                         <option value={option.value}>
                           {option.name} ({option.value})
@@ -924,7 +937,6 @@ const EditSourceData = ({
                         id={option.name}
                         value={formik.values[option.name]}
                       >
-                        <option>Select Option</option>
                         {option.options.map((option: string) => (
                           <option value={option}>{option}</option>
                         ))}
@@ -976,7 +988,6 @@ const EditSourceData = ({
                     }}
                     value={authIndex}
                   >
-                    <option>Select Option</option>
                     {selectedSource.authentication.dropdownOptions?.map(
                       (option: any, index: number) => (
                         <option value={index}>{option.label}</option>
@@ -1038,7 +1049,6 @@ const EditSourceData = ({
                             onChange={formik.handleChange}
                             value={formik.values[setting.name]}
                           >
-                            <option>Select Option</option>
                             {regions?.regions?.map((option: any) => (
                               <option value={option.value}>
                                 {option.name} ({option.value})
@@ -1130,7 +1140,6 @@ const EditSourceData = ({
                         onChange={formik.handleChange}
                         value={formik.values[authFields.name]}
                       >
-                        <option>Select Option</option>
                         {authFields.options?.map((option: any) => (
                           <option value={option}>{option}</option>
                         ))}
@@ -1162,7 +1171,25 @@ const EditSourceData = ({
         </Row>
 
         <Row>
-          <Col xl={12} lg={12} md={12} sm={12}>
+          <Col xl={4} lg={4} md={4} sm={4}></Col>
+
+          <Col
+            lg={8}
+            style={{ display: "flex", justifyContent: "space-between" }}
+          >
+            <div>
+              {selectedNode !== undefined && (
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={onDeleteClick}
+                  style={{ marginRight: "8px" }}
+                >
+                  Delete Node
+                </Button>
+              )}
+            </div>
+
             <div
               style={{
                 display: "flex",
@@ -1194,6 +1221,25 @@ const EditSourceData = ({
             </div>
           </Col>
         </Row>
+
+        {confirmDelete && (
+          <Modal show={confirmDelete} onHide={handleClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>Delete Source?</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Are you sure you want to delete this source node?
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleClose}>
+                No
+              </Button>
+              <Button variant="primary" onClick={onDeleteConfirm}>
+                Yes
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        )}
       </Offcanvas.Body>
     </Offcanvas>
   );
