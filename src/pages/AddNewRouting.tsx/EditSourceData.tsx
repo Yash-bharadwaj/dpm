@@ -17,7 +17,12 @@ import sources from "../../data/sources.json";
 
 import { useState } from "react";
 import { useFormik } from "formik";
-import { checkValueWithRegex } from "./helper";
+import {
+  checkAccessAuthFields,
+  checkAssumeAuthFieldsOne,
+  checkAssumeAuthFieldsTwo,
+  checkValueWithRegex,
+} from "./helper";
 
 import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
@@ -41,16 +46,48 @@ const EditSourceData = ({
   let mandatoryFields = [];
 
   selectedSource.settings.forEach((setting: any) => {
-    sourceInitialValues[setting.name] =
-      selectedNode?.data.nodeData[setting.name] || setting.default || "";
+    if (setting.datatype === "boolean") {
+      sourceInitialValues[setting.name] =
+        selectedNode?.data.nodeData[setting.name] !== ""
+          ? selectedNode?.data.nodeData[setting.name] === false
+            ? false
+            : true
+          : setting.default || "";
+    } else {
+      sourceInitialValues[setting.name] =
+        selectedNode?.data.nodeData[setting.name] || setting.default || "";
+    }
+
     if (setting.mandatory) {
       mandatoryFields.push(setting.name);
     }
   });
 
   selectedSource.advanced?.forEach((advanced: any) => {
-    sourceInitialValues[advanced.name] =
-      selectedNode?.data.nodeData[advanced.name] || advanced.default || "";
+    if (advanced.datatype === "boolean") {
+      if (advanced.name === "tls") {
+        sourceInitialValues[advanced.name] =
+          selectedNode?.data.nodeData["tls"].enabled || advanced.default || "";
+      } else {
+        sourceInitialValues[advanced.name] =
+          selectedNode?.data.nodeData[advanced.name] !== ""
+            ? selectedNode?.data.nodeData[advanced.name] === false
+              ? false
+              : true
+            : advanced.default || "";
+      }
+    } else {
+      if (advanced.name === "codec") {
+        sourceInitialValues[advanced.name] =
+          selectedNode?.data.nodeData["decoding"].codec ||
+          advanced.default ||
+          "";
+      } else {
+        sourceInitialValues[advanced.name] =
+          selectedNode?.data.nodeData[advanced.name] || advanced.default || "";
+      }
+    }
+
     if (advanced.mandatory) {
       mandatoryFields.push(advanced.name);
     }
@@ -60,8 +97,18 @@ const EditSourceData = ({
     if (selectedSource.authentication.dropdownOptions) {
       selectedSource.authentication.dropdownOptions.forEach((option: any) => {
         option.fieldsToShow.forEach((fields: any) => {
-          sourceInitialValues[fields.name] =
-            selectedNode?.data.nodeData[fields.name] || fields.default || "";
+          if (fields.datatype === "boolean") {
+            sourceInitialValues[fields.name] =
+              selectedNode?.data.nodeData[fields.name] !== ""
+                ? selectedNode?.data.nodeData[fields.name] === false
+                  ? false
+                  : true
+                : fields.default || "";
+          } else {
+            sourceInitialValues[fields.name] =
+              selectedNode?.data.nodeData[fields.name] || fields.default || "";
+          }
+
           if (fields.mandatory) {
             mandatoryFields.push(fields.name);
           }
@@ -69,8 +116,19 @@ const EditSourceData = ({
       });
     } else {
       selectedSource.authentication.fields.forEach((field: any) => {
-        sourceInitialValues[field.name] =
-          selectedNode?.data.nodeData[field.name] || field.default || "";
+        if (field.datatype === "boolean") {
+          sourceInitialValues[field.name] =
+            selectedNode?.data.nodeData[field.name] !== "" &&
+            selectedNode?.data.nodeData[field.name] !== undefined
+              ? selectedNode?.data.nodeData[field.name] === false
+                ? false
+                : true
+              : field.default || false;
+        } else {
+          sourceInitialValues[field.name] =
+            selectedNode?.data.nodeData[field.name] || field.default || "";
+        }
+
         if (field.mandatory) {
           mandatoryFields.push(field.name);
         }
@@ -88,6 +146,8 @@ const EditSourceData = ({
     }
   });
 
+  const [checkMandatoryFields, setMandatoryFields] = useState(mandatoryFields);
+
   const validateForm = async (values: any) => {
     return checkFormValid(values);
   };
@@ -95,7 +155,7 @@ const EditSourceData = ({
   const checkFormValid = (values: any) => {
     let error = false;
 
-    mandatoryFields.forEach((field) => {
+    checkMandatoryFields.forEach((field) => {
       if (values[field] === "") {
         if (field === "topics") {
           if (topics[0] !== "") {
@@ -103,13 +163,6 @@ const EditSourceData = ({
           } else {
             error = true;
           }
-        } else if (
-          authIndex !== null &&
-          ((authIndex === "0" && field === "assume_role") ||
-            (authIndex === "1" &&
-              (field === "access_key_id" || field === "secret_access_key")))
-        ) {
-          error = false;
         } else {
           error = true;
         }
@@ -142,6 +195,23 @@ const EditSourceData = ({
         formik.setFieldValue(field?.name, "");
       }
     );
+
+    // checkMandatoryFields = [...mandatoryFields];
+    let prevValues = mandatoryFields;
+
+    if (index === "0") {
+      const index = prevValues.findIndex(checkAccessAuthFields);
+
+      prevValues.splice(index, 1);
+    } else {
+      const indexOne = prevValues.findIndex(checkAssumeAuthFieldsOne);
+      prevValues.splice(indexOne, 1);
+
+      const indexTwo = prevValues.findIndex(checkAssumeAuthFieldsTwo);
+      prevValues.splice(indexTwo, 1);
+    }
+
+    setMandatoryFields((prevList) => [...prevValues]);
   };
 
   const onNextClick = () => {
@@ -180,11 +250,16 @@ const EditSourceData = ({
     if (addedNodes.length !== 0) {
       const portNumber = formik.values["port"];
       const name = formik.values["name"];
+      const mode = selectedSource.mode || "tcp";
 
       addedNodes.forEach((node) => {
         if (selectedNode === undefined) {
+          const sourceMode = node.data.nodeData.mode || "tcp";
           if (node.data.type === "source") {
-            if (parseInt(node.data.nodeData.port) === parseInt(portNumber)) {
+            if (
+              parseInt(node.data.nodeData.port) === parseInt(portNumber) &&
+              mode === sourceMode
+            ) {
               portAvailable = false;
             }
           }
@@ -287,9 +362,9 @@ const EditSourceData = ({
               });
             }
 
-            if (formik.values.enabled && formik.values.enabled.length !== 0) {
+            if (formik.values.enabled) {
               sourceValues["sasl"] = {
-                enabled: false,
+                enabled: formik.values.enabled,
               };
 
               selectedSource.authentication.fields.map((field: string) => {
@@ -370,8 +445,6 @@ const EditSourceData = ({
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;
       }
-
-      console.log("source values", sourceValues);
 
       onSaveSettings(sourceValues);
     }
@@ -454,11 +527,11 @@ const EditSourceData = ({
     return invalid;
   };
 
-  const checkTabValues = () => {
+  const checkTabValues = (tabValue: string) => {
     const { values } = formik;
     let tabInvalid = false;
 
-    if (selectedTab === "setting") {
+    if (selectedTab === "setting" || tabValue === "all") {
       selectedSource.settings.forEach((setting: object) => {
         Object.keys(values).forEach((value: string) => {
           if (
@@ -467,7 +540,14 @@ const EditSourceData = ({
             values[value] !== "" &&
             setting.datatype !== "integer"
           ) {
-            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+            const invalidCheck = checkNonEmptyValues(
+              values[value],
+              setting.datatype
+            );
+
+            if (invalidCheck) {
+              tabInvalid = true;
+            }
           } else {
             if (setting.datatype === "integer" && setting.name === "port") {
               if (values[value] > 65535) {
@@ -479,7 +559,7 @@ const EditSourceData = ({
       });
     }
 
-    if (selectedTab === "advanced") {
+    if (selectedTab === "advanced" || tabValue === "all") {
       selectedSource.advanced.forEach((setting: object) => {
         Object.keys(values).forEach((value: string) => {
           if (
@@ -488,7 +568,13 @@ const EditSourceData = ({
             values[value] !== "" &&
             setting.datatype !== "integer"
           ) {
-            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+            const invalidCheck = checkNonEmptyValues(
+              values[value],
+              setting.datatype
+            );
+            if (invalidCheck) {
+              tabInvalid = true;
+            }
           } else {
             if (setting.datatype === "integer" && setting.name === "port") {
               if (values[value] > 65535) {
@@ -500,8 +586,8 @@ const EditSourceData = ({
       });
     }
 
-    if (selectedTab === "fields") {
-      selectedSource.fields.forEach((setting: object) => {
+    if (selectedTab === "fields" || tabValue === "all") {
+      selectedSource.fields?.forEach((setting: object) => {
         Object.keys(values).forEach((value: string) => {
           if (
             !setting.options &&
@@ -509,7 +595,14 @@ const EditSourceData = ({
             values[value] !== "" &&
             setting.datatype !== "integer"
           ) {
-            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+            const invalidCheck = checkNonEmptyValues(
+              values[value],
+              setting.datatype
+            );
+
+            if (invalidCheck) {
+              tabInvalid = true;
+            }
           } else {
             if (setting.datatype === "integer" && setting.name === "port") {
               if (values[value] > 65535) {
@@ -686,6 +779,9 @@ const EditSourceData = ({
                         id={setting.name}
                         value={formik.values[setting.name]}
                       >
+                        <option value="" hidden>
+                          Select {setting.name}
+                        </option>
                         {setting.options.map((option: string) => (
                           <option value={option}>{option}</option>
                         ))}
@@ -700,6 +796,10 @@ const EditSourceData = ({
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
                     >
+                      <option value="" hidden>
+                        Select {setting.name}
+                      </option>
+
                       {regions?.regions?.map((option: any) => (
                         <option value={option.value}>
                           {option.name} ({option.value})
@@ -858,7 +958,9 @@ const EditSourceData = ({
                               : formik.values["log.format"]
                           }
                         >
-                          <option>Select {field.name}</option>
+                          <option value="" hidden>
+                            Select {field.name}
+                          </option>
                           {field.options.map((value: string) => (
                             <option value={value}>{value}</option>
                           ))}
@@ -937,6 +1039,9 @@ const EditSourceData = ({
                         id={option.name}
                         value={formik.values[option.name]}
                       >
+                        <option value="" hidden>
+                          Select {option.name}
+                        </option>
                         {option.options.map((option: string) => (
                           <option value={option}>{option}</option>
                         ))}
@@ -988,6 +1093,9 @@ const EditSourceData = ({
                     }}
                     value={authIndex}
                   >
+                    <option value="" hidden>
+                      Select Auth
+                    </option>
                     {selectedSource.authentication.dropdownOptions?.map(
                       (option: any, index: number) => (
                         <option value={index}>{option.label}</option>
@@ -1049,6 +1157,9 @@ const EditSourceData = ({
                             onChange={formik.handleChange}
                             value={formik.values[setting.name]}
                           >
+                            <option value="" hidden>
+                              Select Region
+                            </option>
                             {regions?.regions?.map((option: any) => (
                               <option value={option.value}>
                                 {option.name} ({option.value})
@@ -1081,8 +1192,7 @@ const EditSourceData = ({
               selectedSource.authentication?.fields.map((authFields: any) => (
                 <>
                   {selectedSource.authentication.name === "sasl" &&
-                    formik.values.enabled !== "" &&
-                    formik.values.enabled.length !== 0 &&
+                    formik.values.enabled &&
                     authFields.datatype !== "boolean" && (
                       <Form.Label htmlFor={authFields.name}>
                         {authFields.label}{" "}
@@ -1126,12 +1236,11 @@ const EditSourceData = ({
                           defaultChecked={authFields.default}
                           onChange={formik.handleChange}
                           style={{ marginLeft: "8px" }}
-                          checked={formik.values[authFields.name].length !== 0}
+                          checked={formik.values[authFields.name]}
                         />
                       </div>
                     ) : selectedSource.authentication.name === "sasl" &&
-                      (formik.values.enabled.length === 0 ||
-                        formik.values.enabled === "") ? null : (
+                      !formik.values.enabled ? null : (
                       <Form.Select
                         aria-label="Select"
                         className="mb-3"
@@ -1140,14 +1249,16 @@ const EditSourceData = ({
                         onChange={formik.handleChange}
                         value={formik.values[authFields.name]}
                       >
+                        <option value="" hidden>
+                          Select {authFields.name}
+                        </option>
                         {authFields.options?.map((option: any) => (
                           <option value={option}>{option}</option>
                         ))}
                       </Form.Select>
                     )
                   ) : selectedSource.authentication.name === "sasl" &&
-                    (formik.values.enabled.length === 0 ||
-                      formik.values.enabled === "") ? null : (
+                    !formik.values.enabled ? null : (
                     <Form.Control
                       placeholder={`Enter ${authFields.placeholder}`}
                       aria-label={authFields.name}
@@ -1212,8 +1323,8 @@ const EditSourceData = ({
                 onClick={onNextClick}
                 disabled={
                   selectedTab !== "fields"
-                    ? checkTabValues()
-                    : checkFormValid(formik.values)
+                    ? checkTabValues("")
+                    : checkFormValid(formik.values) || checkTabValues("all")
                 }
               >
                 {selectedTab === "fields" ? "Save" : "Next"}
@@ -1227,13 +1338,16 @@ const EditSourceData = ({
             <Modal.Header closeButton>
               <Modal.Title>Delete Source?</Modal.Title>
             </Modal.Header>
+
             <Modal.Body>
               Are you sure you want to delete this source node?
             </Modal.Body>
+
             <Modal.Footer>
               <Button variant="secondary" onClick={handleClose}>
                 No
               </Button>
+
               <Button variant="primary" onClick={onDeleteConfirm}>
                 Yes
               </Button>

@@ -45,3 +45,14 @@ export const checkValueWithRegex = (value, type) => {
 
   return valid;
 };
+
+export const checkAccessAuthFields = (field) => {
+  return field === "assume_role";
+};
+
+export const checkAssumeAuthFieldsOne = (field) => {
+  return field === "access_key_id";
+};
+export const checkAssumeAuthFieldsTwo = (field) => {
+  return field === "secret_access_key";
+};

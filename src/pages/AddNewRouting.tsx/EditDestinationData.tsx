@@ -328,11 +328,11 @@ const EditDestinationData = ({
     return invalid;
   };
 
-  const checkTabValues = () => {
+  const checkTabValues = (tabValue: string) => {
     const { values } = formik;
     let tabInvalid = false;
 
-    if (selectedTab === "setting") {
+    if (selectedTab === "setting" || tabValue === "all") {
       selectedDestination.settings.forEach((setting: object) => {
         Object.keys(values).forEach((value: string) => {
           if (
@@ -341,7 +341,14 @@ const EditDestinationData = ({
             values[value] !== "" &&
             setting.datatype !== "integer"
           ) {
-            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+            const invalid = checkNonEmptyValues(
+              values[value],
+              setting.datatype
+            );
+
+            if (invalid) {
+              tabInvalid = true;
+            }
           } else {
             if (setting.datatype === "integer" && setting.name === "port") {
               if (values[value] > 65535) {
@@ -353,7 +360,7 @@ const EditDestinationData = ({
       });
     }
 
-    if (selectedTab === "advanced") {
+    if (selectedTab === "advanced" || tabValue === "all") {
       selectedDestination.advanced.forEach((setting: object) => {
         Object.keys(values).forEach((value: string) => {
           if (
@@ -362,28 +369,14 @@ const EditDestinationData = ({
             values[value] !== "" &&
             setting.datatype !== "integer"
           ) {
-            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
-          } else {
-            if (setting.datatype === "integer" && setting.name === "port") {
-              if (values[value] > 65535) {
-                tabInvalid = true;
-              }
-            }
-          }
-        });
-      });
-    }
+            const invalid = checkNonEmptyValues(
+              values[value],
+              setting.datatype
+            );
 
-    if (selectedTab === "fields") {
-      selectedDestination.fields.forEach((setting: object) => {
-        Object.keys(values).forEach((value: string) => {
-          if (
-            !setting.options &&
-            setting.name === value &&
-            values[value] !== "" &&
-            setting.datatype !== "integer"
-          ) {
-            tabInvalid = checkNonEmptyValues(values[value], setting.datatype);
+            if (invalid) {
+              tabInvalid = true;
+            }
           } else {
             if (setting.datatype === "integer" && setting.name === "port") {
               if (values[value] > 65535) {
@@ -541,6 +534,9 @@ const EditDestinationData = ({
                           id={setting.name}
                           value={formik.values[setting.name]}
                         >
+                          <option value="" hidden>
+                            Select {setting.name}
+                          </option>
                           {setting.options.map((option: string) => (
                             <option value={option}>{option}</option>
                           ))}
@@ -555,6 +551,9 @@ const EditDestinationData = ({
                         onChange={formik.handleChange}
                         value={formik.values[setting.name]}
                       >
+                        <option value="" hidden>
+                          Select {setting.name}
+                        </option>
                         {regions?.regions?.map((option: any) => (
                           <option value={option.value}>
                             {option.name} ({option.value})
@@ -639,6 +638,9 @@ const EditDestinationData = ({
                           onChange={formik.handleChange}
                           value={formik.values[setting.name]}
                         >
+                          <option value="" hidden>
+                            Select {setting.name}
+                          </option>
                           {setting.options?.map((option: any) => (
                             <option value={option.name || option}>
                               {option.label || option}
@@ -742,6 +744,9 @@ const EditDestinationData = ({
                     }}
                     value={authIndex}
                   >
+                    <option value="" hidden>
+                      Select Auth
+                    </option>
                     {selectedDestination.authentication.dropdownOptions?.map(
                       (option: any, index: number) => (
                         <option value={index}>{option.label}</option>
@@ -803,6 +808,9 @@ const EditDestinationData = ({
                             onChange={formik.handleChange}
                             value={formik.values[setting.name]}
                           >
+                            <option value="" hidden>
+                              Select Region
+                            </option>
                             {regions?.regions?.map((option: any) => (
                               <option value={option.value}>
                                 {option.name} ({option.value})
@@ -859,6 +867,9 @@ const EditDestinationData = ({
                       onChange={formik.handleChange}
                       value={formik.values[setting.name]}
                     >
+                      <option value="" hidden>
+                        Select {setting.name}
+                      </option>
                       {setting.options?.map((option: any) => (
                         <option value={option}>{option}</option>
                       ))}
@@ -926,8 +937,8 @@ const EditDestinationData = ({
                 disabled={
                   selectedTab === "setting" ||
                   (selectedTab === "auth" && selectedDestination.advanced)
-                    ? checkTabValues()
-                    : checkFormValid(formik.values)
+                    ? checkTabValues("")
+                    : checkFormValid(formik.values) || checkTabValues("all")
                 }
               >
                 {selectedTab === "setting" ||
