@@ -350,64 +350,88 @@ const Routing = () => {
   const onEditSettings = (value: any) => {
     setShowEditSource(false);
 
+    let selectedIndex = -1;
+    let nodeIndex = -1;
+
+    addedSources.forEach((source, index) => {
+      if (source.id === selectedSource.id) {
+        selectedIndex = index;
+      }
+    });
+
+    nodes.forEach((node, index) => {
+      if (node.id === selectedSource.id) {
+        nodeIndex = index;
+      }
+    });
+
+    let prevSources = addedSources;
+    let prevNodes = nodes;
+
     if (value === "delete") {
-      let selectedIndex = -1;
-      let nodeIndex = -1;
-
-      addedSources.forEach((source, index) => {
-        if (source.id === selectedSource.id) {
-          selectedIndex = index;
-        }
-      });
-
-      nodes.forEach((node, index) => {
-        if (node.id === selectedSource.id) {
-          nodeIndex = index;
-        }
-      });
-
-      let prevSources = addedSources;
       prevSources.splice(selectedIndex, 1);
 
-      let prevNodes = nodes;
       prevNodes.splice(nodeIndex, 1);
 
       setAddedSources((prevList) => [...prevSources]);
       setNodes((prevList) => [...prevNodes]);
     } else {
-      console.log("edit");
+      if (value.name !== selectedSource.id) {
+        prevSources[selectedIndex].id = value.name;
+        setAddedSources((prevList) => [...prevSources]);
+      }
+
+      prevNodes[nodeIndex].id = value.name;
+      prevNodes[nodeIndex].data = {
+        label: value.name,
+        nodeData: value,
+      };
+
+      setNodes((prevList) => [...prevNodes]);
     }
   };
 
   const onEditDestSettings = (value: any) => {
     setShowEditDestination(false);
 
+    let selectedIndex = -1;
+    let nodeIndex = -1;
+
+    addedDestinations.forEach((source, index) => {
+      if (source.id === selectedSource.id) {
+        selectedIndex = index;
+      }
+    });
+
+    nodes.forEach((node, index) => {
+      if (node.id === selectedSource.id) {
+        nodeIndex = index;
+      }
+    });
+
+    let prevDestinations = addedDestinations;
+    let prevNodes = nodes;
+
     if (value === "delete") {
-      let selectedIndex = -1;
-      let nodeIndex = -1;
+      prevDestinations.splice(selectedIndex, 1);
 
-      addedDestinations.forEach((source, index) => {
-        if (source.id === selectedSource.id) {
-          selectedIndex = index;
-        }
-      });
-
-      nodes.forEach((node, index) => {
-        if (node.id === selectedSource.id) {
-          nodeIndex = index;
-        }
-      });
-
-      let prevSources = addedDestinations;
-      prevSources.splice(selectedIndex, 1);
-
-      let prevNodes = nodes;
       prevNodes.splice(nodeIndex, 1);
 
-      setAddedDestinations((prevList) => [...prevSources]);
+      setAddedDestinations((prevList) => [...prevDestinations]);
       setNodes((prevList) => [...prevNodes]);
     } else {
-      console.log("edit");
+      if (value.name !== selectedSource.id) {
+        prevDestinations[selectedIndex].id = value.name;
+        setAddedDestinations((prevList) => [...prevDestinations]);
+      }
+
+      prevNodes[nodeIndex].id = value.name;
+      prevNodes[nodeIndex].data = {
+        label: value.name,
+        nodeData: value,
+      };
+
+      setNodes((prevList) => [...prevNodes]);
     }
   };
 

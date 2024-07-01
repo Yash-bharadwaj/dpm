@@ -300,9 +300,11 @@ const EditSourceData = ({
           item === "enabled"
         ) {
           if (item === "name") {
+            const name = formik.values.name.replaceAll(" ", "_");
             if (selectedNode === undefined) {
-              const name = formik.values.name.replaceAll(" ", "_");
               sourceValues.name = "input_" + name;
+            } else {
+              sourceValues.name = name;
             }
           } else if (item === "organization") {
             if (formik.values["organization"].id !== "") {
