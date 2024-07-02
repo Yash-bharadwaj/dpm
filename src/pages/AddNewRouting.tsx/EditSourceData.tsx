@@ -562,7 +562,7 @@ const EditSourceData = ({
     }
 
     if (selectedTab === "advanced" || tabValue === "all") {
-      selectedSource.advanced.forEach((setting: object) => {
+      selectedSource.advanced?.forEach((setting: object) => {
         Object.keys(values).forEach((value: string) => {
           if (
             !setting.options &&
