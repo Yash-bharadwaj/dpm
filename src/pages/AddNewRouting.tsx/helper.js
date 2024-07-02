@@ -4,7 +4,7 @@ const ipRegex = /^((25[0-5]|(2[0-4]|1[0-9]|[1-9]|)[0-9])(.(?!$)|$)){4}$/;
 
 const alphaNumericRegex = /^[a-z0-9]+$/i;
 
-const secretKeyRegex = /^[a-zA-Z0-9\/]+$/;
+const secretKeyRegex = /^[a-zA-Z0-9\/+]+$/;
 
 const alphaNumberWSplRegex = /^[a-zA-Z0-9 !@#\{\}\=\$%\^\&*\\\\\/)\(+=._-]+$/;
 

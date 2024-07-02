@@ -67,7 +67,12 @@ const EditSourceData = ({
     if (advanced.datatype === "boolean") {
       if (advanced.name === "tls") {
         sourceInitialValues[advanced.name] =
-          selectedNode?.data.nodeData["tls"].enabled || advanced.default || "";
+          selectedNode !== undefined &&
+          selectedNode?.data.nodeData["tls"].enabled !== ""
+            ? selectedNode?.data.nodeData["tls"].enabled === false
+              ? false
+              : true
+            : advanced.default || false;
       } else {
         sourceInitialValues[advanced.name] =
           selectedNode?.data.nodeData[advanced.name] !== ""
@@ -158,9 +163,7 @@ const EditSourceData = ({
     checkMandatoryFields.forEach((field) => {
       if (values[field] === "") {
         if (field === "topics") {
-          if (topics[0] !== "") {
-            error = false;
-          } else {
+          if (topics[0] === "") {
             error = true;
           }
         } else {
@@ -448,6 +451,8 @@ const EditSourceData = ({
         sourceValues["mode"] = selectedSource.mode;
       }
 
+      console.log("sourceValues", sourceValues);
+
       onSaveSettings(sourceValues);
     }
   };
@@ -490,7 +495,24 @@ const EditSourceData = ({
         setting.datatype === "password"
       ) {
         const check = checkValueWithRegex(value, setting.datatype);
-        invalid = !check;
+
+        if (check) {
+          if (
+            setting.name === "access_key_id" ||
+            setting.name === "secret_access_key"
+          ) {
+            const lengthCheck = setting.name === "access_key_id" ? 20 : 40;
+            if (value.length < lengthCheck) {
+              invalid = true;
+            } else {
+              invalid = false;
+            }
+          } else {
+            invalid = !check;
+          }
+        } else {
+          invalid = !check;
+        }
       } else {
         if (setting.name === "port") {
           if (value > 65535) {
@@ -1027,7 +1049,7 @@ const EditSourceData = ({
                           type="switch"
                           id={option.name}
                           checked={formik.values[option.name]}
-                          defaultChecked={option.default}
+                          defaultChecked={formik.values[option.name]}
                           onChange={formik.handleChange}
                           style={{ marginLeft: "8px" }}
                         />
