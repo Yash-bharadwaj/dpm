@@ -16,7 +16,12 @@ import regions from "../../data/regions.json";
 
 import { useState } from "react";
 import { useFormik } from "formik";
-import { checkValueWithRegex } from "./helper";
+import {
+  checkAccessAuthFields,
+  checkAssumeAuthFieldsOne,
+  checkAssumeAuthFieldsTwo,
+  checkValueWithRegex,
+} from "./helper";
 
 import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
@@ -83,6 +88,8 @@ const EditDestinationData = ({
     }
   }
 
+  const [checkMandatoryFields, setMandatoryFields] = useState(mandatoryFields);
+
   const validateForm = async (values: any) => {
     return checkFormValid(values);
   };
@@ -90,18 +97,9 @@ const EditDestinationData = ({
   const checkFormValid = (values: any) => {
     let error = false;
 
-    mandatoryFields.forEach((field) => {
+    checkMandatoryFields.forEach((field) => {
       if (values[field] === "") {
-        if (
-          authIndex !== null &&
-          ((authIndex === "0" && field === "assume_role") ||
-            (authIndex === "1" &&
-              (field === "access_key_id" || field === "secret_access_key")))
-        ) {
-          error = false;
-        } else {
-          error = true;
-        }
+        error = true;
       }
     });
 
@@ -124,6 +122,28 @@ const EditDestinationData = ({
 
   const onCheck = (index: number) => {
     setAuthIndex(index);
+
+    selectedDestination.authentication.dropdownOptions[
+      index
+    ].fieldsToShow.forEach((field: object) => {
+      formik.setFieldValue(field?.name, "");
+    });
+
+    let prevValues = mandatoryFields;
+
+    if (index === "0") {
+      const fieldIndex = prevValues.findIndex(checkAccessAuthFields);
+
+      prevValues.splice(fieldIndex, 1);
+    } else {
+      const indexOne = prevValues.findIndex(checkAssumeAuthFieldsOne);
+      prevValues.splice(indexOne, 1);
+
+      const indexTwo = prevValues.findIndex(checkAssumeAuthFieldsTwo);
+      prevValues.splice(indexTwo, 1);
+    }
+
+    setMandatoryFields((prevList) => [...prevValues]);
   };
 
   const onNextClick = () => {
@@ -214,7 +234,9 @@ const EditDestinationData = ({
                 authIndex
               ].fieldsToShow.map((field: string) => {
                 if (field.name === "auth_region") {
-                  sourceValues.auth["region"] = formik.values[field.name];
+                  if (formik.values[field.name] !== "") {
+                    sourceValues.auth["region"] = formik.values[field.name];
+                  }
                 } else {
                   sourceValues.auth[field.name] = formik.values[field.name];
                 }
@@ -222,7 +244,14 @@ const EditDestinationData = ({
             }
 
             if (sourceValues.auth && sourceValues.auth[item] === undefined) {
-              sourceValues[item] = formik.values[item];
+              if (
+                item !== "assume_role" &&
+                item !== "access_key_id" &&
+                item !== "secret_access_key" &&
+                item !== "auth_region"
+              ) {
+                sourceValues[item] = formik.values[item];
+              }
             } else {
               if (
                 item !== "assume_role" &&
@@ -290,7 +319,24 @@ const EditDestinationData = ({
         setting.datatype === "text-special"
       ) {
         const check = checkValueWithRegex(value, setting.datatype);
-        invalid = !check;
+
+        if (check) {
+          if (
+            setting.name === "access_key_id" ||
+            setting.name === "secret_access_key"
+          ) {
+            const lengthCheck = setting.name === "access_key_id" ? 20 : 40;
+            if (value.length < lengthCheck) {
+              invalid = true;
+            } else {
+              invalid = false;
+            }
+          } else {
+            invalid = !check;
+          }
+        } else {
+          invalid = !check;
+        }
       } else {
         if (setting.name === "port") {
           if (value > 65535) {

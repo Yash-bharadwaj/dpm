@@ -199,13 +199,12 @@ const EditSourceData = ({
       }
     );
 
-    // checkMandatoryFields = [...mandatoryFields];
     let prevValues = mandatoryFields;
 
     if (index === "0") {
-      const index = prevValues.findIndex(checkAccessAuthFields);
+      const fieldIndex = prevValues.findIndex(checkAccessAuthFields);
 
-      prevValues.splice(index, 1);
+      prevValues.splice(fieldIndex, 1);
     } else {
       const indexOne = prevValues.findIndex(checkAssumeAuthFieldsOne);
       prevValues.splice(indexOne, 1);
@@ -331,16 +330,7 @@ const EditSourceData = ({
             };
           } else if (item === "tls" || item === "codec") {
             if (item === "tls") {
-              if (
-                formik.values["tls"].length !== 0 &&
-                formik.values["tls"][0] === "on"
-              ) {
-                sourceValues["tls"] = {
-                  enabled: true,
-                };
-              } else {
-                sourceValues["tls"] = { enabled: false };
-              }
+              sourceValues["tls"] = { enabled: formik.values["tls"] };
             } else {
               sourceValues["decoding"] = {
                 codec: formik.values["codec"],
