@@ -27,6 +27,9 @@ import {
 import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
 
+import "react-simple-toasts/dist/theme/failure.css";
+import "react-simple-toasts/dist/theme/success.css";
+
 toastConfig({ theme: "dark" });
 
 const EditSourceData = ({
@@ -282,6 +285,7 @@ const EditSourceData = ({
         {
           position: "top-right",
           zIndex: 9999,
+          theme: "failure",
         }
       );
     } else if (!nameAvailable) {
@@ -290,6 +294,7 @@ const EditSourceData = ({
         {
           position: "top-right",
           zIndex: 9999,
+          theme: "failure",
         }
       );
     } else {

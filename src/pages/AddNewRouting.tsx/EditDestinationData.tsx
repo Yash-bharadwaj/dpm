@@ -26,6 +26,9 @@ import {
 import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
 
+import "react-simple-toasts/dist/theme/failure.css";
+import "react-simple-toasts/dist/theme/success.css";
+
 toastConfig({ theme: "dark" });
 
 const EditDestinationData = ({
@@ -196,6 +199,7 @@ const EditDestinationData = ({
         {
           position: "top-right",
           zIndex: 9999,
+          theme: "failure",
         }
       );
     } else {
@@ -267,8 +271,6 @@ const EditDestinationData = ({
       });
 
       sourceValues["type"] = selectedDestination.type;
-
-      console.log("source values", sourceValues);
 
       onSaveSettings(sourceValues);
     }
