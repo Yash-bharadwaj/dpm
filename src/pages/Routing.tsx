@@ -167,9 +167,6 @@ const Routing = () => {
         }
       });
 
-      console.log("params", params);
-      console.log("params", sourceType);
-
       if (sourceType === "source") {
         if (connectedNodes.length !== 0) {
           connectedNodes.forEach((connect: any, index: number) => {
@@ -188,12 +185,9 @@ const Routing = () => {
             destinations: targetType === "destination" ? [params.target] : [],
           };
 
-          console.log("new connection", newConnection);
-
           setCurrentSource(params.source);
           setConnectedNodes((prevList) => [...prevList, newConnection]);
         } else {
-          console.log("connection present", targetType);
           if (targetType === "pipeline") {
             connectedNodes[sourceIndex].pipelines.push(params.target);
           }
@@ -219,8 +213,6 @@ const Routing = () => {
       } else {
         if (sourceType === "pipeline" || sourceType === "enrichment") {
           if (connectedNodes.length !== 0) {
-            console.log("connectednodes", connectedNodes);
-
             let prevNodes = [...connectedNodes];
             const type =
               sourceType === "pipeline" ? "pipelines" : "enrichments";
@@ -233,11 +225,8 @@ const Routing = () => {
                 : "destinations";
 
             prevNodes.forEach((node: any) => {
-              console.log("node", node);
               const edgeSourceIndex = node[type].indexOf(params.source);
               const edgeTargetIndex = node[destType].indexOf(params.target);
-
-              console.log("p/e index", edgeSourceIndex);
 
               if (targetType !== "destination") {
                 if (edgeTargetIndex === -1) {
@@ -250,8 +239,6 @@ const Routing = () => {
               } else {
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(params.target);
-
-                  console.log("destindex", destIndex);
 
                   if (destIndex !== -1) {
                     if (node.source === currentSource) {
@@ -267,17 +254,12 @@ const Routing = () => {
               }
             });
 
-            console.log("prev nodes", prevNodes);
-
             setConnectedNodes((prevList) => [...prevNodes]);
           } else {
-            console.log("new");
             sourcePresent = false;
           }
         }
       }
-
-      console.log("dest present", destPresent);
 
       if (destPresent) {
         toast("Source and Destination connection already present!", {
@@ -294,10 +276,8 @@ const Routing = () => {
       } else {
         setEdges((eds) => addEdge(params, eds));
       }
-
-      console.log("connected", connectedNodes);
     },
-    [nodes, connectedNodes]
+    [nodes, connectedNodes, currentSource]
   );
 
   const addNode = useCallback(
