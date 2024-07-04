@@ -48,6 +48,7 @@ const Routing = () => {
   const [selectedNode, setSelectedNode] = useState(Object);
   const [showEditDestination, setShowEditDestination] = useState(false);
   const [connectedNodes, setConnectedNodes] = useState(Array);
+  const [currentSource, setCurrentSource] = useState("");
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 
@@ -153,20 +154,16 @@ const Routing = () => {
       let targetType = "";
       let sourceType = "";
       let sourceIndex = -1;
-      //   let targetIndex = -1;
 
       let destPresent = false;
+      let sourcePresent = true;
 
-      console.log("nodes", nodes);
-
-      nodes.forEach((node, index) => {
+      nodes.forEach((node) => {
         if (params.target === node.id) {
           targetType = node.data.type;
-          //   targetIndex = index;
         }
         if (params.source === node.id) {
           sourceType = node.data.type;
-          //   sourceIndex = index;
         }
       });
 
@@ -178,11 +175,10 @@ const Routing = () => {
           connectedNodes.forEach((connect: any, index: number) => {
             if (connect.source === params.source) {
               sourceIndex = index;
+              sourcePresent = true;
             }
           });
         }
-
-        console.log("source index", sourceIndex);
 
         if (sourceIndex === -1) {
           const newConnection = {
@@ -194,6 +190,7 @@ const Routing = () => {
 
           console.log("new connection", newConnection);
 
+          setCurrentSource(params.source);
           setConnectedNodes((prevList) => [...prevList, newConnection]);
         } else {
           console.log("connection present", targetType);
@@ -215,46 +212,81 @@ const Routing = () => {
             } else {
               connectedNodes[sourceIndex].destinations.push(params.target);
             }
+
+            setCurrentSource(params.source);
           }
         }
       } else {
-        if (
-          (sourceType === "pipeline" || sourceType === "enrichment") &&
-          targetType === "destination"
-        ) {
+        if (sourceType === "pipeline" || sourceType === "enrichment") {
           if (connectedNodes.length !== 0) {
+            console.log("connectednodes", connectedNodes);
+
+            let prevNodes = [...connectedNodes];
             const type =
               sourceType === "pipeline" ? "pipelines" : "enrichments";
 
-            connectedNodes.forEach((node: any) => {
-              const pipelineIndex = node[type].indexOf(params.source);
+            const destType =
+              targetType === "pipeline"
+                ? "pipelines"
+                : targetType === "enrichment"
+                ? "enrichments"
+                : "destinations";
 
-              if (pipelineIndex !== -1) {
-                const destIndex = node.destinations.indexOf(params.target);
-                if (destIndex !== -1) {
-                  destPresent = true;
-                } else {
-                  node.destinations.push(params.target);
+            prevNodes.forEach((node: any) => {
+              console.log("node", node);
+              const edgeSourceIndex = node[type].indexOf(params.source);
+              const edgeTargetIndex = node[destType].indexOf(params.target);
+
+              console.log("p/e index", edgeSourceIndex);
+
+              if (targetType !== "destination") {
+                if (edgeTargetIndex === -1) {
+                  node[destType].push(params.target);
+                }
+
+                if (edgeSourceIndex === -1) {
+                  node[type].push(params.source);
                 }
               } else {
-                node[type].push(params.source);
+                if (edgeSourceIndex !== -1) {
+                  const destIndex = node.destinations.indexOf(params.target);
+
+                  console.log("destindex", destIndex);
+
+                  if (destIndex !== -1) {
+                    if (node.source === currentSource) {
+                      destPresent = true;
+                    }
+                  } else {
+                    node.destinations.push(params.target);
+                    destPresent = false;
+                  }
+                } else {
+                  node[type].push(params.source);
+                }
               }
             });
-          } else {
-            const newConnection = {
-              source: "",
-              pipelines: sourceType === "pipeline" ? [params.target] : [],
-              enhancements: sourceType === "enrichment" ? [params.target] : [],
-              destinations: targetType === "destination" ? [params.target] : [],
-            };
 
-            setConnectedNodes((prevList) => [...prevList, newConnection]);
+            console.log("prev nodes", prevNodes);
+
+            setConnectedNodes((prevList) => [...prevNodes]);
+          } else {
+            console.log("new");
+            sourcePresent = false;
           }
         }
       }
 
+      console.log("dest present", destPresent);
+
       if (destPresent) {
-        toast("Source and Destinations connection already present!", {
+        toast("Source and Destination connection already present!", {
+          position: "top-right",
+          zIndex: 9999,
+          theme: "failure",
+        });
+      } else if (!sourcePresent) {
+        toast("No source node connected!", {
           position: "top-right",
           zIndex: 9999,
           theme: "failure",
