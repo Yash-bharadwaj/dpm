@@ -214,6 +214,8 @@ const EditDestinationData = ({
             } else {
               sourceValues.name = name;
             }
+          } else if (item === "port") {
+            sourceValues["port"] = formik.values["port"].toString();
           } else if (item === "codec") {
             sourceValues["encoding"] = {
               codec: formik.values["codec"],
@@ -689,7 +691,7 @@ const EditDestinationData = ({
                           value={formik.values[setting.name]}
                         >
                           <option value="" hidden>
-                            Select {setting.name}
+                            Select {setting.label}
                           </option>
                           {setting.options?.map((option: any) => (
                             <option value={option.name || option}>
@@ -795,7 +797,7 @@ const EditDestinationData = ({
                     value={authIndex}
                   >
                     <option value="" hidden>
-                      Select Auth
+                      Select Authentication
                     </option>
                     {selectedDestination.authentication.dropdownOptions?.map(
                       (option: any, index: number) => (

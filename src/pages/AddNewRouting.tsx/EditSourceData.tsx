@@ -90,6 +90,23 @@ const EditSourceData = ({
           selectedNode?.data.nodeData["decoding"].codec ||
           advanced.default ||
           "";
+      } else if (
+        advanced.name === "permit_origin" &&
+        selectedNode !== undefined &&
+        selectedNode?.data.nodeData["permit_origin"] !== ""
+      ) {
+        const values = selectedNode?.data.nodeData["permit_origin"];
+        let permitValues = "";
+
+        values.forEach((value: any, index: number) => {
+          if (index === 0) {
+            permitValues = value;
+          } else {
+            permitValues = permitValues + "," + value;
+          }
+        });
+
+        sourceInitialValues["permit_origin"] = permitValues;
       } else {
         sourceInitialValues[advanced.name] =
           selectedNode?.data.nodeData[advanced.name] || advanced.default || "";
@@ -313,6 +330,8 @@ const EditSourceData = ({
             } else {
               sourceValues.name = name;
             }
+          } else if (item === "port") {
+            sourceValues["port"] = formik.values["port"].toString();
           } else if (item === "organization") {
             if (formik.values["organization"].id !== "") {
               sourceValues["organization"] = formik.values["organization"];
@@ -816,7 +835,7 @@ const EditSourceData = ({
                       value={formik.values[setting.name]}
                     >
                       <option value="" hidden>
-                        Select {setting.name}
+                        Select {setting.label}
                       </option>
 
                       {regions?.regions?.map((option: any) => (
@@ -978,7 +997,7 @@ const EditSourceData = ({
                           }
                         >
                           <option value="" hidden>
-                            Select {field.name}
+                            Select {field.label}
                           </option>
                           {field.options.map((value: string) => (
                             <option value={value}>{value}</option>
@@ -1059,7 +1078,7 @@ const EditSourceData = ({
                         value={formik.values[option.name]}
                       >
                         <option value="" hidden>
-                          Select {option.name}
+                          Select {option.label}
                         </option>
                         {option.options.map((option: string) => (
                           <option value={option}>{option}</option>
@@ -1113,7 +1132,7 @@ const EditSourceData = ({
                     value={authIndex}
                   >
                     <option value="" hidden>
-                      Select Auth
+                      Select Authentication
                     </option>
                     {selectedSource.authentication.dropdownOptions?.map(
                       (option: any, index: number) => (
@@ -1269,7 +1288,7 @@ const EditSourceData = ({
                         value={formik.values[authFields.name]}
                       >
                         <option value="" hidden>
-                          Select {authFields.name}
+                          Select {authFields.label}
                         </option>
                         {authFields.options?.map((option: any) => (
                           <option value={option}>{option}</option>
