@@ -4,12 +4,13 @@ import { Button, Col, Container, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
 
 import ReactFlow, {
+  Controls,
   Position,
   addEdge,
   applyEdgeChanges,
@@ -108,7 +109,7 @@ const Routing = () => {
   };
 
   const onAddSource = (source: object, sourceValues: object) => {
-    let nodeData = { ...sourceValues };
+    const nodeData = { ...sourceValues };
     source.id = nodeData.name;
 
     const newNode = {
@@ -117,7 +118,10 @@ const Routing = () => {
       type: "input",
       sourcePosition: Position.Right,
       position: { x: -150, y: 0 },
+      //   position: { x: Position.Left, y: 150 },
     };
+
+    console.log("new node", newNode);
 
     addNode(newNode);
 
@@ -144,10 +148,11 @@ const Routing = () => {
     setAddedDestinations((prevList) => [...prevList, destination]);
   };
 
-  const onEdgesChange = useCallback(
-    (changes: any) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    []
-  );
+  const onEdgesChange = useCallback((changes: any) => {
+    console.log("changes", changes);
+
+    setEdges((eds) => applyEdgeChanges(changes, eds));
+  }, []);
 
   const onConnect = useCallback(
     (params: any) => {
@@ -274,7 +279,10 @@ const Routing = () => {
           theme: "failure",
         });
       } else {
-        setEdges((eds) => addEdge(params, eds));
+        let newEdge = { ...params };
+        newEdge.animated = true;
+
+        setEdges((eds) => addEdge(newEdge, eds));
       }
     },
     [nodes, connectedNodes, currentSource]
@@ -460,13 +468,21 @@ const Routing = () => {
         });
       });
 
-      const yaml = convert(config);
-
-      console.log("yaml string", yaml);
+      if (config.node.destinations.disabled === true) {
+        toast("No source-destination connections found!", {
+          position: "top-right",
+          zIndex: 9999,
+          theme: "failure",
+        });
+      } else {
+        const yaml = convert(config);
+        console.log(yaml);
+      }
     } else {
       toast("No source-destination connections found!", {
         position: "top-right",
         zIndex: 9999,
+        theme: "failure",
       });
     }
   };
@@ -567,112 +583,199 @@ const Routing = () => {
     }
   };
 
+  const handleEdgeChange = () => {
+    let connectedEdges = [];
+
+    edges.forEach((edge) => {
+      let targetType = "";
+      let sourceType = "";
+      let sourceIndex = -1;
+
+      nodes.forEach((node) => {
+        if (edge.target === node.id) {
+          targetType = node.data.type;
+        }
+        if (edge.source === node.id) {
+          sourceType = node.data.type;
+        }
+      });
+
+      if (sourceType === "source") {
+        if (connectedEdges.length !== 0) {
+          connectedEdges.forEach((connect: any, index: number) => {
+            if (connect.source === edge.source) {
+              sourceIndex = index;
+            }
+          });
+        }
+
+        if (sourceIndex === -1) {
+          const newConnection = {
+            source: edge.source,
+            pipelines: targetType === "pipeline" ? [edge.target] : [],
+            enrichments: targetType === "enrichment" ? [edge.target] : [],
+            destinations: targetType === "destination" ? [edge.target] : [],
+          };
+
+          connectedEdges.push(newConnection);
+        } else {
+          if (targetType === "pipeline") {
+            connectedEdges[sourceIndex].pipelines.push(edge.target);
+          }
+          if (targetType === "enrichment") {
+            connectedEdges[sourceIndex].enrichments.push(edge.target);
+          }
+          if (targetType === "destination") {
+            connectedEdges[sourceIndex].destinations.push(edge.target);
+
+            setCurrentSource(edge.source);
+          }
+        }
+      } else {
+        if (sourceType === "pipeline" || sourceType === "enrichment") {
+          if (connectedEdges.length !== 0) {
+            let prevNodes = [...connectedEdges];
+            const type =
+              sourceType === "pipeline" ? "pipelines" : "enrichments";
+
+            const destType =
+              targetType === "pipeline"
+                ? "pipelines"
+                : targetType === "enrichment"
+                ? "enrichments"
+                : "destinations";
+
+            prevNodes.forEach((node: any) => {
+              const edgeSourceIndex = node[type].indexOf(edge.source);
+              const edgeTargetIndex = node[destType].indexOf(edge.target);
+
+              if (targetType !== "destination") {
+                if (edgeTargetIndex === -1) {
+                  node[destType].push(edge.target);
+                }
+
+                if (edgeSourceIndex === -1) {
+                  node[type].push(edge.source);
+                }
+              } else {
+                if (edgeSourceIndex !== -1) {
+                  const destIndex = node.destinations.indexOf(edge.target);
+
+                  if (destIndex === -1) {
+                    node.destinations.push(edge.target);
+                  }
+                } else {
+                  node[type].push(edge.source);
+                }
+              }
+            });
+
+            connectedEdges = prevNodes;
+          }
+        }
+      }
+    });
+
+    setConnectedNodes((prevList) => [...connectedEdges]);
+  };
+
+  useEffect(() => {
+    handleEdgeChange();
+  }, [edges]);
+
   return (
     <>
       <RoutingNavbar />
 
       <div className="main-page-div">
-        <Container>
-          {/* <Row className="justify-content-md-center">
-            <Col xl={11} lg={12} md={10} sm={10}>
-              <InputGroup className="mb-3">
-                <InputGroup.Text id="filter">@</InputGroup.Text>
-                <Form.Control
-                  placeholder="Start typing to filter results"
-                  aria-label="filter"
-                  aria-describedby="filter"
-                />
-              </InputGroup>
-            </Col>
-          </Row> */}
+        <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
+          <Col xl={12} lg={12} md={12} sm={12}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onSave}
+              style={{ float: "right", marginBottom: "12px" }}
+            >
+              Save Configuration
+            </Button>
+          </Col>
 
-          <Row className="justify-content-md-center mt-3">
-            <Col xl={11} lg={12} md={10} sm={10}>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={onSave}
-                style={{ float: "right", marginBottom: "12px" }}
+          <Col xl={12} lg={12} md={12} sm={12}>
+            <div className="source-dest-div">
+              <div style={{ width: "20%" }}>
+                <div className="source-dest-sub-div">
+                  <div>Sources</div>
+
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={onAddSourceClick}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+
+              <div style={{ width: "20%" }}>
+                <div className="source-dest-sub-div">
+                  <div>Pipelines</div>
+
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={onAddPipelineClick}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+
+              <div style={{ width: "20%" }}>
+                <div className="source-dest-sub-div">
+                  <div>Enrichments</div>
+
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={onAddEnrichmentClick}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+
+              <div style={{ width: "20%" }}>
+                <div className="source-dest-sub-div">
+                  <div>Destinations</div>
+
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={onAddDestinationClick}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ height: "100vh" }}>
+              <ReactFlow
+                nodes={nodes}
+                onNodesChange={onNodesChange}
+                onNodeClick={onNodeClick}
+                edges={edges}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                fitView
+                maxZoom={1.3}
+                minZoom={1.3}
               >
-                Save Configuration
-              </Button>
-            </Col>
-
-            <Col xl={11} lg={12} md={10} sm={10}>
-              <div className="source-dest-div">
-                <div style={{ width: "20%" }}>
-                  <div className="source-dest-sub-div">
-                    <div>Sources</div>
-
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={onAddSourceClick}
-                    >
-                      Add Source
-                    </Button>
-                  </div>
-                </div>
-
-                <div style={{ width: "20%" }}>
-                  <div className="source-dest-sub-div">
-                    <div>Pipelines</div>
-
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={onAddPipelineClick}
-                    >
-                      Add Pipeline
-                    </Button>
-                  </div>
-                </div>
-
-                <div style={{ width: "20%" }}>
-                  <div className="source-dest-sub-div">
-                    <div>Enrichments</div>
-
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={onAddEnrichmentClick}
-                    >
-                      Add Enrichments
-                    </Button>
-                  </div>
-                </div>
-
-                <div style={{ width: "20%" }}>
-                  <div className="source-dest-sub-div">
-                    <div>Destinations</div>
-
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={onAddDestinationClick}
-                    >
-                      Add Destination
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ height: "65vh" }}>
-                <ReactFlow
-                  nodes={nodes}
-                  onNodesChange={onNodesChange}
-                  onNodeClick={onNodeClick}
-                  edges={edges}
-                  onEdgesChange={onEdgesChange}
-                  onConnect={onConnect}
-                  fitView
-                  maxZoom={1.3}
-                  minZoom={1.3}
-                ></ReactFlow>
-              </div>
-            </Col>
-          </Row>
-        </Container>
+                <Controls />
+              </ReactFlow>
+            </div>
+          </Col>
+        </Row>
 
         <SourceDrawer
           show={showSource}

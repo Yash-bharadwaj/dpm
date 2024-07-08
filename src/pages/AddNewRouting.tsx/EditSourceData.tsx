@@ -98,13 +98,15 @@ const EditSourceData = ({
         const values = selectedNode?.data.nodeData["permit_origin"];
         let permitValues = "";
 
-        values.forEach((value: any, index: number) => {
-          if (index === 0) {
-            permitValues = value;
-          } else {
-            permitValues = permitValues + "," + value;
-          }
-        });
+        if (values && values.length !== 0) {
+          values.forEach((value: any, index: number) => {
+            if (index === 0) {
+              permitValues = value;
+            } else {
+              permitValues = permitValues + "," + value;
+            }
+          });
+        }
 
         sourceInitialValues["permit_origin"] = permitValues;
       } else {
