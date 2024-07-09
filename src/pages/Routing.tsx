@@ -110,7 +110,9 @@ const Routing = () => {
 
   const onAddSource = (source: object, sourceValues: object) => {
     const nodeData = { ...sourceValues };
-    source.id = nodeData.name;
+    let sourceData = { ...source };
+
+    sourceData.id = nodeData.name;
 
     const newNode = {
       id: sourceValues.name,
@@ -125,13 +127,15 @@ const Routing = () => {
     handleClose();
 
     setAddedSources((prevList) => {
-      return [...prevList, source];
+      return [...prevList, sourceData];
     });
   };
 
   const onAddDestination = (destination: object, destinationValues: object) => {
     const nodeData = { ...destinationValues };
-    destination.id = nodeData?.name;
+
+    let destData = { ...destination };
+    destData.id = nodeData?.name;
 
     const newNode = {
       id: destinationValues.name,
@@ -144,7 +148,7 @@ const Routing = () => {
     addNode(newNode);
 
     handleClose();
-    setAddedDestinations((prevList) => [...prevList, destination]);
+    setAddedDestinations((prevList) => [...prevList, destData]);
   };
 
   const onEdgesChange = useCallback((changes: any) => {
