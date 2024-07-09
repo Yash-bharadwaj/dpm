@@ -118,18 +118,19 @@ const Routing = () => {
       type: "input",
       sourcePosition: Position.Right,
       position: { x: -150, y: 0 },
-      //   position: { x: Position.Left, y: 150 },
     };
 
     addNode(newNode);
 
     handleClose();
 
-    setAddedSources((prevList) => [...prevList, source]);
+    setAddedSources((prevList) => {
+      return [...prevList, source];
+    });
   };
 
   const onAddDestination = (destination: object, destinationValues: object) => {
-    let nodeData = { ...destinationValues };
+    const nodeData = { ...destinationValues };
     destination.id = nodeData?.name;
 
     const newNode = {
@@ -368,6 +369,19 @@ const Routing = () => {
         const sourceId = edge.source;
         const destId = edge.target;
 
+        let sourceIndex = -1;
+        let destIndex = -1;
+
+        nodes.forEach((node, index) => {
+          if (sourceId === node.id) {
+            sourceIndex = index;
+          }
+
+          if (destId === node.id) {
+            destIndex = index;
+          }
+        });
+
         nodes.forEach((node) => {
           if (sourceId === node.id && node.data.type === "source") {
             const configNodeData = { ...node.data.nodeData };
@@ -384,12 +398,14 @@ const Routing = () => {
             let configOutputs =
               config.node.sources[configNodeData.name].outputs || [];
 
-            if (configOutputs) {
-              if (!configOutputs.includes(destId)) {
-                configOutputs.push(destId);
+            if (destIndex !== -1) {
+              if (configOutputs) {
+                if (!configOutputs.includes(destId)) {
+                  configOutputs.push(destId);
+                }
+              } else {
+                configOutputs = [destId];
               }
-            } else {
-              configOutputs = [destId];
             }
 
             config.node.sources[configNodeData.name].outputs = configOutputs;
@@ -412,12 +428,14 @@ const Routing = () => {
             let configOutputs =
               config.node.pipelines[configNodeData.name].outputs || [];
 
-            if (configOutputs) {
-              if (!configOutputs.includes(destId)) {
-                configOutputs.push(destId);
+            if (destIndex !== -1) {
+              if (configOutputs) {
+                if (!configOutputs.includes(destId)) {
+                  configOutputs.push(destId);
+                }
+              } else {
+                configOutputs = [destId];
               }
-            } else {
-              configOutputs = [destId];
             }
 
             config.node.pipelines[configNodeData.name].outputs = configOutputs;
@@ -440,12 +458,14 @@ const Routing = () => {
             let configInputs =
               config.node.pipelines[configNodeData.name].inputs || [];
 
-            if (configInputs) {
-              if (!configInputs.includes(sourceId)) {
-                configInputs.push(sourceId);
+            if (sourceIndex !== -1) {
+              if (configInputs) {
+                if (!configInputs.includes(sourceId)) {
+                  configInputs.push(sourceId);
+                }
+              } else {
+                configInputs = [sourceId];
               }
-            } else {
-              configInputs = [sourceId];
             }
 
             config.node.pipelines[configNodeData.name].inputs = configInputs;
@@ -468,12 +488,14 @@ const Routing = () => {
             let configOutputs =
               config.node.enrichments[configNodeData.name].outputs || [];
 
-            if (configOutputs) {
-              if (!configOutputs.includes(destId)) {
-                configOutputs.push(destId);
+            if (destIndex !== -1) {
+              if (configOutputs) {
+                if (!configOutputs.includes(destId)) {
+                  configOutputs.push(destId);
+                }
+              } else {
+                configOutputs = [destId];
               }
-            } else {
-              configOutputs = [destId];
             }
 
             config.node.enrichments[configNodeData.name].outputs =
@@ -497,12 +519,14 @@ const Routing = () => {
             let configInputs =
               config.node.enrichments[configNodeData.name].inputs || [];
 
-            if (configInputs) {
-              if (!configInputs.includes(sourceId)) {
-                configInputs.push(sourceId);
+            if (sourceIndex !== -1) {
+              if (configInputs) {
+                if (!configInputs.includes(sourceId)) {
+                  configInputs.push(sourceId);
+                }
+              } else {
+                configInputs = [sourceId];
               }
-            } else {
-              configInputs = [sourceId];
             }
 
             config.node.enrichments[configNodeData.name].inputs = configInputs;
@@ -525,12 +549,14 @@ const Routing = () => {
             let configInputs =
               config.node.destinations[configNodeData.name].inputs || [];
 
-            if (configInputs) {
-              if (!configInputs.includes(sourceId)) {
-                configInputs.push(sourceId);
+            if (sourceIndex !== -1) {
+              if (configInputs) {
+                if (!configInputs.includes(sourceId)) {
+                  configInputs.push(sourceId);
+                }
+              } else {
+                configInputs = [sourceId];
               }
-            } else {
-              configInputs = [sourceId];
             }
 
             config.node.destinations[configNodeData.name].inputs = configInputs;
@@ -590,8 +616,29 @@ const Routing = () => {
 
     if (value === "delete") {
       prevSources.splice(selectedIndex, 1);
-
       prevNodes.splice(nodeIndex, 1);
+
+      let changes = [];
+
+      if (edges.length !== 0) {
+        edges.forEach((edge) => {
+          if (
+            edge.source === selectedSource.id ||
+            edge.target === selectedSource.id
+          ) {
+            let removeEdge = {
+              id: edge.id,
+              type: "remove",
+            };
+
+            changes.push(removeEdge);
+          }
+        });
+      }
+
+      if (changes.length !== 0) {
+        onEdgesChange(changes);
+      }
 
       setAddedSources((prevList) => [...prevSources]);
       setNodes((prevList) => [...prevNodes]);
@@ -637,6 +684,28 @@ const Routing = () => {
       prevDestinations.splice(selectedIndex, 1);
 
       prevNodes.splice(nodeIndex, 1);
+
+      let changes = [];
+
+      if (edges.length !== 0) {
+        edges.forEach((edge) => {
+          if (
+            edge.source === selectedSource.id ||
+            edge.target === selectedSource.id
+          ) {
+            const removeEdge = {
+              id: edge.id,
+              type: "remove",
+            };
+
+            changes.push(removeEdge);
+          }
+        });
+      }
+
+      if (changes.length !== 0) {
+        onEdgesChange(changes);
+      }
 
       setAddedDestinations((prevList) => [...prevDestinations]);
       setNodes((prevList) => [...prevNodes]);
@@ -755,7 +824,7 @@ const Routing = () => {
 
   useEffect(() => {
     handleEdgeChange();
-  }, [edges]);
+  }, [edges, nodes]);
 
   return (
     <>
