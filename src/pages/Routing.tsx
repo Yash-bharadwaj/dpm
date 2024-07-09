@@ -121,8 +121,6 @@ const Routing = () => {
       //   position: { x: Position.Left, y: 150 },
     };
 
-    console.log("new node", newNode);
-
     addNode(newNode);
 
     handleClose();
@@ -149,8 +147,6 @@ const Routing = () => {
   };
 
   const onEdgesChange = useCallback((changes: any) => {
-    console.log("changes", changes);
-
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
@@ -200,8 +196,6 @@ const Routing = () => {
             connectedNodes[sourceIndex].enrichments.push(params.target);
           }
           if (targetType === "destination") {
-            console.log("source to dest", connectedNodes[sourceIndex]);
-
             let currentDestIndex = connectedNodes[
               sourceIndex
             ].destinations.indexOf(params.target);
@@ -371,104 +365,184 @@ const Routing = () => {
 
     if (edges.length !== 0) {
       edges.map((edge) => {
-        let sourceId = edge.source;
-        let destId = edge.target;
+        const sourceId = edge.source;
+        const destId = edge.target;
 
         nodes.forEach((node) => {
           if (sourceId === node.id && node.data.type === "source") {
-            let nodeData = node.data.nodeData;
+            const configNodeData = { ...node.data.nodeData };
 
-            if (nodeData.outputs) {
-              if (!nodeData.outputs.includes(destId)) {
-                nodeData.outputs.push(destId);
-              }
-            } else {
-              nodeData.outputs = [destId];
+            if (!config.node.sources[configNodeData.name]) {
+              config.node.sources = {
+                [configNodeData.name]: {
+                  ...configNodeData,
+                  outputs: [],
+                },
+              };
             }
 
-            config.node.sources[nodeData.name] = nodeData;
+            let configOutputs =
+              config.node.sources[configNodeData.name].outputs || [];
+
+            if (configOutputs) {
+              if (!configOutputs.includes(destId)) {
+                configOutputs.push(destId);
+              }
+            } else {
+              configOutputs = [destId];
+            }
+
+            config.node.sources[configNodeData.name].outputs = configOutputs;
             config.node.sources.disabled = false;
           }
 
           if (sourceId === node.id && node.data.type === "pipeline") {
-            let nodeData = node.data.nodeData;
+            const configNodeData = { ...node.data.nodeData };
 
-            if (nodeData.outputs) {
-              if (!nodeData.outputs.includes(destId)) {
-                nodeData.outputs.push(destId);
-              }
-            } else {
-              nodeData.outputs = [destId];
+            if (!config.node.pipelines[configNodeData.name]) {
+              config.node.pipelines = {
+                [configNodeData.name]: {
+                  ...configNodeData,
+                  inputs: [],
+                  outputs: [],
+                },
+              };
             }
 
-            config.node.pipelines[nodeData.name] = nodeData;
+            let configOutputs =
+              config.node.pipelines[configNodeData.name].outputs || [];
+
+            if (configOutputs) {
+              if (!configOutputs.includes(destId)) {
+                configOutputs.push(destId);
+              }
+            } else {
+              configOutputs = [destId];
+            }
+
+            config.node.pipelines[configNodeData.name].outputs = configOutputs;
             config.node.pipelines.disabled = false;
           }
 
           if (destId === node.id && node.data.type === "pipeline") {
-            let nodeData = node.data.nodeData;
+            const configNodeData = { ...node.data.nodeData };
 
-            if (nodeData.inputs) {
-              if (!nodeData.inputs.includes(sourceId)) {
-                nodeData.inputs.push(sourceId);
-              }
-            } else {
-              nodeData.inputs = [sourceId];
+            if (!config.node.pipelines[configNodeData.name]) {
+              config.node.pipelines = {
+                [configNodeData.name]: {
+                  ...configNodeData,
+                  inputs: [],
+                  outputs: [],
+                },
+              };
             }
 
-            config.node.pipelines[nodeData.name] = nodeData;
+            let configInputs =
+              config.node.pipelines[configNodeData.name].inputs || [];
+
+            if (configInputs) {
+              if (!configInputs.includes(sourceId)) {
+                configInputs.push(sourceId);
+              }
+            } else {
+              configInputs = [sourceId];
+            }
+
+            config.node.pipelines[configNodeData.name].inputs = configInputs;
             config.node.pipelines.disabled = false;
           }
 
           if (sourceId === node.id && node.data.type === "enrichment") {
-            let nodeData = node.data.nodeData;
+            const configNodeData = { ...node.data.nodeData };
 
-            if (nodeData.outputs) {
-              if (!nodeData.outputs.includes(destId)) {
-                nodeData.outputs.push(destId);
-              }
-            } else {
-              nodeData.outputs = [destId];
+            if (!config.node.enrichments[configNodeData.name]) {
+              config.node.enrichments = {
+                [configNodeData.name]: {
+                  ...configNodeData,
+                  inputs: [],
+                  outputs: [],
+                },
+              };
             }
 
-            config.node.enrichments[nodeData.name] = nodeData;
+            let configOutputs =
+              config.node.enrichments[configNodeData.name].outputs || [];
+
+            if (configOutputs) {
+              if (!configOutputs.includes(destId)) {
+                configOutputs.push(destId);
+              }
+            } else {
+              configOutputs = [destId];
+            }
+
+            config.node.enrichments[configNodeData.name].outputs =
+              configOutputs;
             config.node.enrichments.disabled = false;
           }
 
           if (destId === node.id && node.data.type === "enrichment") {
-            let nodeData = node.data.nodeData;
+            const configNodeData = { ...node.data.nodeData };
 
-            if (nodeData.inputs) {
-              if (!nodeData.inputs.includes(sourceId)) {
-                nodeData.inputs.push(sourceId);
-              }
-            } else {
-              nodeData.inputs = [sourceId];
+            if (!config.node.enrichments[configNodeData.name]) {
+              config.node.enrichments = {
+                [configNodeData.name]: {
+                  ...configNodeData,
+                  inputs: [],
+                  outputs: [],
+                },
+              };
             }
 
-            config.node.enrichments[nodeData.name] = nodeData;
+            let configInputs =
+              config.node.enrichments[configNodeData.name].inputs || [];
+
+            if (configInputs) {
+              if (!configInputs.includes(sourceId)) {
+                configInputs.push(sourceId);
+              }
+            } else {
+              configInputs = [sourceId];
+            }
+
+            config.node.enrichments[configNodeData.name].inputs = configInputs;
             config.node.enrichments.disabled = false;
           }
 
           if (destId === node.id && node.data.type === "destination") {
-            let nodeData = node.data.nodeData;
+            const configNodeData = { ...node.data.nodeData };
 
-            if (nodeData.inputs) {
-              if (!nodeData.inputs.includes(sourceId)) {
-                nodeData.inputs.push(sourceId);
-              }
-            } else {
-              nodeData.inputs = [];
-              nodeData.inputs = [sourceId];
+            if (!config.node.destinations[configNodeData.name]) {
+              config.node.destinations = {
+                ...config.node.destinations,
+                [configNodeData.name]: {
+                  ...configNodeData,
+                  inputs: [],
+                },
+              };
             }
 
-            config.node.destinations[nodeData.name] = nodeData;
+            let configInputs =
+              config.node.destinations[configNodeData.name].inputs || [];
+
+            if (configInputs) {
+              if (!configInputs.includes(sourceId)) {
+                configInputs.push(sourceId);
+              }
+            } else {
+              configInputs = [sourceId];
+            }
+
+            config.node.destinations[configNodeData.name].inputs = configInputs;
             config.node.destinations.disabled = false;
           }
         });
       });
 
-      if (config.node.destinations.disabled === true) {
+      if (
+        config.node.destinations.disabled === true ||
+        config.node.sources.disabled === true
+      ) {
         toast("No source-destination connections found!", {
           position: "top-right",
           zIndex: 9999,
