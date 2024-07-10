@@ -38,12 +38,8 @@ const PipelineModal = ({
 
   const onSavePipeline = () => {
     const selectedPipeline = selectedParser[0];
+    let newPipeline = true;
 
-    const pipelineCount = addedPipelines.length + 1;
-    const pipelineNumber =
-      pipelineCount < 10 ? "0" + pipelineCount : pipelineCount;
-
-    let pipeline = {};
     const observerProduct = selectedPipeline.source
       ? selectedProducts.product
       : selectedPipeline.product;
@@ -51,17 +47,20 @@ const PipelineModal = ({
       ? selectedProducts.vendor
       : selectedPipeline.vendor;
 
-    const pipelineName =
-      "pipeline_" +
-      observerVendor +
-      "_" +
-      observerProduct +
-      "_" +
-      pipelineNumber;
+    const pipelineName = "pipeline_" + observerVendor + "_" + observerProduct;
+
+    addedPipelines.forEach((pipeline: any) => {
+      if (pipeline.name === selectedPipeline && pipeline.id === pipelineName) {
+        newPipeline = false;
+      }
+    });
+
+    let pipeline = {};
 
     if (selectedPipeline.source) {
       pipeline = {
-        name: pipelineName,
+        name: selectedPipeline.name,
+        id: pipelineName,
         observer: {
           type: selectedProducts.type,
           product: selectedProducts.product,
@@ -73,7 +72,8 @@ const PipelineModal = ({
       };
     } else {
       pipeline = {
-        name: pipelineName,
+        name: selectedPipeline.name,
+        id: pipelineName,
         observer: {
           type: selectedPipeline.type,
           product: selectedPipeline.product,
@@ -84,8 +84,6 @@ const PipelineModal = ({
         outputs: [],
       };
     }
-
-    console.log("pipeline", pipeline);
 
     savePipeline(pipeline);
   };
