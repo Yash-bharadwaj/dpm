@@ -184,15 +184,43 @@ const Routing = () => {
         }
 
         if (sourceIndex === -1) {
-          const newConnection = {
-            source: params.source,
-            pipelines: targetType === "pipeline" ? [params.target] : [],
-            enrichments: targetType === "enrichment" ? [params.target] : [],
-            destinations: targetType === "destination" ? [params.target] : [],
-          };
+          let destinationArray: Array<string> = [];
 
-          setCurrentSource(params.source);
-          setConnectedNodes((prevList) => [...prevList, newConnection]);
+          if (
+            connectedNodes.length !== 0 &&
+            (targetType === "pipeline" || targetType === "enrichment")
+          ) {
+            const type =
+              targetType === "pipeline" ? "pipelines" : "enrichments";
+
+            connectedNodes.forEach((connect: any) => {
+              const index = connect[type].indexOf(params.target);
+
+              if (index !== -1 && connect.destinations.length !== 0) {
+                destinationArray = [...connect.destinations];
+              }
+            });
+
+            const newConnection = {
+              source: params.source,
+              pipelines: targetType === "pipeline" ? [params.target] : [],
+              enrichments: targetType === "enrichment" ? [params.target] : [],
+              destinations: destinationArray,
+            };
+
+            setConnectedNodes((prevList) => [...prevList, newConnection]);
+            setCurrentSource(params.source);
+          } else {
+            const newConnection = {
+              source: params.source,
+              pipelines: targetType === "pipeline" ? [params.target] : [],
+              enrichments: targetType === "enrichment" ? [params.target] : [],
+              destinations: targetType === "destination" ? [params.target] : [],
+            };
+
+            setConnectedNodes((prevList) => [...prevList, newConnection]);
+            setCurrentSource(params.source);
+          }
         } else {
           if (targetType === "pipeline") {
             connectedNodes[sourceIndex].pipelines.push(params.target);
@@ -298,7 +326,9 @@ const Routing = () => {
 
   const savePipeline = (pipeline: object) => {
     const nodeData = { ...pipeline };
-    pipeline.id = nodeData.name;
+
+    let pipelineData = { ...pipeline };
+    pipelineData.id = pipeline?.name;
 
     const newNode = {
       id: pipeline.name,
@@ -315,14 +345,16 @@ const Routing = () => {
 
     addNode(newNode);
 
-    setPipelines((prevList) => [...prevList, pipeline]);
+    setPipelines((prevList) => [...prevList, pipelineData]);
 
     handleClose();
   };
 
   const onAddEnrichment = (enrichment: object) => {
     const nodeData = { ...enrichment };
-    enrichment.id = nodeData.name;
+
+    let enrichData = { ...enrichment };
+    enrichData.id = nodeData.name;
 
     const newNode = {
       id: enrichment.name,
@@ -339,7 +371,7 @@ const Routing = () => {
 
     addNode(newNode);
 
-    setEnrichments((prevList) => [...prevList, enrichment]);
+    setEnrichments((prevList) => [...prevList, enrichData]);
 
     handleClose();
   };
@@ -392,6 +424,7 @@ const Routing = () => {
 
             if (!config.node.sources[configNodeData.name]) {
               config.node.sources = {
+                ...config.node.sources,
                 [configNodeData.name]: {
                   ...configNodeData,
                   outputs: [],
@@ -421,6 +454,7 @@ const Routing = () => {
 
             if (!config.node.pipelines[configNodeData.name]) {
               config.node.pipelines = {
+                ...config.node.pipelines,
                 [configNodeData.name]: {
                   ...configNodeData,
                   inputs: [],
@@ -451,6 +485,7 @@ const Routing = () => {
 
             if (!config.node.pipelines[configNodeData.name]) {
               config.node.pipelines = {
+                ...config.node.pipelines,
                 [configNodeData.name]: {
                   ...configNodeData,
                   inputs: [],
@@ -481,6 +516,7 @@ const Routing = () => {
 
             if (!config.node.enrichments[configNodeData.name]) {
               config.node.enrichments = {
+                ...config.node.enrichments,
                 [configNodeData.name]: {
                   ...configNodeData,
                   inputs: [],
@@ -512,6 +548,7 @@ const Routing = () => {
 
             if (!config.node.enrichments[configNodeData.name]) {
               config.node.enrichments = {
+                ...config.node.enrichments,
                 [configNodeData.name]: {
                   ...configNodeData,
                   inputs: [],
@@ -828,7 +865,7 @@ const Routing = () => {
 
   useEffect(() => {
     handleEdgeChange();
-  }, [edges, nodes]);
+  }, [edges]);
 
   return (
     <>
