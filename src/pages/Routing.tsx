@@ -855,10 +855,6 @@ const Routing = () => {
                 if (edgeTargetIndex !== -1) {
                   newEdges[index][destType].push(edge.target);
                 }
-
-                if (edgeSourceIndex !== -1) {
-                  newEdges[index][sourceType].push(edge.source);
-                }
               } else {
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(edge.target);
