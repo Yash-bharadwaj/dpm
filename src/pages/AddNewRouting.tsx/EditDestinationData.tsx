@@ -71,11 +71,13 @@ const EditDestinationData = ({
             : advanced.default || false;
       } else {
         destInitialValues[advanced.name] =
-          selectedNode?.data.nodeData[advanced.name] !== ""
-            ? selectedNode?.data.nodeData[advanced.name] === false
-              ? false
-              : true
-            : advanced.default || "";
+          selectedNode !== undefined
+            ? selectedNode?.data.nodeData[advanced.name] !== ""
+              ? selectedNode?.data.nodeData[advanced.name] === false
+                ? false
+                : true
+              : advanced.default || false
+            : advanced.default || false;
       }
     } else {
       if (advanced.name === "codec") {
@@ -250,14 +252,15 @@ const EditDestinationData = ({
     if (addedNodes.length !== 0) {
       const name = formik.values["name"];
 
-      addedNodes.forEach((node) => {
-        if (selectedNode === undefined) {
-          const enteredName = name.replaceAll(" ", "_");
-          const inputName = "output_" + enteredName;
+      addedNodes.forEach((node: any) => {
+        const enteredName = name.replaceAll(" ", "_");
+        const inputName = selectedNode ? enteredName : "output_" + enteredName;
 
-          if (node.data.nodeData.name === inputName) {
-            nameAvailable = false;
-          }
+        if (
+          node.data.nodeData.name === inputName &&
+          selectedNode?.id !== node.id
+        ) {
+          nameAvailable = false;
         }
       });
     }
@@ -752,7 +755,7 @@ const EditDestinationData = ({
                           type="switch"
                           id={setting.name}
                           checked={formik.values[setting.name]}
-                          defaultChecked={setting.default}
+                          defaultChecked={formik.values[setting.name]}
                           onChange={formik.handleChange}
                           style={{ marginLeft: "8px" }}
                         />

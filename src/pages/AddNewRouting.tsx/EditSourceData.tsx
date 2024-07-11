@@ -276,24 +276,25 @@ const EditSourceData = ({
       const name = formik.values["name"];
       const mode = selectedSource.mode || "tcp";
 
-      addedNodes.forEach((node) => {
-        if (selectedNode === undefined) {
-          const sourceMode = node.data.nodeData.mode || "tcp";
-          if (node.data.type === "source") {
-            if (
-              parseInt(node.data.nodeData.port) === parseInt(portNumber) &&
-              mode === sourceMode
-            ) {
-              portAvailable = false;
-            }
+      addedNodes.forEach((node: any) => {
+        const sourceMode = node.data.nodeData.mode || "tcp";
+        if (node.data.type === "source" && selectedNode?.id !== node.id) {
+          if (
+            parseInt(node.data.nodeData.port) === parseInt(portNumber) &&
+            mode === sourceMode
+          ) {
+            portAvailable = false;
           }
+        }
 
-          const enteredName = name.replaceAll(" ", "_");
-          const inputName = "input_" + enteredName;
+        const enteredName = name.replaceAll(" ", "_");
+        const inputName = selectedNode ? enteredName : "input_" + enteredName;
 
-          if (node.data.nodeData.name === inputName) {
-            nameAvailable = false;
-          }
+        if (
+          node.data.nodeData.name === inputName &&
+          selectedNode?.id !== node.id
+        ) {
+          nameAvailable = false;
         }
       });
     }
@@ -466,8 +467,6 @@ const EditSourceData = ({
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;
       }
-
-      console.log("sourceValues", sourceValues);
 
       onSaveSettings(sourceValues);
     }
@@ -1367,7 +1366,11 @@ const EditSourceData = ({
                     : checkFormValid(formik.values) || checkTabValues("all")
                 }
               >
-                {selectedTab === "fields" ? "Save" : "Next"}
+                {selectedTab === "fields"
+                  ? selectedNode !== undefined
+                    ? "Update"
+                    : "Save"
+                  : "Next"}
               </Button>
             </div>
           </Col>
