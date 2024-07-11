@@ -315,6 +315,7 @@ const Routing = () => {
       } else {
         let newEdge = { ...params };
         newEdge.animated = true;
+        newEdge.type = "smoothstep";
 
         setEdges((eds) => addEdge(newEdge, eds));
       }
@@ -853,7 +854,32 @@ const Routing = () => {
 
               if (targetType !== "destination") {
                 if (edgeTargetIndex !== -1) {
-                  newEdges[index][destType].push(edge.target);
+                  if (newEdges[index]) {
+                    newEdges[index][destType].push(edge.target);
+                  } else {
+                    const newConnection = {
+                      source: node.source,
+                      pipelines: type === "pipelines" ? [edge.source] : [],
+                      enrichments:
+                        destType === "enrichments" || type === "enrichments"
+                          ? [edge.target]
+                          : [],
+                      destinations:
+                        destType === "destinations" ? [edge.target] : [],
+                    };
+
+                    newEdges.push(newConnection);
+                  }
+                } else {
+                  const newConnection = {
+                    source: node.source,
+                    pipelines: type === "pipelines" ? [edge.source] : [],
+                    enrichments:
+                      destType === "enrichments" ? [edge.target] : [],
+                    destinations: [],
+                  };
+
+                  newEdges.push(newConnection);
                 }
               } else {
                 if (edgeSourceIndex !== -1) {
@@ -865,13 +891,28 @@ const Routing = () => {
                     } else {
                       const newConnection = {
                         source: node.source,
-                        pipelines: [],
-                        enrichments: [],
+                        pipelines: type === "pipelines" ? [edge.source] : [],
+                        enrichments:
+                          type === "enrichments" ? [edge.source] : [],
                         destinations: [edge.target],
                       };
 
                       newEdges.push(newConnection);
                     }
+                  }
+                } else {
+                  if (newEdges[index]) {
+                    newEdges[index][destType].push(edge.target);
+                    newEdges[index][type].push(edge.source);
+                  } else {
+                    const newConnection = {
+                      source: node.source,
+                      pipelines: type === "pipelines" ? [edge.source] : [],
+                      enrichments: type === "enrichments" ? [edge.source] : [],
+                      destinations: [edge.target],
+                    };
+
+                    newEdges.push(newConnection);
                   }
                 }
               }
@@ -880,6 +921,8 @@ const Routing = () => {
         }
       }
     });
+
+    console.log("edges", newEdges);
 
     setConnectedNodes((prevList) => [...newEdges]);
   };
