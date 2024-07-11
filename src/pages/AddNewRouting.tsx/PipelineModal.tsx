@@ -50,7 +50,7 @@ const PipelineModal = ({
     const pipelineName = "pipeline_" + observerVendor + "_" + observerProduct;
 
     addedPipelines.forEach((pipeline: any) => {
-      if (pipeline.name === selectedPipeline && pipeline.id === pipelineName) {
+      if (pipeline.id === pipelineName) {
         newPipeline = false;
       }
     });
@@ -59,7 +59,7 @@ const PipelineModal = ({
 
     if (selectedPipeline.source) {
       pipeline = {
-        name: selectedPipeline.name,
+        name: pipelineName,
         id: pipelineName,
         observer: {
           type: selectedProducts.type,
@@ -72,7 +72,7 @@ const PipelineModal = ({
       };
     } else {
       pipeline = {
-        name: selectedPipeline.name,
+        name: pipelineName,
         id: pipelineName,
         observer: {
           type: selectedPipeline.type,
@@ -85,6 +85,7 @@ const PipelineModal = ({
       };
     }
 
+    console.log("pipeline", pipeline);
     savePipeline(pipeline);
   };
 
