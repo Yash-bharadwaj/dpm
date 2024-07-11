@@ -60,8 +60,54 @@ const EditDestinationData = ({
   });
 
   selectedDestination.advanced?.forEach((advanced: any) => {
-    destInitialValues[advanced.name] =
-      selectedNode?.data.nodeData[advanced.name] || advanced.default || "";
+    if (advanced.datatype === "boolean") {
+      if (advanced.name === "tls") {
+        destInitialValues[advanced.name] =
+          selectedNode !== undefined &&
+          selectedNode?.data.nodeData["tls"].enabled !== ""
+            ? selectedNode?.data.nodeData["tls"].enabled === false
+              ? false
+              : true
+            : advanced.default || false;
+      } else {
+        destInitialValues[advanced.name] =
+          selectedNode?.data.nodeData[advanced.name] !== ""
+            ? selectedNode?.data.nodeData[advanced.name] === false
+              ? false
+              : true
+            : advanced.default || "";
+      }
+    } else {
+      if (advanced.name === "codec") {
+        destInitialValues[advanced.name] =
+          selectedNode?.data.nodeData["encoding"].codec ||
+          advanced.default ||
+          "";
+      } else if (
+        advanced.name === "permit_origin" &&
+        selectedNode !== undefined &&
+        selectedNode?.data.nodeData["permit_origin"] !== ""
+      ) {
+        const values = selectedNode?.data.nodeData["permit_origin"];
+        let permitValues = "";
+
+        if (values && values.length !== 0) {
+          values.forEach((value: any, index: number) => {
+            if (index === 0) {
+              permitValues = value;
+            } else {
+              permitValues = permitValues + "," + value;
+            }
+          });
+        }
+
+        destInitialValues["permit_origin"] = permitValues;
+      } else {
+        destInitialValues[advanced.name] =
+          selectedNode?.data.nodeData[advanced.name] || advanced.default || "";
+      }
+    }
+
     if (advanced.mandatory) {
       mandatoryFields.push(advanced.name);
     }
@@ -72,8 +118,20 @@ const EditDestinationData = ({
       selectedDestination.authentication.dropdownOptions.forEach(
         (option: any) => {
           option.fieldsToShow.forEach((fields: any) => {
-            destInitialValues[fields.name] =
-              selectedNode?.data.nodeData[fields.name] || fields.default || "";
+            if (fields.datatype === "boolean") {
+              destInitialValues[fields.name] =
+                selectedNode?.data.nodeData[fields.name] !== ""
+                  ? selectedNode?.data.nodeData[fields.name] === false
+                    ? false
+                    : true
+                  : fields.default || "";
+            } else {
+              destInitialValues[fields.name] =
+                selectedNode?.data.nodeData[fields.name] ||
+                fields.default ||
+                "";
+            }
+
             if (fields.mandatory) {
               mandatoryFields.push(fields.name);
             }
@@ -82,8 +140,19 @@ const EditDestinationData = ({
       );
     } else {
       selectedDestination.authentication.fields.forEach((field: any) => {
-        destInitialValues[field.name] =
-          selectedNode?.data.nodeData[field.name] || field.default || "";
+        if (field.datatype === "boolean") {
+          destInitialValues[field.name] =
+            selectedNode?.data.nodeData[field.name] !== "" &&
+            selectedNode?.data.nodeData[field.name] !== undefined
+              ? selectedNode?.data.nodeData[field.name] === false
+                ? false
+                : true
+              : field.default || false;
+        } else {
+          destInitialValues[field.name] =
+            selectedNode?.data.nodeData[field.name] || field.default || "";
+        }
+
         if (field.mandatory) {
           mandatoryFields.push(field.name);
         }
@@ -206,7 +275,11 @@ const EditDestinationData = ({
       const keys = Object.keys(formik.values);
 
       keys.forEach((item) => {
-        if (formik.values[item] !== "") {
+        if (
+          formik.values[item] !== "" ||
+          item === "tls" ||
+          item === "enabled"
+        ) {
           if (item === "name") {
             const name = formik.values.name.replaceAll(" ", "_");
             if (selectedNode === undefined) {
@@ -216,10 +289,14 @@ const EditDestinationData = ({
             }
           } else if (item === "port") {
             sourceValues["port"] = formik.values["port"].toString();
-          } else if (item === "codec") {
-            sourceValues["encoding"] = {
-              codec: formik.values["codec"],
-            };
+          } else if (item === "codec" || item === "tls") {
+            if (item === "tls") {
+              sourceValues["tls"] = { enabled: formik.values["tls"] };
+            } else {
+              sourceValues["encoding"] = {
+                codec: formik.values["codec"],
+              };
+            }
           } else if (item === "inputs") {
             sourceValues[item] = [];
           } else if (item === "compression") {
@@ -894,39 +971,74 @@ const EditDestinationData = ({
             ) : (
               selectedDestination.authentication?.fields.map((setting: any) => (
                 <>
-                  <Form.Label htmlFor="inputID">
-                    {setting.label}{" "}
-                    {setting.tooltip && (
-                      <OverlayTrigger
-                        placement="left"
-                        overlay={
-                          <Tooltip id="button-tooltip-2">
-                            {setting.tooltip}
-                          </Tooltip>
-                        }
-                      >
-                        <QuestionCircle size={14} />
-                      </OverlayTrigger>
+                  {selectedDestination.authentication.name === "sasl" &&
+                    formik.values.enabled &&
+                    setting.datatype !== "boolean" && (
+                      <Form.Label htmlFor={setting.name}>
+                        {setting.label}{" "}
+                        {setting.tooltip && (
+                          <OverlayTrigger
+                            placement="right"
+                            overlay={
+                              <Tooltip id={setting.name}>
+                                {setting.tooltip}
+                              </Tooltip>
+                            }
+                          >
+                            <QuestionCircle size={14} />
+                          </OverlayTrigger>
+                        )}
+                      </Form.Label>
                     )}
-                  </Form.Label>
 
                   {setting.options ? (
-                    <Form.Select
-                      aria-label="Select"
-                      className="mb-3"
-                      size="sm"
-                      id={setting.name}
-                      onChange={formik.handleChange}
-                      value={formik.values[setting.name]}
-                    >
-                      <option value="" hidden>
-                        Select {setting.name}
-                      </option>
-                      {setting.options?.map((option: any) => (
-                        <option value={option}>{option}</option>
-                      ))}
-                    </Form.Select>
-                  ) : (
+                    setting.datatype === "boolean" ? (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <Form.Label htmlFor={setting.name}>
+                          {setting.label}{" "}
+                          {setting.tooltip && (
+                            <OverlayTrigger
+                              placement="right"
+                              overlay={
+                                <Tooltip id={setting.name}>
+                                  {setting.tooltip}
+                                </Tooltip>
+                              }
+                            >
+                              <QuestionCircle size={14} />
+                            </OverlayTrigger>
+                          )}
+                        </Form.Label>
+
+                        <Form.Check // prettier-ignore
+                          type="switch"
+                          id={setting.name}
+                          defaultChecked={setting.default}
+                          onChange={formik.handleChange}
+                          style={{ marginLeft: "8px" }}
+                          checked={formik.values[setting.name]}
+                        />
+                      </div>
+                    ) : selectedDestination.authentication.name === "sasl" &&
+                      !formik.values.enabled ? null : (
+                      <Form.Select
+                        aria-label="Select"
+                        className="mb-3"
+                        size="sm"
+                        id={setting.name}
+                        onChange={formik.handleChange}
+                        value={formik.values[setting.name]}
+                      >
+                        <option value="" hidden>
+                          Select {setting.label}
+                        </option>
+                        {setting.options?.map((option: any) => (
+                          <option value={option}>{option}</option>
+                        ))}
+                      </Form.Select>
+                    )
+                  ) : selectedDestination.authentication.name === "sasl" &&
+                    !formik.values.enabled ? null : (
                     <Form.Control
                       placeholder={`Enter ${setting.placeholder}`}
                       aria-label={setting.name}
@@ -935,7 +1047,7 @@ const EditDestinationData = ({
                       size="sm"
                       id={setting.name}
                       onChange={formik.handleChange}
-                      value={formik.values[setting.label]}
+                      value={formik.values[setting.name]}
                       maxLength={setting.maxChar || 20}
                       type={setting.datatype === "integer" ? "number" : "text"}
                       isInvalid={invalidCheck(setting)}

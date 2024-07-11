@@ -581,6 +581,40 @@
           "default": "json"
         }
       ]
+    },
+    {
+      "name": "Vector",
+      "type": "vector",
+      "image": "vector.svg",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name)*",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "12109",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ]
     }
   ],
   "fields": [
@@ -1055,6 +1089,95 @@
           "tooltip": "If enabled, requests are compressed with gzip. (Default: false)",
           "datatype": "boolean",
           "default": false
+        }
+      ]
+    },
+    {
+      "name": "Kafka",
+      "type": "kafka",
+      "image": "apache-kafka.svg",
+      "tooltip": "Destination - Kafka",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Output-ID *",
+          "prefix": "Output_",
+          "tooltip": "Unique Output-ID for this destination.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "bootstrap_servers",
+          "label": "Brokers *",
+          "tooltip": "Comma-separated list of Kafka brokers (bootstrap servers) to use in format hostname:port, e.g., 192.168.11.35:9093",
+          "datatype": "cs-hostport",
+          "mandatory": true,
+          "maxChar": 300
+        },
+        {
+          "name": "topic",
+          "label": "Topic *",
+          "placeholder": "topic name to write events to",
+          "tooltip": "Kafka topic name to write events to, e.g., kafka-topic-01",
+          "mandatory": true
+        }
+      ],
+      "authentication": {
+        "name": "sasl",
+        "tooltip": "Configure SASL authentication when interacting with Kafka.",
+        "fields": [
+          {
+            "name": "enabled",
+            "label": "SASL Enabled",
+            "tooltip": "Enables SASL authentication.",
+            "options": ["true", "false"],
+            "datatype": "boolean",
+            "default": false
+          },
+          {
+            "name": "mechanism",
+            "label": "SASL Mechanism",
+            "options": ["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
+            "tooltip": "Select an SASL mechanism to use."
+          },
+          {
+            "name": "username",
+            "label": "Username",
+            "placeholder": "SASL Username",
+            "tooltip": "SASL Username.",
+            "datatype": "text"
+          },
+          {
+            "name": "password",
+            "label": "Password",
+            "placeholder": "SASL Password",
+            "tooltip": "SASL Password.",
+            "datatype": "password",
+            "maxChar": 180
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "options": ["true", "false"],
+          "tooltip": "TLS for outgoing connections",
+          "datatype": "boolean"
+        },
+        {
+          "name": "compression",
+          "label": "Compression",
+          "options": ["none", "gzip"],
+          "default": "none"
+        },
+        {
+          "name": "codec",
+          "label": "Encoding",
+          "options": ["json", "logfmt", "raw_message"],
+          "tooltip": "Configure how events are encoded while storing",
+          "default": "json"
         }
       ]
     }
