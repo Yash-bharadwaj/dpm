@@ -774,13 +774,44 @@ const Routing = () => {
     }
   };
 
+  const sourceCheck = (source: string, target: string) => {
+    let present = false;
+
+    edges.map((edge: any) => {
+      console.log("edge", edge);
+      if (edge.source === source && edge.target === target) {
+        present = true;
+      }
+    });
+
+    return present;
+  };
+
+  //   const checkPipeline = (target: string, sourceIndex: number) => {
+  //     let targetIndex = -1;
+
+  //     connectedNodes.forEach((connect: any, index: number) => {
+  //       if (connect.pipelines.indexOf(target) !== -1 && sourceIndex !== index) {
+  //         targetIndex = index;
+  //       }
+  //     });
+
+  //     console.log("target", targetIndex);
+
+  //     return targetIndex;
+  //   };
+
   const handleEdgeChange = () => {
     let newEdges = [];
+
+    console.log("edges", edges);
 
     edges.forEach((edge) => {
       let targetType = "";
       let sourceType = "";
       let sourceIndex = -1;
+
+      console.log("edge", edge);
 
       nodes.forEach((node) => {
         if (edge.target === node.id) {
@@ -801,6 +832,7 @@ const Routing = () => {
         }
 
         if (sourceIndex === -1) {
+          console.log("new connection source");
           const newConnection = {
             source: edge.source,
             pipelines: targetType === "pipeline" ? [edge.target] : [],
@@ -808,34 +840,53 @@ const Routing = () => {
             destinations: targetType === "destination" ? [edge.target] : [],
           };
 
+          sourceIndex = newEdges.length;
+
           newEdges.push(newConnection);
-        } else {
-          if (targetType === "pipeline") {
-            const index = newEdges[sourceIndex].pipelines.indexOf(edge.target);
-
-            if (index === -1) {
-              newEdges[sourceIndex].pipelines.push(edge.target);
-            }
-          } else if (targetType === "enrichment") {
-            const index = newEdges[sourceIndex].enrichments.indexOf(
-              edge.target
-            );
-
-            if (index === -1) {
-              newEdges[sourceIndex].enrichments.push(edge.target);
-            }
-          } else if (targetType === "destination") {
-            const index = newEdges[sourceIndex].destinations.indexOf(
-              edge.target
-            );
-
-            if (index === -1) {
-              newEdges[sourceIndex].destinations.push(edge.target);
-            }
-          }
-
-          setCurrentSource(edge.source);
         }
+        //else {
+        if (targetType === "pipeline") {
+          const index = newEdges[sourceIndex].pipelines.indexOf(edge.target);
+
+          if (index === -1) {
+            console.log("new edges", newEdges);
+            newEdges[sourceIndex].pipelines.push(edge.target);
+
+            // const pipelineConnectionsPresent = checkPipeline(
+            //   edge.target,
+            //   sourceIndex
+            // );
+
+            // if (pipelineConnectionsPresent !== -1) {
+            //   const oldDestinations =
+            //     newEdges[pipelineConnectionsPresent].destinations;
+            //   const currentDestinations = newEdges[sourceIndex].destinations;
+
+            //   console.log("old", oldDestinations);
+
+            //   newEdges[sourceIndex].destinations = [
+            //     ...currentDestinations,
+            //     ...oldDestinations,
+            //   ];
+            // }
+          }
+        } else if (targetType === "enrichment") {
+          const index = newEdges[sourceIndex].enrichments.indexOf(edge.target);
+
+          if (index === -1) {
+            newEdges[sourceIndex].enrichments.push(edge.target);
+          }
+        } else if (targetType === "destination") {
+          const index = newEdges[sourceIndex].destinations.indexOf(edge.target);
+
+          if (index === -1) {
+            newEdges[sourceIndex].destinations.push(edge.target);
+          }
+        }
+
+        setCurrentSource(edge.source);
+        setConnectedNodes((prevList) => [...newEdges]);
+        //}
       } else {
         if (sourceType === "pipeline" || sourceType === "enrichment") {
           let prevConnection = [...connectedNodes];
@@ -857,6 +908,52 @@ const Routing = () => {
                   if (newEdges[index]) {
                     newEdges[index][destType].push(edge.target);
                   } else {
+                    //target present but edge not created
+                    console.log("source", node.source);
+                    console.log("target", edge.source);
+
+                    //check if source is connected before
+                    const sourceConnectionPresent = sourceCheck(
+                      node.source,
+                      edge.source
+                    );
+
+                    console.log(
+                      "check connection present",
+                      sourceConnectionPresent
+                    );
+
+                    //create new only if node source is connected to edge source
+                    if (sourceConnectionPresent) {
+                      const newConnection = {
+                        source: node.source,
+                        pipelines: type === "pipelines" ? [edge.source] : [],
+                        enrichments:
+                          destType === "enrichments" || type === "enrichments"
+                            ? [edge.target]
+                            : [],
+                        destinations:
+                          destType === "destinations" ? [edge.target] : [],
+                      };
+
+                      newEdges.push(newConnection);
+                    }
+                  }
+                } else {
+                  console.log("here");
+
+                  const sourceConnectionPresent = sourceCheck(
+                    node.source,
+                    edge.source
+                  );
+
+                  console.log(
+                    "check connection present",
+                    sourceConnectionPresent
+                  );
+
+                  //create new only if node source is connected to edge source
+                  if (sourceConnectionPresent) {
                     const newConnection = {
                       source: node.source,
                       pipelines: type === "pipelines" ? [edge.source] : [],
@@ -870,7 +967,7 @@ const Routing = () => {
 
                     newEdges.push(newConnection);
                   }
-                } else {
+
                   //   const newConnection = {
                   //     source: node.source,
                   //     pipelines: type === "pipelines" ? [edge.source] : [],
@@ -888,44 +985,78 @@ const Routing = () => {
                     if (newEdges[index]) {
                       newEdges[index][destType].push(edge.target);
                     } else {
-                      const newConnection = {
-                        source: node.source,
-                        pipelines: type === "pipelines" ? [edge.source] : [],
-                        enrichments:
-                          type === "enrichments" ? [edge.source] : [],
-                        destinations: [edge.target],
-                      };
+                      //check if source is connected before
+                      const sourceConnectionPresent = sourceCheck(
+                        node.source,
+                        edge.source
+                      );
 
-                      newEdges.push(newConnection);
+                      //create new only if node source is connected to edge source
+                      if (sourceConnectionPresent) {
+                        const newConnection = {
+                          source: node.source,
+                          pipelines: type === "pipelines" ? [edge.source] : [],
+                          enrichments:
+                            type === "enrichments" ? [edge.source] : [],
+                          destinations: [edge.target],
+                        };
+
+                        newEdges.push(newConnection);
+                      }
                     }
                   } else {
-                    console.log("here");
-                    if (newEdges[index]) {
-                      newEdges[index][destType].push(edge.target);
-                    } else {
-                      const newConnection = {
-                        source: node.source,
-                        pipelines: type === "pipelines" ? [edge.source] : [],
-                        enrichments:
-                          type === "enrichments" ? [edge.source] : [],
-                        destinations: [edge.target],
-                      };
+                    console.log("here", edge.source, edge.target);
+                    if (edgeTargetIndex !== -1) {
+                      if (newEdges[index]) {
+                        newEdges[index][destType].push(edge.target);
+                      } else {
+                        const newConnection = {
+                          source: node.source,
+                          pipelines: type === "pipelines" ? [edge.source] : [],
+                          enrichments:
+                            type === "enrichments" ? [edge.source] : [],
+                          destinations: [edge.target],
+                        };
 
-                      newEdges.push(newConnection);
+                        newEdges.push(newConnection);
+                      }
                     }
                   }
                 } else {
                   if (newEdges[index]) {
+                    console.log("push P to D", edge.source, edge.target);
                     newEdges[index][destType].push(edge.target);
                     newEdges[index][type].push(edge.source);
                   } else {
-                    // const newConnection = {
-                    //   source: node.source,
-                    //   pipelines: type === "pipelines" ? [edge.source] : [],
-                    //   enrichments: type === "enrichments" ? [edge.source] : [],
-                    //   destinations: [edge.target],
-                    // };
-                    // newEdges.push(newConnection);
+                    console.log("dest not present in source");
+                    console.log("source", node.source);
+                    console.log("target", edge.source);
+
+                    const sourceConnectionPresent = sourceCheck(
+                      node.source,
+                      edge.source
+                    );
+
+                    console.log(
+                      "check connection present",
+                      sourceConnectionPresent
+                    );
+
+                    //create new only if node source is connected to edge source
+                    if (sourceConnectionPresent) {
+                      const newConnection = {
+                        source: node.source,
+                        pipelines: type === "pipelines" ? [edge.source] : [],
+                        enrichments:
+                          destType === "enrichments" || type === "enrichments"
+                            ? [edge.target]
+                            : [],
+                        destinations:
+                          destType === "destinations" ? [edge.target] : [],
+                      };
+
+                      newEdges.push(newConnection);
+                    }
                   }
                 }
               }
