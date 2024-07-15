@@ -50,6 +50,7 @@ const Routing = () => {
   const [showEditDestination, setShowEditDestination] = useState(false);
   const [connectedNodes, setConnectedNodes] = useState(Array);
   const [currentSource, setCurrentSource] = useState("");
+  const [enableDelete, setEnableDelete] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 
@@ -152,6 +153,11 @@ const Routing = () => {
   };
 
   const onEdgesChange = useCallback((changes: any) => {
+    if (changes[0].selected) {
+      setEnableDelete(true);
+    } else {
+      setEnableDelete(false);
+    }
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
@@ -1124,6 +1130,10 @@ const Routing = () => {
     setConnectedNodes((prevList) => [...newEdges]);
   };
 
+  const checkSelectType = (selected: any) => {
+    console.log("selected", selected);
+  };
+
   useEffect(() => {
     handleEdgeChange();
   }, [edges]);
@@ -1215,6 +1225,7 @@ const Routing = () => {
                 fitView
                 maxZoom={1.3}
                 minZoom={1.3}
+                deleteKeyCode={enableDelete ? ["Backspace", "Delete"] : null}
               >
                 <Controls />
               </ReactFlow>
