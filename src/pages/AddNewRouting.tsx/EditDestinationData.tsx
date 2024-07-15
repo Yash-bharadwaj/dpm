@@ -329,21 +329,48 @@ const EditDestinationData = ({
               });
             }
 
-            if (sourceValues.auth && sourceValues.auth[item] === undefined) {
+            if (formik.values.enabled) {
+              sourceValues["sasl"] = {
+                enabled: formik.values.enabled,
+              };
+
+              selectedDestination.authentication.fields.map((field: string) => {
+                if (field.name === "enabled") {
+                  sourceValues.sasl.enabled = true;
+                } else {
+                  if (formik.values[field.name] !== "") {
+                    sourceValues.sasl[field.name] = formik.values[field.name];
+                  }
+                }
+              });
+            }
+
+            if (
+              (sourceValues.auth && sourceValues.auth[item] === undefined) ||
+              (sourceValues.sasl && sourceValues.sasl[item] === undefined)
+            ) {
               if (
+                item !== "enabled" &&
                 item !== "assume_role" &&
                 item !== "access_key_id" &&
                 item !== "secret_access_key" &&
-                item !== "auth_region"
+                item !== "auth_region" &&
+                item !== "mechanism" &&
+                item !== "username" &&
+                item !== "password"
               ) {
                 sourceValues[item] = formik.values[item];
               }
             } else {
               if (
+                item !== "enabled" &&
                 item !== "assume_role" &&
                 item !== "access_key_id" &&
                 item !== "secret_access_key" &&
-                item !== "auth_region"
+                item !== "auth_region" &&
+                item !== "mechanism" &&
+                item !== "username" &&
+                item !== "password"
               ) {
                 sourceValues[item] = formik.values[item];
               }
@@ -353,6 +380,8 @@ const EditDestinationData = ({
       });
 
       sourceValues["type"] = selectedDestination.type;
+
+      console.log("dest", sourceValues);
 
       onSaveSettings(sourceValues);
     }
