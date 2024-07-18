@@ -57,8 +57,18 @@ const EditSourceData = ({
             : true
           : setting.default || "";
     } else {
-      sourceInitialValues[setting.name] =
-        selectedNode?.data.nodeData[setting.name] || setting.default || "";
+      if (selectedNode !== undefined) {
+        let address = selectedNode?.data.nodeData.address.split(":");
+        if (setting.name === "address") {
+          sourceInitialValues["address"] = address[0];
+        }
+        if (setting.name === "port") {
+          sourceInitialValues["port"] = address[1];
+        }
+      } else {
+        sourceInitialValues[setting.name] =
+          selectedNode?.data.nodeData[setting.name] || setting.default || "";
+      }
     }
 
     if (setting.mandatory) {
@@ -333,8 +343,9 @@ const EditSourceData = ({
             } else {
               sourceValues.name = name;
             }
-          } else if (item === "port") {
-            sourceValues["port"] = formik.values["port"].toString();
+          } else if (item === "address") {
+            sourceValues["address"] =
+              formik.values["address"] + ":" + formik.values["port"].toString();
           } else if (item === "organization") {
             if (formik.values["organization"].id !== "") {
               sourceValues["organization"] = formik.values["organization"];
@@ -412,7 +423,8 @@ const EditSourceData = ({
                 item !== "mechanism" &&
                 item !== "username" &&
                 item !== "password" &&
-                item !== "auth_region"
+                item !== "auth_region" &&
+                item !== "port"
               ) {
                 if (formik.values[item] !== "") {
                   if (
@@ -434,7 +446,8 @@ const EditSourceData = ({
                 item !== "mechanism" &&
                 item !== "username" &&
                 item !== "password" &&
-                item !== "auth_region"
+                item !== "auth_region" &&
+                item !== "port"
               ) {
                 if (formik.values[item] !== "") {
                   if (
@@ -467,6 +480,8 @@ const EditSourceData = ({
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;
       }
+
+      console.log("values", sourceValues);
 
       onSaveSettings(sourceValues);
     }
