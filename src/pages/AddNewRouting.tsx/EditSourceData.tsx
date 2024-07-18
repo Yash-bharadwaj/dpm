@@ -289,8 +289,9 @@ const EditSourceData = ({
       addedNodes.forEach((node: any) => {
         const sourceMode = node.data.nodeData.mode || "tcp";
         if (node.data.type === "source" && selectedNode?.id !== node.id) {
+          const existingPort = node.data.nodeData.address.split(":");
           if (
-            parseInt(node.data.nodeData.port) === parseInt(portNumber) &&
+            parseInt(existingPort[1]) === parseInt(portNumber) &&
             mode === sourceMode
           ) {
             portAvailable = false;
