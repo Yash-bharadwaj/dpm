@@ -234,7 +234,7 @@
           "maxChar": 30
         },
         {
-          "name": "host",
+          "name": "address",
           "label": "Host *",
           "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
           "datatype": "ipaddress",
@@ -284,7 +284,7 @@
           "maxChar": 30
         },
         {
-          "name": "host",
+          "name": "address",
           "label": "Host *",
           "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
           "datatype": "ipaddress",
@@ -1060,7 +1060,7 @@
           "mandatory": true
         },
         {
-          "name": "host",
+          "name": "address",
           "label": "Address *",
           "tooltip": "Address of the destination.",
           "default": "0.0.0.0",

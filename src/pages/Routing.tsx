@@ -341,9 +341,9 @@ const Routing = () => {
     const pipelineData = { ...pipeline };
 
     const newNode = {
-      id: pipeline.id,
+      id: pipeline.name,
       data: {
-        label: pipeline.id,
+        label: pipeline.name,
         type: "pipeline",
         nodeData,
       },

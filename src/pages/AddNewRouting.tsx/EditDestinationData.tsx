@@ -51,8 +51,18 @@ const EditDestinationData = ({
       destInitialValues[setting.name] =
         selectedNode?.data.nodeData[setting.name] || setting.default || [];
     } else {
-      destInitialValues[setting.name] =
-        selectedNode?.data.nodeData[setting.name] || setting.default || "";
+      if (selectedNode !== undefined) {
+        let address = selectedNode?.data.nodeData.address.split(":");
+        if (setting.name === "address") {
+          destInitialValues["address"] = address[0];
+        }
+        if (setting.name === "port") {
+          destInitialValues["port"] = address[1];
+        }
+      } else {
+        destInitialValues[setting.name] =
+          selectedNode?.data.nodeData[setting.name] || setting.default || "";
+      }
     }
     if (setting.mandatory) {
       mandatoryFields.push(setting.name);
@@ -290,8 +300,9 @@ const EditDestinationData = ({
             } else {
               sourceValues.name = name;
             }
-          } else if (item === "port") {
-            sourceValues["port"] = formik.values["port"].toString();
+          } else if (item === "address") {
+            sourceValues["address"] =
+              formik.values["address"] + ":" + formik.values["port"].toString();
           } else if (item === "codec" || item === "tls") {
             if (item === "tls") {
               sourceValues["tls"] = { enabled: formik.values["tls"] };
@@ -357,7 +368,8 @@ const EditDestinationData = ({
                 item !== "auth_region" &&
                 item !== "mechanism" &&
                 item !== "username" &&
-                item !== "password"
+                item !== "password" &&
+                item !== "port"
               ) {
                 sourceValues[item] = formik.values[item];
               }
@@ -370,7 +382,8 @@ const EditDestinationData = ({
                 item !== "auth_region" &&
                 item !== "mechanism" &&
                 item !== "username" &&
-                item !== "password"
+                item !== "password" &&
+                item !== "port"
               ) {
                 sourceValues[item] = formik.values[item];
               }
