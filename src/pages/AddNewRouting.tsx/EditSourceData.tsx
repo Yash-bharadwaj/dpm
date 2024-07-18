@@ -45,6 +45,8 @@ const EditSourceData = ({
   const [topics, setTopics] = useState([""]);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  console.log("selected node", selectedNode);
+
   let sourceInitialValues = {};
   let mandatoryFields = [];
 
@@ -57,13 +59,37 @@ const EditSourceData = ({
             : true
           : setting.default || "";
     } else {
-      if (selectedNode !== undefined) {
-        let address = selectedNode?.data.nodeData.address.split(":");
-        if (setting.name === "address") {
-          sourceInitialValues["address"] = address[0];
-        }
-        if (setting.name === "port") {
-          sourceInitialValues["port"] = address[1];
+      if (selectedNode !== undefined && selectedNode?.data.nodeData) {
+        if (setting.name === "address" || setting.name === "port") {
+          let address = selectedNode?.data.nodeData?.address.split(":");
+          if (setting.name === "address") {
+            sourceInitialValues["address"] = address[0];
+          }
+          if (setting.name === "port") {
+            sourceInitialValues["port"] = address[1];
+          }
+        } else if (setting.name === "queue_url") {
+          sourceInitialValues["queue_url"] = selectedNode?.data.nodeData?.sqs
+            ? selectedNode?.data.nodeData?.sqs.queue_url
+            : selectedNode?.data.nodeData?.queue_url;
+        } else if (setting.name === "topics") {
+          if (selectedNode?.data.nodeData) {
+            let nodeTopics = selectedNode?.data.nodeData.topics;
+            let addedTopics = [];
+
+            nodeTopics.forEach((topic) => {
+              addedTopics.push(topic);
+            });
+
+            if (topics[0] === "") {
+              setTopics(addedTopics);
+            }
+
+            sourceInitialValues[setting.name] = addedTopics;
+          }
+        } else {
+          sourceInitialValues[setting.name] =
+            selectedNode?.data.nodeData[setting.name] || setting.default || "";
         }
       } else {
         sourceInitialValues[setting.name] =
@@ -134,16 +160,30 @@ const EditSourceData = ({
     if (selectedSource.authentication.dropdownOptions) {
       selectedSource.authentication.dropdownOptions.forEach((option: any) => {
         option.fieldsToShow.forEach((fields: any) => {
+          let authType = "auth";
+          if (selectedNode?.data.nodeData.type === "kafka") {
+            authType = "sasl";
+          }
+
           if (fields.datatype === "boolean") {
             sourceInitialValues[fields.name] =
-              selectedNode?.data.nodeData[fields.name] !== ""
-                ? selectedNode?.data.nodeData[fields.name] === false
+              selectedNode?.data.nodeData[authType][fields.name] !== ""
+                ? selectedNode?.data.nodeData[authType][fields.name] === false
                   ? false
                   : true
                 : fields.default || "";
           } else {
-            sourceInitialValues[fields.name] =
-              selectedNode?.data.nodeData[fields.name] || fields.default || "";
+            if (fields.name === "auth_region") {
+              sourceInitialValues[fields.name] =
+                selectedNode?.data.nodeData.auth["region"] ||
+                fields.default ||
+                "";
+            } else {
+              sourceInitialValues[fields.name] =
+                selectedNode?.data.nodeData.auth[fields.name] ||
+                fields.default ||
+                "";
+            }
           }
 
           if (fields.mandatory) {
@@ -153,23 +193,51 @@ const EditSourceData = ({
       });
     } else {
       selectedSource.authentication.fields.forEach((field: any) => {
-        if (field.datatype === "boolean") {
+        let authType = "auth";
+        if (selectedNode?.data.nodeData.type === "kafka") {
+          authType = "sasl";
+        }
+
+        if (
+          field.datatype === "boolean" &&
+          selectedNode?.data.nodeData[authType]
+        ) {
           sourceInitialValues[field.name] =
-            selectedNode?.data.nodeData[field.name] !== "" &&
-            selectedNode?.data.nodeData[field.name] !== undefined
-              ? selectedNode?.data.nodeData[field.name] === false
+            selectedNode?.data.nodeData[authType][field.name] !== "" &&
+            selectedNode?.data.nodeData[authType][field.name] !== undefined
+              ? selectedNode?.data.nodeData[authType][field.name] === false
                 ? false
                 : true
               : field.default || false;
         } else {
-          sourceInitialValues[field.name] =
-            selectedNode?.data.nodeData[field.name] || field.default || "";
+          if (selectedNode?.data.nodeData[authType]) {
+            sourceInitialValues[field.name] =
+              selectedNode?.data.nodeData[authType][field.name] ||
+              field.default ||
+              "";
+          } else {
+            sourceInitialValues[field.name] = field.default || "";
+          }
         }
 
         if (field.mandatory) {
           mandatoryFields.push(field.name);
         }
       });
+    }
+
+    if (
+      selectedNode !== undefined &&
+      authIndex === null &&
+      (selectedNode.data.nodeData.type === "aws_s3" ||
+        selectedNode.data.nodeData.type === "aws_sqs")
+    ) {
+      if (sourceInitialValues["access_key_id"] !== "") {
+        setAuthIndex("0");
+      }
+      if (sourceInitialValues["assume_role"] !== "") {
+        setAuthIndex("1");
+      }
     }
   }
 
@@ -288,7 +356,11 @@ const EditSourceData = ({
 
       addedNodes.forEach((node: any) => {
         const sourceMode = node.data.nodeData.mode || "tcp";
-        if (node.data.type === "source" && selectedNode?.id !== node.id) {
+        if (
+          node.data.type === "source" &&
+          selectedNode?.id !== node.id &&
+          node.data.nodeData.address
+        ) {
           const existingPort = node.data.nodeData.address.split(":");
           if (
             parseInt(existingPort[1]) === parseInt(portNumber) &&
@@ -389,7 +461,9 @@ const EditSourceData = ({
                 authIndex
               ].fieldsToShow.map((field: string) => {
                 if (field.name === "auth_region") {
-                  sourceValues.auth["region"] = formik.values[field.name];
+                  if (formik.values["auth_region"] !== "") {
+                    sourceValues.auth["region"] = formik.values[field.name];
+                  }
                 } else {
                   sourceValues.auth[field.name] = formik.values[field.name];
                 }
@@ -481,8 +555,6 @@ const EditSourceData = ({
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;
       }
-
-      console.log("values", sourceValues);
 
       onSaveSettings(sourceValues);
     }
