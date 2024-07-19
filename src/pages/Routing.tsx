@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Button, Col, Container, Row } from "react-bootstrap";
+import { Button, Col, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
 
@@ -251,7 +251,6 @@ const Routing = () => {
             }
 
             setCurrentSource(params.source);
-            // setConnectedNodes((prevList) => [...prevNodes]);
           }
         }
       } else {
@@ -285,14 +284,12 @@ const Routing = () => {
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(params.target);
 
-                  //   if (node.source === currentSource) {
                   if (destIndex !== -1) {
                     destPresent = true;
                   } else {
                     node.destinations.push(params.target);
                     destPresent = false;
                   }
-                  //   }
                 } else {
                   node[type].push(params.source);
                 }
@@ -1128,10 +1125,6 @@ const Routing = () => {
     });
 
     setConnectedNodes((prevList) => [...newEdges]);
-  };
-
-  const checkSelectType = (selected: any) => {
-    console.log("selected", selected);
   };
 
   useEffect(() => {
