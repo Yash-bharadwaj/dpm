@@ -45,8 +45,6 @@ const EditSourceData = ({
   const [topics, setTopics] = useState([""]);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  console.log("selected node", selectedNode);
-
   let sourceInitialValues = {};
   let mandatoryFields = [];
 

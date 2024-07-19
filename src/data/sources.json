@@ -615,6 +615,104 @@
           "mandatory": true
         }
       ]
+    },
+    {
+      "name": "Azure Event Hub",
+      "type": "kafka",
+      "image": "azure-event-hub.svg",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name)*",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "bootstrap_servers",
+          "label": "Brokers *",
+          "tooltip": "Azure Event Hub to use, e.g., <namespace-name>.servicebus.windows.net:9093",
+          "datatype": "cs-hostport",
+          "mandatory": true,
+          "maxChar": 300
+        },
+        {
+          "name": "topics",
+          "label": "Topics *",
+          "placeholder": "Event Hub topic names",
+          "tooltip": "Azure Event Hub topic names to read events from, e.g., insights-operational-logs, insights-logs-auditlogs",
+          "mandatory": true
+        },
+        {
+          "name": "group_id",
+          "label": "Consumer Group *",
+          "tooltip": "Consumer group name to be used to consume events from Azure Event Hub. If empty, default group ($$Default) is used, with the $ used for environment variables being escaped.",
+          "placeholder": "Event Hub consumer group name",
+          "datatype": "text",
+          "default": "$$Default",
+          "mandatory": true,
+          "maxChar": 20
+        }
+      ],
+      "authentication": {
+        "name": "sasl",
+        "tooltip": "Configure SASL authentication when interacting with Kafka.",
+        "fields": [
+          {
+            "name": "enabled",
+            "label": "SASL Enabled",
+            "tooltip": "Enables SASL authentication.",
+            "options": ["true", "false"],
+            "default": "true",
+            "datatype": "boolean",
+            "mandatory": true
+          },
+          {
+            "name": "mechanism",
+            "label": "SASL Mechanism",
+            "options": ["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
+            "default": "PLAIN",
+            "tooltip": "Select an SASL mechanism to use."
+          },
+          {
+            "name": "username",
+            "label": "Username",
+            "placeholder": "Event Hub Username",
+            "tooltip": "Use \"$$ConnectionString\" as username for event hub, with the $ used for environment variables being escaped.",
+            "default": "$$ConnectionString",
+            "datatype": "text"
+          },
+          {
+            "name": "password",
+            "label": "Password",
+            "placeholder": "Event Hub Connection String",
+            "tooltip": "Event Hub Connection String, e.g., Endpoint=sb://<NamespaceName>.servicebus.windows.net/;SharedAccessKeyName=<KeyName>;SharedAccessKey=<KeyValue>",
+            "datatype": "password",
+            "maxChar": 180
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "options": ["true", "false"],
+          "default": "true",
+          "tooltip": "TLS for incoming or outgoing connections",
+          "datatype": "boolean"
+        },
+        {
+          "name": "codec",
+          "label": "Codec",
+          "options": ["json", "syslog"],
+          "tooltip": "Codec to use for decoding events",
+          "default": "json"
+        }
+      ]
     }
   ],
   "fields": [

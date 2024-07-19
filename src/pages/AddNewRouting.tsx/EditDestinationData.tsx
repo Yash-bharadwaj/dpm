@@ -187,7 +187,7 @@ const EditDestinationData = ({
               : field.default || false;
         } else {
           if (selectedNode?.data.nodeData[authType]) {
-            destInitialValues[fields.name] =
+            destInitialValues[field.name] =
               selectedNode?.data.nodeData[authType][field.name] ||
               field.default ||
               "";
@@ -201,8 +201,6 @@ const EditDestinationData = ({
         }
       });
     }
-
-    console.log("destInitialValues", destInitialValues);
 
     if (
       selectedNode !== undefined &&
@@ -451,8 +449,6 @@ const EditDestinationData = ({
       });
 
       sourceValues["type"] = selectedDestination.type;
-
-      console.log("dest", sourceValues);
 
       onSaveSettings(sourceValues);
     }
