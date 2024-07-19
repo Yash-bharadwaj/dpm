@@ -234,9 +234,18 @@ const EditSourceData = ({
     ) {
       if (sourceInitialValues["access_key_id"] !== "") {
         setAuthIndex("0");
+
+        const fieldIndex = mandatoryFields.findIndex(checkAccessAuthFields);
+        mandatoryFields.splice(fieldIndex, 1);
       }
       if (sourceInitialValues["assume_role"] !== "") {
         setAuthIndex("1");
+
+        const indexOne = mandatoryFields.findIndex(checkAssumeAuthFieldsOne);
+        mandatoryFields.splice(indexOne, 1);
+
+        const indexTwo = mandatoryFields.findIndex(checkAssumeAuthFieldsTwo);
+        mandatoryFields.splice(indexTwo, 1);
       }
     }
   }

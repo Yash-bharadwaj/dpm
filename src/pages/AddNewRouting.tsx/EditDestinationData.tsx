@@ -43,16 +43,21 @@ const EditDestinationData = ({
   const [authIndex, setAuthIndex] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  console.log("selected node", selectedNode);
+
   let destInitialValues = {};
   let mandatoryFields = [];
+
+  const resetMandatoryFields = (index: any) => {};
 
   selectedDestination.settings.forEach((setting: any) => {
     if (setting.name === "inputs") {
       destInitialValues[setting.name] =
         selectedNode?.data.nodeData[setting.name] || setting.default || [];
     } else {
-      if (selectedNode !== undefined) {
-        let address = selectedNode?.data.nodeData.address.split(":");
+      if (selectedNode !== undefined && selectedNode?.data.nodeData?.address) {
+        let address = selectedNode?.data.nodeData?.address.split(":");
+
         if (setting.name === "address") {
           destInitialValues["address"] = address[0];
         }
@@ -130,18 +135,30 @@ const EditDestinationData = ({
       selectedDestination.authentication.dropdownOptions.forEach(
         (option: any) => {
           option.fieldsToShow.forEach((fields: any) => {
+            let authType = "auth";
+            if (selectedNode?.data.nodeData.type === "kafka") {
+              authType = "sasl";
+            }
+
             if (fields.datatype === "boolean") {
               destInitialValues[fields.name] =
-                selectedNode?.data.nodeData[fields.name] !== ""
-                  ? selectedNode?.data.nodeData[fields.name] === false
+                selectedNode?.data.nodeData[authType][fields.name] !== ""
+                  ? selectedNode?.data.nodeData[authType][fields.name] === false
                     ? false
                     : true
                   : fields.default || "";
             } else {
-              destInitialValues[fields.name] =
-                selectedNode?.data.nodeData[fields.name] ||
-                fields.default ||
-                "";
+              if (fields.name === "auth_region") {
+                destInitialValues[fields.name] =
+                  selectedNode?.data.nodeData.auth["region"] ||
+                  fields.default ||
+                  "";
+              } else {
+                destInitialValues[fields.name] =
+                  selectedNode?.data.nodeData[authType][fields.name] ||
+                  fields.default ||
+                  "";
+              }
             }
 
             if (fields.mandatory) {
@@ -152,23 +169,62 @@ const EditDestinationData = ({
       );
     } else {
       selectedDestination.authentication.fields.forEach((field: any) => {
-        if (field.datatype === "boolean") {
+        let authType = "auth";
+        if (selectedNode?.data.nodeData.type === "kafka") {
+          authType = "sasl";
+        }
+
+        if (
+          field.datatype === "boolean" &&
+          selectedNode?.data.nodeData[authType]
+        ) {
           destInitialValues[field.name] =
-            selectedNode?.data.nodeData[field.name] !== "" &&
-            selectedNode?.data.nodeData[field.name] !== undefined
-              ? selectedNode?.data.nodeData[field.name] === false
+            selectedNode?.data.nodeData[authType][field.name] !== "" &&
+            selectedNode?.data.nodeData[authType][field.name] !== undefined
+              ? selectedNode?.data.nodeData[authType][field.name] === false
                 ? false
                 : true
               : field.default || false;
         } else {
-          destInitialValues[field.name] =
-            selectedNode?.data.nodeData[field.name] || field.default || "";
+          if (selectedNode?.data.nodeData[authType]) {
+            destInitialValues[fields.name] =
+              selectedNode?.data.nodeData[authType][field.name] ||
+              field.default ||
+              "";
+          } else {
+            destInitialValues[field.name] = field.default || "";
+          }
         }
 
         if (field.mandatory) {
           mandatoryFields.push(field.name);
         }
       });
+    }
+
+    console.log("destInitialValues", destInitialValues);
+
+    if (
+      selectedNode !== undefined &&
+      authIndex === null &&
+      selectedNode.data.nodeData.type === "aws_s3"
+    ) {
+      if (destInitialValues["access_key_id"] !== "") {
+        setAuthIndex("0");
+
+        const fieldIndex = mandatoryFields.findIndex(checkAccessAuthFields);
+
+        mandatoryFields.splice(fieldIndex, 1);
+      }
+      if (destInitialValues["assume_role"] !== "") {
+        setAuthIndex("1");
+
+        const indexOne = mandatoryFields.findIndex(checkAssumeAuthFieldsOne);
+        mandatoryFields.splice(indexOne, 1);
+
+        const indexTwo = mandatoryFields.findIndex(checkAssumeAuthFieldsTwo);
+        mandatoryFields.splice(indexTwo, 1);
+      }
     }
   }
 
@@ -212,6 +268,8 @@ const EditDestinationData = ({
     ].fieldsToShow.forEach((field: object) => {
       formik.setFieldValue(field?.name, "");
     });
+
+    resetMandatoryFields(index);
 
     let prevValues = mandatoryFields;
 
