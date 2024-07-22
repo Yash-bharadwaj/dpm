@@ -448,7 +448,13 @@ const EditSourceData = ({
             };
           } else if (item === "tls" || item === "codec") {
             if (item === "tls") {
-              sourceValues["tls"] = { enabled: formik.values["tls"] };
+              sourceValues["tls"] = {
+                enabled:
+                  formik.values["tls"] === "true" ||
+                  formik.values["tls"] === true
+                    ? true
+                    : false,
+              };
             } else {
               sourceValues["decoding"] = {
                 codec: formik.values["codec"],
@@ -562,6 +568,8 @@ const EditSourceData = ({
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;
       }
+
+      console.log("values", sourceValues);
 
       onSaveSettings(sourceValues);
     }
