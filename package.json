@@ -13,6 +13,12 @@
     "@apollo/client": "^3.10.8",
     "@auth0/auth0-react": "^2.2.4",
     "@catalystic/json-to-yaml": "^1.0.0",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
+    "@fontsource/roboto": "^5.0.13",
+    "@mui/icons-material": "^5.16.4",
+    "@mui/material": "^5.16.4",
+    "@mui/x-data-grid": "^7.11.0",
     "auth0-js": "^9.26.1",
     "aws-appsync-auth-link": "^3.0.7",
     "bootstrap": "^5.3.3",
@@ -34,6 +40,7 @@
     "yaml": "^2.4.2"
   },
   "devDependencies": {
+    "@types/node": "^20.14.11",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
