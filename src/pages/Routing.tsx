@@ -29,10 +29,112 @@ import "react-simple-toasts/dist/theme/dark.css";
 import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
 
+import { sampleConfig } from "./AddNewRouting.tsx/sample";
+import jsyaml from "js-yaml";
+
+const sample = jsyaml.load(sampleConfig);
+console.log("sample", sample);
+
 toastConfig({ theme: "dark" });
 
 const initialEdges = [];
-const initialNodes = [];
+let initialNodes = [];
+
+let existingNodes = [];
+
+if (sample) {
+  if (!sample.node.sources.disabled) {
+    const sources = sample.node.sources;
+    const destinations = sample.node.destinations;
+    const pipelines = sample.node.pipelines;
+    const enrichments = sample.node.enrichments;
+
+    Object.keys(sources).forEach((source) => {
+      if (source !== "disabled") {
+        let currentSource = {
+          id: sources[source].name,
+          sourcePosition: Position.Right,
+          type: "input",
+          position: { x: -150, y: 0 },
+          height: 35,
+          width: 150,
+          data: {
+            label: sources[source].name,
+            nodeData: sources[source],
+            type: "source",
+          },
+        };
+
+        existingNodes.push(currentSource);
+      }
+    });
+
+    Object.keys(destinations).forEach((destination) => {
+      if (destination !== "disabled") {
+        let currentDestination = {
+          id: destinations[destination].name,
+          targetPosition: Position.Left,
+          type: "output",
+          height: 35,
+          width: 150,
+          position: { x: 300, y: 100 },
+          data: {
+            label: destinations[destination].name,
+            nodeData: destinations[destination],
+            type: "destination",
+          },
+        };
+
+        existingNodes.push(currentDestination);
+      }
+    });
+
+    Object.keys(pipelines).forEach((pipeline) => {
+      if (pipeline !== "disabled") {
+        let currentPipeline = {
+          id: pipelines[pipeline].name,
+          sourcePosition: "right",
+          targetPosition: "left",
+          type: "default",
+          height: 35,
+          width: 150,
+          position: { x: 50, y: 50 },
+          data: {
+            label: pipelines[pipeline].name,
+            nodeData: pipelines[pipeline],
+            type: "pipeline",
+          },
+        };
+
+        existingNodes.push(currentPipeline);
+      }
+    });
+
+    Object.keys(enrichments).forEach((enrichment) => {
+      if (enrichment !== "disabled") {
+        let currentEnrichment = {
+          id: enrichments[enrichment].name,
+          sourcePosition: "right",
+          targetPosition: "left",
+          type: "default",
+          height: 35,
+          width: 150,
+          position: { x: 70, y: 50 },
+          data: {
+            label: enrichments[enrichment].name,
+            nodeData: enrichments[enrichment],
+            type: "enrichment",
+          },
+        };
+
+        existingNodes.push(currentEnrichment);
+      }
+    });
+  }
+
+  console.log("nodes", existingNodes);
+  initialNodes = existingNodes;
+}
 
 const Routing = () => {
   const [showSource, setShowSource] = useState(false);
@@ -53,6 +155,8 @@ const Routing = () => {
   const [enableDelete, setEnableDelete] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+
+  console.log("nodes", nodes);
 
   const handleClose = () => {
     setShowSource(false);
