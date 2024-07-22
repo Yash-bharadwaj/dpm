@@ -14,6 +14,7 @@ import ReactFlow, {
   Position,
   addEdge,
   applyEdgeChanges,
+  useEdgesState,
   useNodesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -31,16 +32,22 @@ import "react-simple-toasts/dist/theme/success.css";
 
 import { sampleConfig } from "./AddNewRouting.tsx/sample";
 import jsyaml from "js-yaml";
+import { getSourceFromID } from "./AddNewRouting.tsx/helper";
 
 const sample = jsyaml.load(sampleConfig);
 console.log("sample", sample);
 
 toastConfig({ theme: "dark" });
 
-const initialEdges = [];
+let initialEdges = [];
 let initialNodes = [];
+let initialAddedSources = [];
+let initialAddedDestinations = [];
+let initialAddedPipelines = [];
+let initialAddedEnrichments = [];
 
 let existingNodes = [];
+let existingEdges = [];
 
 if (sample) {
   if (!sample.node.sources.disabled) {
@@ -51,48 +58,52 @@ if (sample) {
 
     Object.keys(sources).forEach((source) => {
       if (source !== "disabled") {
-        let currentSource = {
-          id: sources[source].name,
+        const sourceId = sources[source].name;
+
+        const originalSource = getSourceFromID(sources[source].uuid, "source");
+        originalSource.id = sourceId;
+
+        const currentSource = {
+          id: sourceId,
           sourcePosition: Position.Right,
           type: "input",
           position: { x: -150, y: 0 },
           height: 35,
           width: 150,
           data: {
-            label: sources[source].name,
+            label: sourceId,
             nodeData: sources[source],
             type: "source",
           },
         };
 
         existingNodes.push(currentSource);
-      }
-    });
+        initialAddedSources.push(originalSource);
 
-    Object.keys(destinations).forEach((destination) => {
-      if (destination !== "disabled") {
-        let currentDestination = {
-          id: destinations[destination].name,
-          targetPosition: Position.Left,
-          type: "output",
-          height: 35,
-          width: 150,
-          position: { x: 300, y: 100 },
-          data: {
-            label: destinations[destination].name,
-            nodeData: destinations[destination],
-            type: "destination",
-          },
-        };
+        // if (sources[source].outputs.length !== 0) {
+        //   sources[source].outputs.forEach((edge: string) => {
+        //     // const edgeId = "reactflow__edge-" + sourceId + "-" + edge;
+        //     const edgeId = sourceId + "-" + edge;
 
-        existingNodes.push(currentDestination);
+        //     const newEdge = {
+        //       animated: true,
+        //       id: edgeId,
+        //       source: sourceId,
+        //       target: edge,
+        //       type: "smoothstep",
+        //     };
+
+        //     existingEdges.push(newEdge);
+        //   });
+        // }
       }
     });
 
     Object.keys(pipelines).forEach((pipeline) => {
       if (pipeline !== "disabled") {
-        let currentPipeline = {
-          id: pipelines[pipeline].name,
+        const pipelineId = pipelines[pipeline].name;
+
+        const currentPipeline = {
           sourcePosition: "right",
           targetPosition: "left",
           type: "default",
@@ -100,20 +111,57 @@ if (sample) {
           width: 150,
           position: { x: 50, y: 50 },
           data: {
-            label: pipelines[pipeline].name,
+            label: pipelineId,
             nodeData: pipelines[pipeline],
             type: "pipeline",
           },
         };
 
         existingNodes.push(currentPipeline);
+        initialAddedPipelines.push(currentPipeline);
+
+        // if (pipelines[pipeline].inputs.length !== 0) {
+        //   pipelines[pipeline].inputs.forEach((edge: string) => {
+        //     // const edgeId = "reactflow__edge-" + pipelineId + "-" + edge;
+        //     const edgeId = edge + "-" + pipelineId;
+
+        //     const newEdge = {
+        //       animated: true,
+        //       id: edgeId,
+        //       source: edge,
+        //       target: pipelineId,
+        //       type: "smoothstep",
+        //     };
+
+        //     existingEdges.push(newEdge);
+        //   });
+        // }
+
+        // if (pipelines[pipeline].outputs.length !== 0) {
+        //   pipelines[pipeline].outputs.forEach((edge: string) => {
+        //     // const edgeId = "reactflow__edge-" + pipelineId + "-" + edge;
+        //     const edgeId = pipelineId + "-" + edge;
+
+        //     const newEdge = {
+        //       animated: true,
+        //       id: edgeId,
+        //       source: pipelineId,
+        //       target: edge,
+        //       type: "smoothstep",
+        //     };
+
+        //     existingEdges.push(newEdge);
+        //   });
+        // }
       }
     });
 
     Object.keys(enrichments).forEach((enrichment) => {
       if (enrichment !== "disabled") {
-        let currentEnrichment = {
-          id: enrichments[enrichment].name,
+        const enrichmentId = enrichments[enrichment].name;
+
+        const currentEnrichment = {
+          id: enrichmentId,
           sourcePosition: "right",
           targetPosition: "left",
           type: "default",
@@ -121,31 +169,81 @@ if (sample) {
           width: 150,
           position: { x: 70, y: 50 },
           data: {
-            label: enrichments[enrichment].name,
+            label: enrichmentId,
             nodeData: enrichments[enrichment],
             type: "enrichment",
           },
         };
 
         existingNodes.push(currentEnrichment);
+        initialAddedEnrichments.push(currentEnrichment);
+
+        if (enrichments[enrichment].outputs.length !== 0) {
+          enrichments[enrichment].outputs.forEach((edge: string) => {
+            // const edgeId = "reactflow__edge-" + enrichmentId + "-" + edge;
+            const edgeId = enrichmentId + "-" + edge;
+
+            const newEdge = {
+              animated: true,
+              id: edgeId,
+              source: enrichmentId,
+              target: edge,
+              type: "smoothstep",
+            };
+
+            existingEdges.push(newEdge);
+          });
+        }
+      }
+    });
+
+    Object.keys(destinations).forEach((destination) => {
+      if (destination !== "disabled") {
+        const destinationId = destinations[destination].name;
+
+        const originalSource = getSourceFromID(
+          destinations[destination].uuid,
+          "destination"
+        );
+        originalSource.id = destinationId;
+
+        const currentDestination = {
+          id: destinationId,
+          targetPosition: Position.Left,
+          type: "output",
+          height: 35,
+          width: 150,
+          position: { x: 300, y: 100 },
+          data: {
+            label: destinationId,
+            nodeData: destinations[destination],
+            type: "destination",
+          },
+        };
+
+        existingNodes.push(currentDestination);
+        initialAddedDestinations.push(originalSource);
       }
     });
   }
 
-  console.log("nodes", existingNodes);
+  console.log("edges", existingEdges);
   initialNodes = existingNodes;
+  initialEdges = existingEdges;
 }
 
 const Routing = () => {
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
-  const [addedSources, setAddedSources] = useState(Array);
-  const [addedDestinations, setAddedDestinations] = useState(Array);
+  const [addedSources, setAddedSources] = useState(initialAddedSources);
+  const [addedDestinations, setAddedDestinations] = useState(
+    initialAddedDestinations
+  );
   const [edges, setEdges] = useState(initialEdges);
   const [showPipelines, setShowPipelines] = useState(false);
   const [showEnrichment, setShowEnrichments] = useState(false);
-  const [addedPipelines, setPipelines] = useState(Array);
-  const [enrichments, setEnrichments] = useState(Array);
+  const [addedPipelines, setPipelines] = useState(initialAddedPipelines);
+  const [enrichments, setEnrichments] = useState(initialAddedEnrichments);
   const [showEditSource, setShowEditSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState(Object);
   const [selectedNode, setSelectedNode] = useState(Object);
@@ -155,8 +253,9 @@ const Routing = () => {
   const [enableDelete, setEnableDelete] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  //   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  console.log("nodes", nodes);
+  console.log("edges", edges);
 
   const handleClose = () => {
     setShowSource(false);
@@ -256,7 +355,8 @@ const Routing = () => {
     setAddedDestinations((prevList) => [...prevList, destData]);
   };
 
-  const onEdgesChange = useCallback((changes: any) => {
+  const onEdgesUpdate = useCallback((changes: any) => {
+    console.log("on edge change");
     if (changes[0].selected) {
       setEnableDelete(true);
     } else {
@@ -1317,7 +1417,7 @@ const Routing = () => {
                 onNodesChange={onNodesChange}
                 onNodeClick={onNodeClick}
                 edges={edges}
-                onEdgesChange={onEdgesChange}
+                onEdgesChange={onEdgesUpdate}
                 onConnect={onConnect}
                 fitView
                 maxZoom={1.3}

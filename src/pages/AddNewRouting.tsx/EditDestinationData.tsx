@@ -43,15 +43,13 @@ const EditDestinationData = ({
   const [authIndex, setAuthIndex] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  console.log("selected node", selectedNode);
-
   let destInitialValues = {};
   let mandatoryFields = [];
 
   const resetMandatoryFields = (index: any) => {};
 
   selectedDestination.settings.forEach((setting: any) => {
-    if (setting.name === "inputs") {
+    if (setting.name === "name") {
       destInitialValues[setting.name] =
         selectedNode?.data.nodeData[setting.name] || setting.default || [];
     } else {
@@ -449,6 +447,7 @@ const EditDestinationData = ({
       });
 
       sourceValues["type"] = selectedDestination.type;
+      sourceValues["uuid"] = selectedDestination.uuid;
 
       onSaveSettings(sourceValues);
     }
@@ -1207,6 +1206,8 @@ const EditDestinationData = ({
                 {selectedTab === "setting" ||
                 (selectedTab === "auth" && selectedDestination.advanced)
                   ? "Next"
+                  : selectedNode !== "undefined"
+                  ? "Update"
                   : "Save"}
               </Button>
             </div>
