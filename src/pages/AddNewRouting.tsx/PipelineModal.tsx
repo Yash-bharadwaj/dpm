@@ -13,6 +13,7 @@ interface PipelineModalProps {
   savePipeline: any;
   addedSources: any;
   addedPipelines: any;
+  selectedPipeline: any;
 }
 
 const PipelineModal = ({
@@ -21,15 +22,47 @@ const PipelineModal = ({
   savePipeline,
   addedSources,
   addedPipelines,
+  selectedPipeline,
 }: PipelineModalProps) => {
-  const [selectedParser, setSelectedParser] = useState(Array);
-  const [selectedProducts, setSelectedProducts] = useState(Object);
+  let currentPipeline = [];
+  let currentProducts = [];
+
+  if (selectedPipeline?.data) {
+    let uuid = selectedPipeline.data.nodeData.uuid;
+
+    parsers.observers.forEach((pipeline) => {
+      if (pipeline.uuid === uuid) {
+        currentPipeline = [pipeline];
+
+        if (pipeline.source) {
+          pipeline.source.forEach((source: any) => {
+            const observerProduct = source.product;
+            const observerVendor = source.vendor;
+
+            const pipelineName =
+              "pipeline_" + observerVendor + "_" + observerProduct;
+
+            if (pipelineName === selectedPipeline.id) {
+              currentProducts = source;
+            }
+          });
+        }
+      }
+    });
+  }
+
+  const [selectedParser, setSelectedParser] = useState(
+    currentPipeline || Array
+  );
+  const [selectedProducts, setSelectedProducts] = useState(
+    currentProducts || Object
+  );
   const [viewAll, setViewAll] = useState(true);
 
   let matchingPipelines = [];
 
   parsers.observers.forEach((pipeline) => {
-    addedSources.forEach((source) => {
+    addedSources.forEach((source: any) => {
       if (pipeline.input_sources.includes(source.name)) {
         matchingPipelines.push(pipeline);
       }
@@ -60,12 +93,12 @@ const PipelineModal = ({
     if (selectedPipeline.source) {
       pipeline = {
         name: pipelineName,
-        // id: pipelineName,
         observer: {
           type: selectedProducts.type,
           product: selectedProducts.product,
           vendor: selectedProducts.vendor,
         },
+        uuid: selectedPipeline.uuid,
         type: "remap",
         inputs: [],
         outputs: [],
@@ -73,7 +106,7 @@ const PipelineModal = ({
     } else {
       pipeline = {
         name: pipelineName,
-        // id: pipelineName,
+        uuid: selectedPipeline.uuid,
         observer: {
           type: selectedPipeline.type,
           product: selectedPipeline.product,
@@ -85,7 +118,6 @@ const PipelineModal = ({
       };
     }
 
-    console.log("pipeline", pipeline);
     savePipeline(pipeline);
   };
 
@@ -200,8 +232,8 @@ const PipelineModal = ({
                                 onSelectProducts(event.target.checked, source);
                               }}
                               checked={
-                                selectedProducts.name &&
-                                selectedProducts.name === source.name
+                                selectedProducts.label &&
+                                selectedProducts.label === source.label
                               }
                               style={{ float: "right" }}
                             />

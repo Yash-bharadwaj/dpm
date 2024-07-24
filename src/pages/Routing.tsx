@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Button, Col, Row } from "react-bootstrap";
+import { Button, Col, Modal, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
 
@@ -118,7 +118,7 @@ if (sample) {
           };
 
           existingNodes.push(currentPipeline);
-          initialAddedPipelines.push(currentPipeline);
+          initialAddedPipelines.push(pipelines[pipeline]);
 
           if (pipelines[pipeline].outputs.length !== 0) {
             pipelines[pipeline].outputs.forEach((edge: string) => {
@@ -160,7 +160,7 @@ if (sample) {
           };
 
           existingNodes.push(currentEnrichment);
-          initialAddedEnrichments.push(currentEnrichment);
+          initialAddedEnrichments.push(enrichments[enrichment]);
 
           if (enrichments[enrichment].outputs.length !== 0) {
             enrichments[enrichment].outputs.forEach((edge: string) => {
@@ -234,6 +234,8 @@ const Routing = () => {
   const [connectedNodes, setConnectedNodes] = useState(Array);
   const [currentSource, setCurrentSource] = useState("");
   const [enableDelete, setEnableDelete] = useState(false);
+  const [showEditPipeline, setShowEditPipeline] = useState(false);
+  const [nodeType, setNodeType] = useState("");
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 
@@ -242,6 +244,10 @@ const Routing = () => {
     setShowDestination(false);
     setShowPipelines(false);
     setShowEnrichments(false);
+    setSelectedSource({});
+    setSelectedNode({});
+    setShowEditPipeline(false);
+    setNodeType("");
   };
 
   const onAddSourceClick = () => {
@@ -261,6 +267,7 @@ const Routing = () => {
   };
 
   const onNodeClick = (event: object, node: object) => {
+    console.log("node", node);
     let mainSource = {};
     let type = "";
 
@@ -284,7 +291,7 @@ const Routing = () => {
 
     if (addedPipelines.length !== 0) {
       addedPipelines.forEach((pipeline) => {
-        if (pipeline.id === node.id) {
+        if (pipeline.name === node.id) {
           mainSource = pipeline;
           type = "pipeline";
         }
@@ -292,8 +299,9 @@ const Routing = () => {
     }
 
     if (enrichments.length !== 0) {
+      console.log("enrichments", enrichments);
       enrichments.forEach((enrichment) => {
-        if (enrichment.id === node.id) {
+        if (enrichment.name === node.id) {
           mainSource = enrichment;
           type = "enrichment";
         }
@@ -302,15 +310,16 @@ const Routing = () => {
 
     setSelectedSource(mainSource);
     setSelectedNode(node);
+    setNodeType(type);
 
     if (type === "source") {
       setShowEditSource(true);
     } else if (type === "destination") {
       setShowEditDestination(true);
     } else if (type === "pipeline") {
-      setShowPipelines(true);
+      setShowEditPipeline(true);
     } else if (type === "enrichment") {
-      setShowEnrichments(true);
+      setShowEditPipeline(true);
     }
   };
 
@@ -977,6 +986,7 @@ const Routing = () => {
     setShowEditSource(false);
     setShowEditDestination(false);
     setSelectedSource(Object);
+    setNodeType("");
   };
 
   const onEditSettings = (value: any) => {
@@ -1023,7 +1033,7 @@ const Routing = () => {
       }
 
       if (changes.length !== 0) {
-        onEdgesChange(changes);
+        setEdges((eds) => applyEdgeChanges(changes, eds));
       }
 
       setAddedSources((prevList) => [...prevSources]);
@@ -1090,7 +1100,7 @@ const Routing = () => {
       }
 
       if (changes.length !== 0) {
-        onEdgesChange(changes);
+        setEdges((eds) => applyEdgeChanges(changes, eds));
       }
 
       setAddedDestinations((prevList) => [...prevDestinations]);
@@ -1332,6 +1342,61 @@ const Routing = () => {
     setConnectedNodes((prevList) => [...newEdges]);
   };
 
+  const onDeletePipeline = () => {
+    let prevPipelines = nodeType === "pipeline" ? addedPipelines : enrichments;
+    let prevNodes = nodes;
+
+    let selectedIndex = -1;
+    let nodeIndex = -1;
+
+    // const id =
+    //   nodeType === "pipeline" ? selectedSource.name : selectedSource.id;
+    const id = selectedSource.name;
+
+    addedPipelines.forEach((pipeline, index) => {
+      if (pipeline.id === id) {
+        selectedIndex = index;
+      }
+    });
+
+    nodes.forEach((node, index) => {
+      if (node.id === id) {
+        nodeIndex = index;
+      }
+    });
+
+    prevPipelines.splice(selectedIndex, 1);
+    prevNodes.splice(nodeIndex, 1);
+
+    let changes = [];
+
+    if (edges.length !== 0) {
+      edges.forEach((edge) => {
+        if (edge.source === id || edge.target === id) {
+          const removeEdge = {
+            id: edge.id,
+            type: "remove",
+          };
+
+          changes.push(removeEdge);
+        }
+      });
+    }
+
+    if (changes.length !== 0) {
+      setEdges((eds) => applyEdgeChanges(changes, eds));
+    }
+
+    if (nodeType === "pipeline") {
+      setPipelines((prevList) => [...prevPipelines]);
+    } else {
+      setEnrichments((prevList) => [...prevPipelines]);
+    }
+
+    setNodes((prevList) => [...prevNodes]);
+    setShowEditPipeline(false);
+  };
+
   useEffect(() => {
     handleEdgeChange();
   }, [edges]);
@@ -1485,6 +1550,16 @@ const Routing = () => {
             selectedNode={selectedNode}
             addedNodes={nodes}
           />
+        )}
+
+        {showEditPipeline && (
+          <Modal show={showEditPipeline} onHide={handleClose}>
+            <Modal.Body style={{ textAlign: "center" }}>
+              <Button variant="primary" onClick={onDeletePipeline} size="sm">
+                Delete
+              </Button>
+            </Modal.Body>
+          </Modal>
         )}
       </div>
     </>
