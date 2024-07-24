@@ -1,5 +1,5 @@
 import { ApolloClient, InMemoryCache, ApolloLink, HttpLink } from "@apollo/client";
-import keycloak from './keycloak'; // Assuming this imports your Keycloak instance correctly
+import keycloak from './keycloak'; 
 
 // Creating an ApolloLink instance to set authorization headers
 const authLink = new ApolloLink((operation, forward) => {
