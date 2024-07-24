@@ -14,7 +14,6 @@ import ReactFlow, {
   Position,
   addEdge,
   applyEdgeChanges,
-  useEdgesState,
   useNodesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -80,22 +79,22 @@ if (sample) {
         existingNodes.push(currentSource);
         initialAddedSources.push(originalSource);
 
-        // if (sources[source].outputs.length !== 0) {
-        //   sources[source].outputs.forEach((edge: string) => {
-        //     // const edgeId = "reactflow__edge-" + sourceId + "-" + edge;
-        //     const edgeId = sourceId + "-" + edge;
+        if (sources[source].outputs.length !== 0) {
+          sources[source].outputs.forEach((edge: string) => {
+            // const edgeId = "reactflow__edge-" + sourceId + "-" + edge;
+            const edgeId = sourceId + "-" + edge;
 
-        //     const newEdge = {
-        //       animated: true,
-        //       id: edgeId,
-        //       source: sourceId,
-        //       target: edge,
-        //       type: "smoothstep",
-        //     };
+            const newEdge = {
+              animated: true,
+              id: edgeId,
+              source: sourceId,
+              target: edge,
+              type: "smoothstep",
+            };
 
-        //     existingEdges.push(newEdge);
-        //   });
-        // }
+            existingEdges.push(newEdge);
+          });
+        }
       }
     });
 
@@ -104,6 +103,7 @@ if (sample) {
         const pipelineId = pipelines[pipeline].name;
 
         const currentPipeline = {
+          id: pipelineId,
           sourcePosition: "right",
           targetPosition: "left",
           type: "default",
@@ -120,73 +120,15 @@ if (sample) {
         existingNodes.push(currentPipeline);
         initialAddedPipelines.push(currentPipeline);
 
-        // if (pipelines[pipeline].inputs.length !== 0) {
-        //   pipelines[pipeline].inputs.forEach((edge: string) => {
-        //     // const edgeId = "reactflow__edge-" + pipelineId + "-" + edge;
-        //     const edgeId = edge + "-" + pipelineId;
-
-        //     const newEdge = {
-        //       animated: true,
-        //       id: edgeId,
-        //       source: edge,
-        //       target: pipelineId,
-        //       type: "smoothstep",
-        //     };
-
-        //     existingEdges.push(newEdge);
-        //   });
-        // }
-
-        // if (pipelines[pipeline].outputs.length !== 0) {
-        //   pipelines[pipeline].outputs.forEach((edge: string) => {
-        //     // const edgeId = "reactflow__edge-" + pipelineId + "-" + edge;
-        //     const edgeId = pipelineId + "-" + edge;
-
-        //     const newEdge = {
-        //       animated: true,
-        //       id: edgeId,
-        //       source: pipelineId,
-        //       target: edge,
-        //       type: "smoothstep",
-        //     };
-
-        //     existingEdges.push(newEdge);
-        //   });
-        // }
-      }
-    });
-
-    Object.keys(enrichments).forEach((enrichment) => {
-      if (enrichment !== "disabled") {
-        const enrichmentId = enrichments[enrichment].name;
-
-        const currentEnrichment = {
-          id: enrichmentId,
-          sourcePosition: "right",
-          targetPosition: "left",
-          type: "default",
-          height: 35,
-          width: 150,
-          position: { x: 70, y: 50 },
-          data: {
-            label: enrichmentId,
-            nodeData: enrichments[enrichment],
-            type: "enrichment",
-          },
-        };
-
-        existingNodes.push(currentEnrichment);
-        initialAddedEnrichments.push(currentEnrichment);
-
-        if (enrichments[enrichment].outputs.length !== 0) {
-          enrichments[enrichment].outputs.forEach((edge: string) => {
-            // const edgeId = "reactflow__edge-" + enrichmentId + "-" + edge;
-            const edgeId = enrichmentId + "-" + edge;
+        if (pipelines[pipeline].outputs.length !== 0) {
+          pipelines[pipeline].outputs.forEach((edge: string) => {
+            // const edgeId = "reactflow__edge-" + pipelineId + "-" + edge;
+            const edgeId = pipelineId + "-" + edge;
 
             const newEdge = {
               animated: true,
               id: edgeId,
-              source: enrichmentId,
+              source: pipelineId,
               target: edge,
               type: "smoothstep",
             };
@@ -196,6 +138,49 @@ if (sample) {
         }
       }
     });
+
+    if (enrichments) {
+      Object.keys(enrichments).forEach((enrichment) => {
+        if (enrichment !== "disabled") {
+          const enrichmentId = enrichments[enrichment].name;
+
+          const currentEnrichment = {
+            id: enrichmentId,
+            sourcePosition: "right",
+            targetPosition: "left",
+            type: "default",
+            height: 35,
+            width: 150,
+            position: { x: 70, y: 50 },
+            data: {
+              label: enrichmentId,
+              nodeData: enrichments[enrichment],
+              type: "enrichment",
+            },
+          };
+
+          existingNodes.push(currentEnrichment);
+          initialAddedEnrichments.push(currentEnrichment);
+
+          if (enrichments[enrichment].outputs.length !== 0) {
+            enrichments[enrichment].outputs.forEach((edge: string) => {
+              // const edgeId = "reactflow__edge-" + enrichmentId + "-" + edge;
+              const edgeId = enrichmentId + "-" + edge;
+
+              const newEdge = {
+                animated: true,
+                id: edgeId,
+                source: enrichmentId,
+                target: edge,
+                type: "smoothstep",
+              };
+
+              existingEdges.push(newEdge);
+            });
+          }
+        }
+      });
+    }
 
     Object.keys(destinations).forEach((destination) => {
       if (destination !== "disabled") {
@@ -227,7 +212,6 @@ if (sample) {
     });
   }
 
-  console.log("edges", existingEdges);
   initialNodes = existingNodes;
   initialEdges = existingEdges;
 }
@@ -254,8 +238,6 @@ const Routing = () => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   //   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-  console.log("edges", edges);
 
   const handleClose = () => {
     setShowSource(false);
@@ -356,7 +338,6 @@ const Routing = () => {
   };
 
   const onEdgesUpdate = useCallback((changes: any) => {
-    console.log("on edge change");
     if (changes[0].selected) {
       setEnableDelete(true);
     } else {
