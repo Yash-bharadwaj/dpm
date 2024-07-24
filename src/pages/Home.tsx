@@ -53,7 +53,7 @@ const Home = () => {
   return (
     <div style={{ marginTop: '4rem' }}>
       <h3>List of LC Devices</h3>
-      <button onClick={handleHeartbeatClick} style={{ marginTop: '1rem', marginBottom: '2rem', backgroundColor: 'green', color: 'white' }}>Heartbeat Status</button>
+      {/* <button onClick={handleHeartbeatClick} style={{ marginTop: '1rem', marginBottom: '2rem', backgroundColor: 'green', color: 'white' }}>Heartbeat Status</button> */}
       <div style={{ height: "80vh", width: '100%' }}>
         <DataGrid 
           rows={devicesData?.getLcdeviceList.map((device: any, index: number) => ({
