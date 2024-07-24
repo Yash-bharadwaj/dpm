@@ -16,6 +16,7 @@ export const sampleConfig = `node:
     disabled: false
     pipeline_microsoft_windows:
       name: "pipeline_microsoft_windows"
+      uuid: "microsoftwindows"
       observer:
         type: "windows"
         product: "windows"

@@ -81,7 +81,6 @@ if (sample) {
 
         if (sources[source].outputs.length !== 0) {
           sources[source].outputs.forEach((edge: string) => {
-            // const edgeId = "reactflow__edge-" + sourceId + "-" + edge;
             const edgeId = sourceId + "-" + edge;
 
             const newEdge = {
@@ -98,46 +97,47 @@ if (sample) {
       }
     });
 
-    Object.keys(pipelines).forEach((pipeline) => {
-      if (pipeline !== "disabled") {
-        const pipelineId = pipelines[pipeline].name;
+    if (pipelines) {
+      Object.keys(pipelines).forEach((pipeline) => {
+        if (pipeline !== "disabled") {
+          const pipelineId = pipelines[pipeline].name;
 
-        const currentPipeline = {
-          id: pipelineId,
-          sourcePosition: "right",
-          targetPosition: "left",
-          type: "default",
-          height: 35,
-          width: 150,
-          position: { x: 50, y: 50 },
-          data: {
-            label: pipelineId,
-            nodeData: pipelines[pipeline],
-            type: "pipeline",
-          },
-        };
+          const currentPipeline = {
+            id: pipelineId,
+            sourcePosition: "right",
+            targetPosition: "left",
+            type: "default",
+            height: 35,
+            width: 150,
+            position: { x: 50, y: 50 },
+            data: {
+              label: pipelineId,
+              nodeData: pipelines[pipeline],
+              type: "pipeline",
+            },
+          };
 
-        existingNodes.push(currentPipeline);
-        initialAddedPipelines.push(currentPipeline);
+          existingNodes.push(currentPipeline);
+          initialAddedPipelines.push(currentPipeline);
 
-        if (pipelines[pipeline].outputs.length !== 0) {
-          pipelines[pipeline].outputs.forEach((edge: string) => {
-            // const edgeId = "reactflow__edge-" + pipelineId + "-" + edge;
-            const edgeId = pipelineId + "-" + edge;
+          if (pipelines[pipeline].outputs.length !== 0) {
+            pipelines[pipeline].outputs.forEach((edge: string) => {
+              const edgeId = pipelineId + "-" + edge;
 
-            const newEdge = {
-              animated: true,
-              id: edgeId,
-              source: pipelineId,
-              target: edge,
-              type: "smoothstep",
-            };
+              const newEdge = {
+                animated: true,
+                id: edgeId,
+                source: pipelineId,
+                target: edge,
+                type: "smoothstep",
+              };
 
-            existingEdges.push(newEdge);
-          });
+              existingEdges.push(newEdge);
+            });
+          }
         }
-      }
-    });
+      });
+    }
 
     if (enrichments) {
       Object.keys(enrichments).forEach((enrichment) => {
@@ -164,7 +164,6 @@ if (sample) {
 
           if (enrichments[enrichment].outputs.length !== 0) {
             enrichments[enrichment].outputs.forEach((edge: string) => {
-              // const edgeId = "reactflow__edge-" + enrichmentId + "-" + edge;
               const edgeId = enrichmentId + "-" + edge;
 
               const newEdge = {
@@ -237,7 +236,6 @@ const Routing = () => {
   const [enableDelete, setEnableDelete] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  //   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const handleClose = () => {
     setShowSource(false);
@@ -284,6 +282,24 @@ const Routing = () => {
       });
     }
 
+    if (addedPipelines.length !== 0) {
+      addedPipelines.forEach((pipeline) => {
+        if (pipeline.id === node.id) {
+          mainSource = pipeline;
+          type = "pipeline";
+        }
+      });
+    }
+
+    if (enrichments.length !== 0) {
+      enrichments.forEach((enrichment) => {
+        if (enrichment.id === node.id) {
+          mainSource = enrichment;
+          type = "enrichment";
+        }
+      });
+    }
+
     setSelectedSource(mainSource);
     setSelectedNode(node);
 
@@ -291,6 +307,10 @@ const Routing = () => {
       setShowEditSource(true);
     } else if (type === "destination") {
       setShowEditDestination(true);
+    } else if (type === "pipeline") {
+      setShowPipelines(true);
+    } else if (type === "enrichment") {
+      setShowEnrichments(true);
     }
   };
 
@@ -1432,6 +1452,7 @@ const Routing = () => {
             savePipeline={savePipeline}
             addedSources={addedSources}
             addedPipelines={addedPipelines}
+            selectedPipeline={selectedNode}
           />
         )}
 
