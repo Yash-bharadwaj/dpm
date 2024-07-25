@@ -1253,6 +1253,8 @@ const Routing = () => {
           });
         }
 
+        console.log("source index", sourceIndex);
+
         if (sourceIndex === -1) {
           const newConnection = {
             source: edge.source,
@@ -1305,11 +1307,18 @@ const Routing = () => {
 
               if (targetType !== "destination") {
                 if (edgeTargetIndex !== -1) {
+                  console.log("here", node);
+                  const sourceConnectionPresent = sourceCheck(
+                    node.source,
+                    edge.source
+                  );
+
                   if (newEdges[index]) {
-                    newEdges[index][destType].push(edge.target);
+                    if (sourceConnectionPresent) {
+                      newEdges[index][destType].push(edge.target);
+                    }
                   } else {
                     //target present but edge not created
-
                     //check if source is connected before
                     const sourceConnectionPresent = sourceCheck(
                       node.source,
@@ -1318,6 +1327,7 @@ const Routing = () => {
 
                     //create new only if node source is connected to edge source
                     if (sourceConnectionPresent) {
+                      console.log("create new");
                       const newConnection = {
                         source: node.source,
                         pipelines: type === "pipelines" ? [edge.source] : [],
@@ -1338,29 +1348,55 @@ const Routing = () => {
                     edge.source
                   );
 
-                  //create new only if node source is connected to edge source
-                  if (sourceConnectionPresent) {
-                    const newConnection = {
-                      source: node.source,
-                      pipelines: type === "pipelines" ? [edge.source] : [],
-                      enrichments:
-                        destType === "enrichments" || type === "enrichments"
-                          ? [edge.target]
-                          : [],
-                      destinations:
-                        destType === "destinations" ? [edge.target] : [],
-                    };
+                  if (edgeSourceIndex !== -1) {
+                    console.log("source present");
+                    // if (sourceConnectionPresent) {
+                    newEdges[index][destType].push(edge.target);
 
-                    newEdges.push(newConnection);
+                    console.log("new", newEdges);
+                    // }
+                  } else {
+                    //create new only if node source is connected to edge source
+                    if (sourceConnectionPresent) {
+                      console.log("create new", node);
+                      console.log("edge", edge);
+                      const newConnection = {
+                        source: node.source,
+                        pipelines: type === "pipelines" ? [edge.source] : [],
+                        enrichments:
+                          destType === "enrichments" || type === "enrichments"
+                            ? [edge.target]
+                            : [],
+                        destinations:
+                          destType === "destinations" ? [edge.target] : [],
+                      };
+
+                      newEdges.push(newConnection);
+                    }
                   }
                 }
               } else {
+                console.log("node", node);
+                console.log("edge", edge);
+                console.log("source index", edgeSourceIndex);
+                console.log("target index", edgeTargetIndex);
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(edge.target);
 
                   if (destIndex !== -1) {
+                    const sourceConnectionPresent = sourceCheck(
+                      node.source,
+                      edge.source
+                    );
+
                     if (newEdges[index]) {
-                      newEdges[index][destType].push(edge.target);
+                      console.log("new edge", newEdges[index]);
+                      const currentSourceIndex = newEdges[index][type].indexOf(
+                        edge.source
+                      );
+                      if (currentSourceIndex !== -1) {
+                        newEdges[index][destType].push(edge.target);
+                      }
                     } else {
                       //check if source is connected before
                       const sourceConnectionPresent = sourceCheck(
@@ -1396,20 +1432,37 @@ const Routing = () => {
 
                         newEdges.push(newConnection);
                       }
+                    } else {
+                      console.log("here", newEdges[index]);
+                      if (newEdges[index]) {
+                        const currentSourceIndex = newEdges[index][
+                          type
+                        ].indexOf(edge.source);
+
+                        if (currentSourceIndex !== -1) {
+                          newEdges[index][destType].push(edge.target);
+                        }
+                      }
                     }
                   }
                 } else {
                   if (newEdges[index]) {
-                    const sourceConnectionPresent = sourceCheck(
-                      node.source,
+                    console.log("new edge", newEdges[index]);
+                    const currentSourceIndex = newEdges[index][type].indexOf(
                       edge.source
                     );
+                    const currentDestIndex = newEdges[index][destType].indexOf(
+                      edge.target
+                    );
 
-                    if (sourceConnectionPresent) {
+                    console.log("currentSourceIndex", currentSourceIndex);
+
+                    if (currentSourceIndex !== -1) {
                       newEdges[index][destType].push(edge.target);
                       newEdges[index][type].push(edge.source);
                     }
                   } else {
+                    console.log("no new edge");
                     const sourceConnectionPresent = sourceCheck(
                       node.source,
                       edge.source
@@ -1438,6 +1491,8 @@ const Routing = () => {
         }
       }
     });
+
+    console.log("new connections", newEdges);
 
     setConnectedNodes((prevList) => [...newEdges]);
   };
