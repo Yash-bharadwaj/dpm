@@ -7,6 +7,10 @@ import parsers from "../../data/parsers.json";
 
 import { useState } from "react";
 
+// import { Typeahead } from "react-bootstrap-typeahead";
+
+import { CaretDown, CaretUp } from "react-bootstrap-icons";
+
 interface PipelineModalProps {
   show: boolean;
   handleClose: any;
@@ -154,6 +158,10 @@ const PipelineModal = ({
     setViewAll(!viewAll);
   };
 
+  const onParserSelect = (parser: any) => {
+    console.log("parser", parser);
+  };
+
   return (
     <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
       <Modal.Header closeButton>
@@ -175,7 +183,7 @@ const PipelineModal = ({
           minLength={4}
         /> */}
 
-        <div>
+        <div style={{ height: "400px", overflow: "auto" }}>
           <div style={{ float: "right", marginBottom: "8px" }}>
             <Button variant="link" onClick={onViewAll} size="sm">
               {viewAll ? "View Compatible Pipelines" : "View All Pipelines"}
@@ -198,19 +206,34 @@ const PipelineModal = ({
                 (pipeline) => (
                   <>
                     <tr>
-                      <td>
-                        <Form.Check
-                          name="pipeline"
-                          type={"radio"}
-                          id={`inline-checkbox-1`}
-                          onChange={(event) => {
-                            onSelectPipeline(event.target.checked, pipeline);
-                          }}
-                          checked={
-                            selectedParser.length !== 0 &&
-                            selectedParser[0].name === pipeline.name
-                          }
-                        />
+                      <td align="center">
+                        {pipeline.source ? (
+                          selectedParser.length !== 0 &&
+                          selectedParser[0].name === pipeline.name ? (
+                            <CaretUp
+                              style={{ cursor: "pointer" }}
+                              onClick={() => onSelectPipeline(false, pipeline)}
+                            />
+                          ) : (
+                            <CaretDown
+                              style={{ cursor: "pointer" }}
+                              onClick={() => onSelectPipeline(true, pipeline)}
+                            />
+                          )
+                        ) : (
+                          <Form.Check
+                            name="pipeline"
+                            type={"radio"}
+                            id={`inline-checkbox-1`}
+                            onChange={(event) => {
+                              onSelectPipeline(event.target.checked, pipeline);
+                            }}
+                            checked={
+                              selectedParser.length !== 0 &&
+                              selectedParser[0].name === pipeline.name
+                            }
+                          />
+                        )}
                       </td>
                       <td>{pipeline.name}</td>
                       <td>{pipeline.type}</td>

@@ -1482,6 +1482,15 @@ const Routing = () => {
               onClick={onSave}
               style={{ float: "right", marginBottom: "12px" }}
             >
+              Deploy Configuration
+            </Button>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onSave}
+              style={{ float: "right", marginBottom: "12px" }}
+            >
               Save Configuration
             </Button>
           </Col>
