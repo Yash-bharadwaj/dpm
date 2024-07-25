@@ -68,6 +68,7 @@ const Routing = () => {
   const [enableDelete, setEnableDelete] = useState(false);
   const [showEditPipeline, setShowEditPipeline] = useState(false);
   const [nodeType, setNodeType] = useState("");
+  const [configExists, setConfigExists] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 
@@ -342,6 +343,7 @@ const Routing = () => {
 
         setNodes(existingNodes);
         setEdges(existingEdges);
+        setConfigExists(true);
       }
     } catch (error) {
       console.error("Error getting config:", error);
@@ -1416,8 +1418,6 @@ const Routing = () => {
     let selectedIndex = -1;
     let nodeIndex = -1;
 
-    // const id =
-    //   nodeType === "pipeline" ? selectedSource.name : selectedSource.id;
     const id = selectedSource.name;
 
     addedPipelines.forEach((pipeline, index) => {
@@ -1479,14 +1479,20 @@ const Routing = () => {
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col xl={12} lg={12} md={12} sm={12}>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onSave}
-              style={{ float: "right", marginBottom: "12px" }}
-            >
-              Deploy Configuration
-            </Button>
+            {configExists && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={onSave}
+                style={{
+                  float: "right",
+                  marginBottom: "12px",
+                  marginLeft: "8px",
+                }}
+              >
+                Deploy Configuration
+              </Button>
+            )}
 
             <Button
               variant="primary"

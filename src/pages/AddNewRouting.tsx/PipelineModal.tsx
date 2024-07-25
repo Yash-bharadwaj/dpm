@@ -62,6 +62,8 @@ const PipelineModal = ({
     currentProducts || Object
   );
   const [viewAll, setViewAll] = useState(true);
+  const [searchedPipelines, setSearchedPipelines] = useState(parsers.observers);
+  const [searchText, setSearchText] = useState("");
 
   let matchingPipelines = [];
 
@@ -158,38 +160,55 @@ const PipelineModal = ({
     setViewAll(!viewAll);
   };
 
-  const onParserSelect = (parser: any) => {
-    console.log("parser", parser);
+  const onSearch = (searchText: string) => {
+    let searchedPipelines = [];
+    setSearchText(searchText);
+
+    if (searchText === "") {
+      setSearchedPipelines(parsers.observers);
+    } else {
+      if (searchText.length >= 3) {
+        parsers.observers.forEach((pipeline) => {
+          const name = pipeline.name.toLowerCase();
+
+          if (name.match(searchText)) {
+            searchedPipelines.push(pipeline);
+          }
+        });
+
+        setSearchedPipelines(searchedPipelines);
+      }
+    }
   };
 
   return (
     <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
-      <Modal.Header closeButton>
+      <Modal.Header closeButton style={{ padding: "8px 12px" }}>
         <Modal.Title>Pipelines</Modal.Title>
       </Modal.Header>
 
-      <Modal.Body>
-        {/* <Typeahead
-          id="basic-typeahead-single"
-          labelKey="name"
-          onChange={(event) => {
-            onParserSelect(event);
-          }}
-          options={parsers.observers}
-          placeholder="Search for Pipeline"
-          selected={selectedParser}
-          className="mb-3"
+      <Modal.Body style={{ padding: "8px 12px" }}>
+        <div style={{ float: "right" }}>
+          <Button variant="link" onClick={onViewAll} size="sm">
+            {viewAll ? "View Compatible Pipelines" : "View All Pipelines"}
+          </Button>
+        </div>
+
+        <Form.Control
+          placeholder={`Search pipeline`}
+          aria-label="pipeline"
+          aria-describedby="pipeline"
+          className="mb-1"
           size="sm"
-          minLength={4}
-        /> */}
+          id="pipeline"
+          onChange={(event) => {
+            onSearch(event.target.value);
+          }}
+          value={searchText}
+          type={"text"}
+        />
 
-        <div style={{ height: "400px", overflow: "auto" }}>
-          <div style={{ float: "right", marginBottom: "8px" }}>
-            <Button variant="link" onClick={onViewAll} size="sm">
-              {viewAll ? "View Compatible Pipelines" : "View All Pipelines"}
-            </Button>
-          </div>
-
+        <div style={{ height: "380px", overflow: "auto" }}>
           <Table striped bordered>
             <thead>
               <tr>
@@ -202,7 +221,7 @@ const PipelineModal = ({
             </thead>
 
             <tbody>
-              {(viewAll ? parsers.observers : matchingPipelines).map(
+              {(viewAll ? searchedPipelines : matchingPipelines).map(
                 (pipeline) => (
                   <>
                     <tr>
