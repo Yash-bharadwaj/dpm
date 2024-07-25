@@ -32,12 +32,8 @@ import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
 import { useMutation } from "@apollo/client";
 
-import { sampleConfig } from "./AddNewRouting.tsx/sample";
 import jsyaml from "js-yaml";
 import { getSourceFromID } from "./AddNewRouting.tsx/helper";
-
-const sample = jsyaml.load(sampleConfig);
-console.log("sample", sample);
 
 toastConfig({ theme: "dark" });
 
@@ -50,173 +46,6 @@ let initialAddedEnrichments = [];
 
 let existingNodes = [];
 let existingEdges = [];
-
-if (sample) {
-  if (!sample.node.sources.disabled) {
-    const sources = sample.node.sources;
-    const destinations = sample.node.destinations;
-    const pipelines = sample.node.pipelines;
-    const enrichments = sample.node.enrichments;
-
-    Object.keys(sources).forEach((source) => {
-      if (source !== "disabled") {
-        const sourceId = sources[source].name;
-
-        const originalSource = getSourceFromID(sources[source].uuid, "source");
-        originalSource.id = sourceId;
-
-        const currentSource = {
-          id: sourceId,
-          sourcePosition: Position.Right,
-          type: "input",
-          position: { x: -150, y: 0 },
-          height: 35,
-          width: 150,
-          data: {
-            label: sourceId,
-            nodeData: sources[source],
-            type: "source",
-          },
-        };
-
-        existingNodes.push(currentSource);
-        initialAddedSources.push(originalSource);
-
-        if (sources[source].outputs.length !== 0) {
-          sources[source].outputs.forEach((edge: string) => {
-            const edgeId = sourceId + "-" + edge;
-
-            const newEdge = {
-              animated: true,
-              id: edgeId,
-              source: sourceId,
-              target: edge,
-              type: "smoothstep",
-            };
-
-            existingEdges.push(newEdge);
-          });
-        }
-      }
-    });
-
-    if (pipelines) {
-      Object.keys(pipelines).forEach((pipeline) => {
-        if (pipeline !== "disabled") {
-          const pipelineId = pipelines[pipeline].name;
-
-          const currentPipeline = {
-            id: pipelineId,
-            sourcePosition: "right",
-            targetPosition: "left",
-            type: "default",
-            height: 35,
-            width: 150,
-            position: { x: 50, y: 50 },
-            data: {
-              label: pipelineId,
-              nodeData: pipelines[pipeline],
-              type: "pipeline",
-            },
-          };
-
-          existingNodes.push(currentPipeline);
-          initialAddedPipelines.push(pipelines[pipeline]);
-
-          if (pipelines[pipeline].outputs.length !== 0) {
-            pipelines[pipeline].outputs.forEach((edge: string) => {
-              const edgeId = pipelineId + "-" + edge;
-
-              const newEdge = {
-                animated: true,
-                id: edgeId,
-                source: pipelineId,
-                target: edge,
-                type: "smoothstep",
-              };
-
-              existingEdges.push(newEdge);
-            });
-          }
-        }
-      });
-    }
-
-    if (enrichments) {
-      Object.keys(enrichments).forEach((enrichment) => {
-        if (enrichment !== "disabled") {
-          const enrichmentId = enrichments[enrichment].name;
-
-          const currentEnrichment = {
-            id: enrichmentId,
-            sourcePosition: "right",
-            targetPosition: "left",
-            type: "default",
-            height: 35,
-            width: 150,
-            position: { x: 70, y: 50 },
-            data: {
-              label: enrichmentId,
-              nodeData: enrichments[enrichment],
-              type: "enrichment",
-            },
-          };
-
-          existingNodes.push(currentEnrichment);
-          initialAddedEnrichments.push(enrichments[enrichment]);
-
-          if (enrichments[enrichment].outputs.length !== 0) {
-            enrichments[enrichment].outputs.forEach((edge: string) => {
-              const edgeId = enrichmentId + "-" + edge;
-
-              const newEdge = {
-                animated: true,
-                id: edgeId,
-                source: enrichmentId,
-                target: edge,
-                type: "smoothstep",
-              };
-
-              existingEdges.push(newEdge);
-            });
-          }
-        }
-      });
-    }
-
-    Object.keys(destinations).forEach((destination) => {
-      if (destination !== "disabled") {
-        const destinationId = destinations[destination].name;
-
-        const originalSource = getSourceFromID(
-          destinations[destination].uuid,
-          "destination"
-        );
-        originalSource.id = destinationId;
-
-        const currentDestination = {
-          id: destinationId,
-          targetPosition: Position.Left,
-          type: "output",
-          height: 35,
-          width: 150,
-          position: { x: 300, y: 100 },
-          data: {
-            label: destinationId,
-            nodeData: destinations[destination],
-            type: "destination",
-          },
-        };
-
-        existingNodes.push(currentDestination);
-        initialAddedDestinations.push(originalSource);
-      }
-    });
-  }
-
-  initialNodes = existingNodes;
-  initialEdges = existingEdges;
-}
 
 const Routing = () => {
   const [showSource, setShowSource] = useState(false);
@@ -241,7 +70,6 @@ const Routing = () => {
   const [nodeType, setNodeType] = useState("");
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [config,setConfig]=useState({});
 
   const handleClose = () => {
     setShowSource(false);
@@ -327,43 +155,205 @@ const Routing = () => {
     }
   };
 
-// get config codee here 
+  // get config codee here
 
-const [getConfigMutation] = useMutation(GET_CONFIG);
+  const [getConfigMutation] = useMutation(GET_CONFIG);
 
-const getConfig = async () => {
-  try {
-    const { data } = await getConfigMutation({
-      variables: {
-        input: {
-          orgcode: "d3b6842d",
-          devicecode: "DM_HY_D01",
-        
+  const getConfig = async () => {
+    try {
+      const { data } = await getConfigMutation({
+        variables: {
+          input: {
+            orgcode: "d3b6842d",
+            devicecode: "DM_HY_D01",
+          },
+        },
+      });
+
+      let savedConfig = atob(data.getConfig.resposedata);
+
+      if (savedConfig) {
+        const sample = jsyaml.load(savedConfig);
+        if (!sample.node.sources.disabled) {
+          const sources = sample.node.sources;
+          const destinations = sample.node.destinations;
+          const pipelines = sample.node.pipelines;
+          const enrichments = sample.node.enrichments;
+
+          Object.keys(sources).forEach((source) => {
+            if (source !== "disabled") {
+              const sourceId = sources[source].name;
+
+              const originalSource = getSourceFromID(
+                sources[source].uuid,
+                "source"
+              );
+              originalSource.id = sourceId;
+
+              const currentSource = {
+                id: sourceId,
+                sourcePosition: Position.Right,
+                type: "input",
+                position: { x: -220, y: -150 },
+                height: 35,
+                width: 150,
+                data: {
+                  label: sourceId,
+                  nodeData: sources[source],
+                  type: "source",
+                },
+              };
+
+              existingNodes.push(currentSource);
+              initialAddedSources.push(originalSource);
+
+              if (sources[source].outputs.length !== 0) {
+                sources[source].outputs.forEach((edge: string) => {
+                  const edgeId = sourceId + "-" + edge;
+
+                  const newEdge = {
+                    animated: true,
+                    id: edgeId,
+                    source: sourceId,
+                    target: edge,
+                    type: "smoothstep",
+                  };
+
+                  existingEdges.push(newEdge);
+                });
+              }
+            }
+          });
+
+          if (pipelines) {
+            Object.keys(pipelines).forEach((pipeline) => {
+              if (pipeline !== "disabled") {
+                const pipelineId = pipelines[pipeline].name;
+
+                const currentPipeline = {
+                  id: pipelineId,
+                  sourcePosition: "right",
+                  targetPosition: "left",
+                  type: "default",
+                  height: 35,
+                  width: 150,
+                  position: { x: -30, y: -150 },
+                  data: {
+                    label: pipelineId,
+                    nodeData: pipelines[pipeline],
+                    type: "pipeline",
+                  },
+                };
+
+                existingNodes.push(currentPipeline);
+                initialAddedPipelines.push(pipelines[pipeline]);
+
+                if (pipelines[pipeline].outputs.length !== 0) {
+                  pipelines[pipeline].outputs.forEach((edge: string) => {
+                    const edgeId = pipelineId + "-" + edge;
+
+                    const newEdge = {
+                      animated: true,
+                      id: edgeId,
+                      source: pipelineId,
+                      target: edge,
+                      type: "smoothstep",
+                    };
+
+                    existingEdges.push(newEdge);
+                  });
+                }
+              }
+            });
+          }
+
+          if (enrichments) {
+            Object.keys(enrichments).forEach((enrichment) => {
+              if (enrichment !== "disabled") {
+                const enrichmentId = enrichments[enrichment].name;
+
+                const currentEnrichment = {
+                  id: enrichmentId,
+                  sourcePosition: "right",
+                  targetPosition: "left",
+                  type: "default",
+                  height: 35,
+                  width: 150,
+                  position: { x: 180, y: -150 },
+                  data: {
+                    label: enrichmentId,
+                    nodeData: enrichments[enrichment],
+                    type: "enrichment",
+                  },
+                };
+
+                existingNodes.push(currentEnrichment);
+                initialAddedEnrichments.push(enrichments[enrichment]);
+
+                if (enrichments[enrichment].outputs.length !== 0) {
+                  enrichments[enrichment].outputs.forEach((edge: string) => {
+                    const edgeId = enrichmentId + "-" + edge;
+
+                    const newEdge = {
+                      animated: true,
+                      id: edgeId,
+                      source: enrichmentId,
+                      target: edge,
+                      type: "smoothstep",
+                    };
+
+                    existingEdges.push(newEdge);
+                  });
+                }
+              }
+            });
+          }
+
+          Object.keys(destinations).forEach((destination) => {
+            if (destination !== "disabled") {
+              const destinationId = destinations[destination].name;
+
+              const originalSource = getSourceFromID(
+                destinations[destination].uuid,
+                "destination"
+              );
+              originalSource.id = destinationId;
+
+              const currentDestination = {
+                id: destinationId,
+                targetPosition: Position.Left,
+                type: "output",
+                height: 35,
+                width: 150,
+                position: { x: 380, y: -150 },
+                data: {
+                  label: destinationId,
+                  nodeData: destinations[destination],
+                  type: "destination",
+                },
+              };
+
+              existingNodes.push(currentDestination);
+              initialAddedDestinations.push(originalSource);
+            }
+          });
         }
+
+        setNodes(existingNodes);
+        setEdges(existingEdges);
       }
-    });
-    
-    console.log("get Config Response:", data.getConfig.resposedata);
-  } catch (error) {
-    console.error("Error getting config:", error);
-  }
-};
+    } catch (error) {
+      console.error("Error getting config:", error);
+    }
+  };
 
+  // get config code ends here
 
+  // save config code here
 
-// get config code ends here 
+  const [saveConfigMutation] = useMutation(SAVE_CONFIG);
 
-
-// save config code here 
-
-const [saveConfigMutation] = useMutation(SAVE_CONFIG);
-
-
-
-
-
-// save config ends here 
-
+  // save config ends here
 
   const onAddSource = (source: object, sourceValues: object) => {
     const nodeData = { ...sourceValues };
@@ -643,8 +633,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
   };
 
   const onSave = () => {
-   
-   let config = {
+    let config = {
       node: {
         sources: {
           disabled: true,
@@ -659,7 +648,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
           disabled: true,
         },
       },
-    }
+    };
 
     if (enrichments.length === 0) {
       config.node.enrichments = {
@@ -1015,40 +1004,38 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
 
         const yaml = convert(config);
 
+        const config64code = btoa(yaml);
 
-        // yash code
-        const jsonToBase64 = (jsonData: any) => {
-          const jsonString = JSON.stringify(jsonData);
-          return btoa(jsonString); // Convert JSON to Base64
-        };
-        
-        
-        const config64code = jsonToBase64(config);
+        saveConfigMutation({
+          variables: {
+            input: {
+              orgcode: "d3b6842d",
+              devicecode: "DM_HY_D01",
+              configdata: config64code,
+            },
+          },
+        })
+          .then((response) => {
+            // Handle the response
 
-console.log("SaveConfig Base64 Code:", config64code);
+            if (response.data.saveConfig.resposestatus) {
+              toast("Config saved successfully!", {
+                position: "top-right",
+                zIndex: 9999,
+                theme: "success",
+              });
+            }
+          })
+          .catch((error) => {
+            // Handle any errors
+            console.error("Error saving config:", error);
 
-saveConfigMutation({
-  variables: {
-    input: {
-      orgcode: "d3b6842d",
-      devicecode: "DM_HY_D01",
-      configdata: config64code
-    }
-  }
-})
-.then(response => {
-  // Handle the response
-  console.log("saveConfig Response:", response.data.saveConfig.message);
-  console.log("Base64 code data:", config64code);
-
-  if (response.data.saveConfig.resposestatus) {
-    console.log("Response Status:", response.data.saveConfig.resposestatus);
-  }
-})
-.catch(error => {
-  // Handle any errors
-  console.error("Error saving config:", error);
-});
+            toast(error, {
+              position: "top-right",
+              zIndex: 9999,
+              theme: "failure",
+            });
+          });
       }
     } else {
       toast("No source-destination connections found!", {
