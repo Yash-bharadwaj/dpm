@@ -35,15 +35,15 @@ import { useMutation } from "@apollo/client";
 import jsyaml from "js-yaml";
 import { getSourceFromID } from "./AddNewRouting.tsx/helper";
 
-import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 toastConfig({ theme: "dark" });
 
 const Routing = () => {
-  const location = useLocation();
+  const params = useParams();
 
-  const orgCode = location.state.orgcode;
-  const deviceCode = location.state.devicecode;
+  const orgCode = params.orgcode;
+  const deviceCode = params.devicecode;
 
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);

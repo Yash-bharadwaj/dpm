@@ -33,9 +33,10 @@ const Home: React.FC = () => {
   });
 
   const handleDeviceCodeClick = (device: Device) => {
-    navigate("/config", {
-      state: { orgcode: orgCode, devicecode: device.devicecode },
-    });
+    const orgCode = device.orgcode;
+    const deviceCode = device.devicecode;
+
+    navigate("/config/" + orgCode + "/" + deviceCode);
   };
 
   const handleViewDetailsClick = (device: Device) => {
