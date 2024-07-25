@@ -1,7 +1,10 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Drawer, Typography, Box, Table, TableBody, TableCell, TableContainer, TableRow, Paper } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useMutation } from '@apollo/client';
+import { Drawer, Typography, Box, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Button } from '@mui/material';
 import LaunchIcon from '@mui/icons-material/Launch';
+import { GET_HEARTBEAT_STATUS } from '../query/query';
+import { useNavigate } from 'react-router-dom';
+import CircleIcon from '@mui/icons-material/Circle';
 
 interface DeviceDetailsSidebarProps {
   open: boolean;
@@ -20,7 +23,34 @@ interface Device {
 }
 
 const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClose, device }) => {
+  const [heartbeatStatus, setHeartbeatStatus] = useState<string | null>(null);
+
   const navigate = useNavigate();
+
+  const [getHeartbeatStatus] = useMutation(GET_HEARTBEAT_STATUS, {
+    onError: (error: any) => {
+      console.error("Error fetching heartbeat status:", error);
+      setHeartbeatStatus('Error fetching status');
+    },
+    onCompleted: (data: any) => {
+      if (data.getHeartbeat && data.getHeartbeat.resposestatus) {
+        setHeartbeatStatus(data.getHeartbeat.resposestatus);
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (device) {
+      getHeartbeatStatus({
+        variables: {
+          input: {
+            orgcode: device.orgcode,
+            devicecode: device.devicecode,
+          },
+        },
+      });
+    }
+  }, [device, getHeartbeatStatus]);
 
   const handleDeviceCodeClick = () => {
     if (device) {
@@ -49,8 +79,8 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Device Code:</strong></TableCell>
                   <TableCell 
-                  onClick={handleDeviceCodeClick}
-                  style={{ cursor: 'pointer', fontWeight: 'normal' }}
+                    onClick={handleDeviceCodeClick}
+                    style={{ cursor: 'pointer', fontWeight: 'normal' }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.textDecoration = 'underline';
                       e.currentTarget.style.fontWeight = 'bold';
@@ -59,8 +89,6 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                       e.currentTarget.style.textDecoration = 'none';
                       e.currentTarget.style.fontWeight = 'normal';
                     }}
-                  
-                  
                   >
                     {device.devicecode} <LaunchIcon style={{ fontSize: 'large', marginBottom: '2px' }} />
                   </TableCell>
@@ -80,6 +108,14 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Device IP:</strong></TableCell>
                   <TableCell>{device.deviceip}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell><strong>Heartbeat Status:</strong></TableCell>
+                  <TableCell>{heartbeatStatus === "true" ? (
+                      <Button variant="outlined" color="success"><CircleIcon style={{fontSize:'9px' , marginRight:'3px'}}/>  Active</Button>
+                    ) : (
+                      heartbeatStatus || "Loading..."
+                    )}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
