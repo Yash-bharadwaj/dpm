@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Button, Col, Row } from "react-bootstrap";
+import { useLocation } from 'react-router-dom';
 
 import RoutingNavbar from "../components/RoutingNavbar";
 
@@ -38,6 +39,10 @@ const initialEdges = [];
 const initialNodes = [];
 
 const Routing = () => {
+  const location = useLocation();
+  const state = location.state as { orgcode?: string; devicecode?: string } || {};
+  const { orgcode = "", devicecode = "" } = state;
+
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
   const [addedSources, setAddedSources] = useState(Array);
@@ -122,13 +127,12 @@ const getConfig = async () => {
     const { data } = await getConfigMutation({
       variables: {
         input: {
-          orgcode: "d3b6842d",
-          devicecode: "DM_HY_D01",
+          orgcode,
+          devicecode,
         
         }
       }
     });
-    
     console.log("get Config Response:", data.getConfig.resposedata);
   } catch (error) {
     console.error("Error getting config:", error);
@@ -802,7 +806,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
         const yaml = convert(config);
 
 
-        // yash code
+        // saveconfig code here...
         const jsonToBase64 = (jsonData: any) => {
           const jsonString = JSON.stringify(jsonData);
           return btoa(jsonString); // Convert JSON to Base64
@@ -811,13 +815,13 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
         
         const config64code = jsonToBase64(config);
 
-console.log("SaveConfig Base64 Code:", config64code);
+console.log(" Base64 Code:", config64code);
 
 saveConfigMutation({
   variables: {
     input: {
-      orgcode: "d3b6842d",
-      devicecode: "DM_HY_D01",
+      orgcode,
+      devicecode,
       configdata: config64code
     }
   }

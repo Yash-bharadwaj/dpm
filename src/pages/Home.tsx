@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { Button, List, ListItem, ListItemText } from '@mui/material';
 import { GET_DEVICES_LIST } from '../query/query';
 import DeviceDetailsSidebar from './DeviceDetailsSidebar';
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
   });
 
   const handleDeviceCodeClick = (device: Device) => {
-    navigate('/config', { state: { device } });
+    navigate('/config', { state: { orgcode: orgCode, devicecode: device.devicecode } });
   };
 
   const handleViewDetailsClick = (device: Device) => {
