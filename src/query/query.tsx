@@ -14,30 +14,36 @@ export const GET_DEVICES_LIST = gql`
   }
 `;
 
-
 export const GET_HEARTBEAT_STATUS = gql`
   mutation GetHeartbeatStatus($input: deviceinput!) {
     getHeartbeat(input: $input) {
-      resposestatus,
+      resposestatus
       resposedata
     }
   }
 `;
-
 
 export const GET_CONFIG = gql`
   mutation GetHeartbeatStatus($input: deviceinput!) {
     getConfig(input: $input) {
-      resposestatus,
+      resposestatus
       resposedata
     }
   }
 `;
 
-
 export const SAVE_CONFIG = gql`
   mutation SaveConfig($input: deviceinput!) {
     saveConfig(input: $input) {
+      resposestatus
+      message
+    }
+  }
+`;
+
+export const DEPLOY_CONFIG = gql`
+  mutation deployConfig($input: deviceinput!) {
+    deployConfig(input: $input) {
       resposestatus
       message
     }

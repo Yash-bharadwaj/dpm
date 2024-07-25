@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
 
-import { SAVE_CONFIG, GET_CONFIG } from "../query/query";
+import { SAVE_CONFIG, GET_CONFIG, DEPLOY_CONFIG } from "../query/query";
 
 import ReactFlow, {
   Controls,
@@ -69,6 +69,7 @@ const Routing = () => {
   const [showEditPipeline, setShowEditPipeline] = useState(false);
   const [nodeType, setNodeType] = useState("");
   const [configExists, setConfigExists] = useState(false);
+  const [configYaml, setConfigYaml] = useState("");
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 
@@ -169,7 +170,7 @@ const Routing = () => {
         },
       });
 
-      let savedConfig = atob(data.getConfig.resposedata);
+      const savedConfig = atob(data.getConfig.resposedata);
 
       if (savedConfig) {
         const sample = jsyaml.load(savedConfig);
@@ -179,7 +180,7 @@ const Routing = () => {
           const pipelines = sample.node.pipelines;
           const enrichments = sample.node.enrichments;
 
-          Object.keys(sources).forEach((source) => {
+          Object.keys(sources).forEach((source, index) => {
             if (source !== "disabled") {
               const sourceId = sources[source].name;
 
@@ -188,14 +189,15 @@ const Routing = () => {
                 "source",
                 sources[source]
               );
-              console.log("originalSource", originalSource);
               originalSource.id = sourceId;
+
+              const yPosition = -200 + index * 40;
 
               const currentSource = {
                 id: sourceId,
                 sourcePosition: Position.Right,
                 type: "input",
-                position: { x: -220, y: -150 },
+                position: { x: -220, y: yPosition },
                 height: 35,
                 width: 150,
                 data: {
@@ -227,9 +229,11 @@ const Routing = () => {
           });
 
           if (pipelines) {
-            Object.keys(pipelines).forEach((pipeline) => {
+            Object.keys(pipelines).forEach((pipeline, index) => {
               if (pipeline !== "disabled") {
                 const pipelineId = pipelines[pipeline].name;
+
+                const yPosition = -200 + index * 40;
 
                 const currentPipeline = {
                   id: pipelineId,
@@ -238,7 +242,7 @@ const Routing = () => {
                   type: "default",
                   height: 35,
                   width: 150,
-                  position: { x: -30, y: -150 },
+                  position: { x: -30, y: yPosition },
                   data: {
                     label: pipelineId,
                     nodeData: pipelines[pipeline],
@@ -269,9 +273,11 @@ const Routing = () => {
           }
 
           if (enrichments) {
-            Object.keys(enrichments).forEach((enrichment) => {
+            Object.keys(enrichments).forEach((enrichment, index) => {
               if (enrichment !== "disabled") {
                 const enrichmentId = enrichments[enrichment].name;
+
+                const yPosition = -200 + index * 40;
 
                 const currentEnrichment = {
                   id: enrichmentId,
@@ -280,7 +286,7 @@ const Routing = () => {
                   type: "default",
                   height: 35,
                   width: 150,
-                  position: { x: 180, y: -150 },
+                  position: { x: 180, y: yPosition },
                   data: {
                     label: enrichmentId,
                     nodeData: enrichments[enrichment],
@@ -310,7 +316,7 @@ const Routing = () => {
             });
           }
 
-          Object.keys(destinations).forEach((destination) => {
+          Object.keys(destinations).forEach((destination, index) => {
             if (destination !== "disabled") {
               const destinationId = destinations[destination].name;
 
@@ -321,13 +327,15 @@ const Routing = () => {
               );
               originalSource.id = destinationId;
 
+              const yPosition = -200 + index * 40;
+
               const currentDestination = {
                 id: destinationId,
                 targetPosition: Position.Left,
                 type: "output",
                 height: 35,
                 width: 150,
-                position: { x: 380, y: -150 },
+                position: { x: 380, y: yPosition },
                 data: {
                   label: destinationId,
                   nodeData: destinations[destination],
@@ -341,6 +349,7 @@ const Routing = () => {
           });
         }
 
+        setConfigYaml(savedConfig);
         setNodes(existingNodes);
         setEdges(existingEdges);
         setConfigExists(true);
@@ -356,6 +365,8 @@ const Routing = () => {
 
   const [saveConfigMutation] = useMutation(SAVE_CONFIG);
 
+  const [deploySavedConfig] = useMutation(DEPLOY_CONFIG);
+
   // save config ends here
 
   const onAddSource = (source: object, sourceValues: object) => {
@@ -369,7 +380,7 @@ const Routing = () => {
       data: { label: sourceValues.name, type: "source", nodeData },
       type: "input",
       sourcePosition: Position.Right,
-      position: { x: -150, y: 0 },
+      position: { x: -220, y: 0 },
     };
 
     addNode(newNode);
@@ -391,7 +402,7 @@ const Routing = () => {
       id: destinationValues.name,
       data: { label: destinationValues.name, type: "destination", nodeData },
       targetPosition: Position.Left,
-      position: { x: 300, y: 100 },
+      position: { x: 380, y: 100 },
       type: "output",
     };
 
@@ -596,7 +607,7 @@ const Routing = () => {
         type: "pipeline",
         nodeData,
       },
-      position: { x: 50, y: 50 },
+      position: { x: -30, y: 50 },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -622,7 +633,7 @@ const Routing = () => {
         type: "enrichment",
         nodeData,
       },
-      position: { x: 70, y: 50 },
+      position: { x: 180, y: 50 },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -1006,6 +1017,7 @@ const Routing = () => {
         config.node.enrichments = finalConfigEnrichments;
 
         const yaml = convert(config);
+        setConfigYaml(yaml);
 
         console.log("yaml", yaml);
 
@@ -1029,6 +1041,8 @@ const Routing = () => {
                 zIndex: 9999,
                 theme: "success",
               });
+
+              setConfigExists(true);
             }
           })
           .catch((error) => {
@@ -1040,6 +1054,8 @@ const Routing = () => {
               zIndex: 9999,
               theme: "failure",
             });
+
+            setConfigExists(false);
           });
       }
     } else {
@@ -1464,6 +1480,47 @@ const Routing = () => {
     setShowEditPipeline(false);
   };
 
+  const onDeployConfig = () => {
+    const config64code = btoa(configYaml);
+
+    console.log("yaml", configYaml);
+
+    deploySavedConfig({
+      variables: {
+        input: {
+          orgcode: "d3b6842d",
+          devicecode: "DM_HY_D01",
+          configdata: config64code,
+        },
+      },
+      onCompleted: (response) => {
+        console.log("response", response);
+
+        if (response.deployConfig.resposestatus === "true") {
+          toast(response.deployConfig.message, {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "success",
+          });
+        } else {
+          toast(response.deployConfig.message, {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "failure",
+          });
+        }
+      },
+      onError: (error) => {
+        console.log("error", error);
+        toast("Something went wrong", {
+          position: "top-right",
+          zIndex: 9999,
+          theme: "failure",
+        });
+      },
+    });
+  };
+
   useEffect(() => {
     getConfig();
   }, []);
@@ -1483,7 +1540,7 @@ const Routing = () => {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={onSave}
+                onClick={onDeployConfig}
                 style={{
                   float: "right",
                   marginBottom: "12px",
