@@ -99,7 +99,6 @@ const Routing = () => {
   };
 
   const onNodeClick = (event: object, node: object) => {
-    console.log("node", node);
     let mainSource = {};
     let type = "";
 
@@ -131,7 +130,6 @@ const Routing = () => {
     }
 
     if (enrichments.length !== 0) {
-      console.log("enrichments", enrichments);
       enrichments.forEach((enrichment) => {
         if (enrichment.name === node.id) {
           mainSource = enrichment;
@@ -186,8 +184,10 @@ const Routing = () => {
 
               const originalSource = getSourceFromID(
                 sources[source].uuid,
-                "source"
+                "source",
+                sources[source]
               );
+              console.log("originalSource", originalSource);
               originalSource.id = sourceId;
 
               const currentSource = {
@@ -315,7 +315,8 @@ const Routing = () => {
 
               const originalSource = getSourceFromID(
                 destinations[destination].uuid,
-                "destination"
+                "destination",
+                destinations[destination]
               );
               originalSource.id = destinationId;
 
@@ -1003,6 +1004,8 @@ const Routing = () => {
         config.node.enrichments = finalConfigEnrichments;
 
         const yaml = convert(config);
+
+        console.log("yaml", yaml);
 
         const config64code = btoa(yaml);
 
