@@ -37,28 +37,16 @@ import { getSourceFromID } from "./AddNewRouting.tsx/helper";
 
 toastConfig({ theme: "dark" });
 
-let initialEdges = [];
-let initialNodes = [];
-let initialAddedSources = [];
-let initialAddedDestinations = [];
-let initialAddedPipelines = [];
-let initialAddedEnrichments = [];
-
-let existingNodes = [];
-let existingEdges = [];
-
 const Routing = () => {
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
-  const [addedSources, setAddedSources] = useState(initialAddedSources);
-  const [addedDestinations, setAddedDestinations] = useState(
-    initialAddedDestinations
-  );
-  const [edges, setEdges] = useState(initialEdges);
+  const [addedSources, setAddedSources] = useState([]);
+  const [addedDestinations, setAddedDestinations] = useState([]);
+  const [edges, setEdges] = useState([]);
   const [showPipelines, setShowPipelines] = useState(false);
   const [showEnrichment, setShowEnrichments] = useState(false);
-  const [addedPipelines, setPipelines] = useState(initialAddedPipelines);
-  const [enrichments, setEnrichments] = useState(initialAddedEnrichments);
+  const [addedPipelines, setPipelines] = useState([]);
+  const [enrichments, setEnrichments] = useState([]);
   const [showEditSource, setShowEditSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState(Object);
   const [selectedNode, setSelectedNode] = useState(Object);
@@ -71,7 +59,7 @@ const Routing = () => {
   const [configExists, setConfigExists] = useState(false);
   const [configYaml, setConfigYaml] = useState("");
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
   const handleClose = () => {
     setShowSource(false);
@@ -160,6 +148,7 @@ const Routing = () => {
   const [getConfigMutation] = useMutation(GET_CONFIG);
 
   const getConfig = async () => {
+    setConfigExists(true);
     try {
       const { data } = await getConfigMutation({
         variables: {
@@ -172,8 +161,17 @@ const Routing = () => {
 
       const savedConfig = atob(data.getConfig.resposedata);
 
-      if (savedConfig) {
+      if (savedConfig && configYaml === "") {
         const sample = jsyaml.load(savedConfig);
+
+        let initialAddedSources = [];
+        let initialAddedDestinations = [];
+        let initialAddedPipelines = [];
+        let initialAddedEnrichments = [];
+
+        let existingNodes = [];
+        let existingEdges = [];
+
         if (!sample.node.sources.disabled) {
           const sources = sample.node.sources;
           const destinations = sample.node.destinations;
@@ -352,7 +350,10 @@ const Routing = () => {
         setConfigYaml(savedConfig);
         setNodes(existingNodes);
         setEdges(existingEdges);
-        setConfigExists(true);
+        setAddedDestinations(initialAddedDestinations);
+        setAddedSources(initialAddedSources);
+        setEnrichments(initialAddedEnrichments);
+        setPipelines(initialAddedPipelines);
       }
     } catch (error) {
       console.error("Error getting config:", error);
@@ -1392,8 +1393,15 @@ const Routing = () => {
                   }
                 } else {
                   if (newEdges[index]) {
-                    newEdges[index][destType].push(edge.target);
-                    newEdges[index][type].push(edge.source);
+                    const sourceConnectionPresent = sourceCheck(
+                      node.source,
+                      edge.source
+                    );
+
+                    if (sourceConnectionPresent) {
+                      newEdges[index][destType].push(edge.target);
+                      newEdges[index][type].push(edge.source);
+                    }
                   } else {
                     const sourceConnectionPresent = sourceCheck(
                       node.source,
@@ -1428,7 +1436,6 @@ const Routing = () => {
   };
 
   const onDeletePipeline = () => {
-    let prevPipelines = nodeType === "pipeline" ? addedPipelines : enrichments;
     let prevNodes = nodes;
 
     let selectedIndex = -1;
@@ -1436,11 +1443,30 @@ const Routing = () => {
 
     const id = selectedSource.name;
 
-    addedPipelines.forEach((pipeline, index) => {
-      if (pipeline.id === id) {
-        selectedIndex = index;
-      }
-    });
+    if (nodeType === "pipeline") {
+      let prevPipelines = [...addedPipelines];
+
+      prevPipelines.forEach((pipeline, index) => {
+        if (pipeline.name === id) {
+          selectedIndex = index;
+        }
+      });
+
+      prevPipelines.splice(selectedIndex, 1);
+
+      setPipelines((prevList) => [...prevPipelines]);
+    } else {
+      let prevEnrichments = enrichments;
+      prevEnrichments.forEach((enrichment, index) => {
+        if (enrichment.name === id) {
+          selectedIndex = index;
+        }
+      });
+
+      prevEnrichments.splice(selectedIndex, 1);
+
+      setEnrichments((prevList) => [...prevEnrichments]);
+    }
 
     nodes.forEach((node, index) => {
       if (node.id === id) {
@@ -1448,7 +1474,6 @@ const Routing = () => {
       }
     });
 
-    prevPipelines.splice(selectedIndex, 1);
     prevNodes.splice(nodeIndex, 1);
 
     let changes = [];
@@ -1464,16 +1489,10 @@ const Routing = () => {
           changes.push(removeEdge);
         }
       });
-    }
 
-    if (changes.length !== 0) {
-      setEdges((eds) => applyEdgeChanges(changes, eds));
-    }
-
-    if (nodeType === "pipeline") {
-      setPipelines((prevList) => [...prevPipelines]);
-    } else {
-      setEnrichments((prevList) => [...prevPipelines]);
+      if (changes.length !== 0) {
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+      }
     }
 
     setNodes((prevList) => [...prevNodes]);
@@ -1494,8 +1513,6 @@ const Routing = () => {
         },
       },
       onCompleted: (response) => {
-        console.log("response", response);
-
         if (response.deployConfig.resposestatus === "true") {
           toast(response.deployConfig.message, {
             position: "top-right",
@@ -1522,8 +1539,10 @@ const Routing = () => {
   };
 
   useEffect(() => {
-    getConfig();
-  }, []);
+    if (!configExists) {
+      getConfig();
+    }
+  }, [configExists]);
 
   useEffect(() => {
     handleEdgeChange();

@@ -24,7 +24,7 @@ export const GET_HEARTBEAT_STATUS = gql`
 `;
 
 export const GET_CONFIG = gql`
-  mutation GetHeartbeatStatus($input: deviceinput!) {
+  mutation getConfig($input: deviceinput!) {
     getConfig(input: $input) {
       resposestatus
       resposedata
