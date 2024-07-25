@@ -9,6 +9,8 @@ import { useCallback, useEffect, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
 
+import { SAVE_CONFIG, GET_CONFIG } from "../query/query";
+
 import ReactFlow, {
   Controls,
   Position,
@@ -28,6 +30,7 @@ import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
 import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
+import { useMutation } from "@apollo/client";
 
 import { sampleConfig } from "./AddNewRouting.tsx/sample";
 import jsyaml from "js-yaml";
@@ -238,6 +241,7 @@ const Routing = () => {
   const [nodeType, setNodeType] = useState("");
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [config,setConfig]=useState({});
 
   const handleClose = () => {
     setShowSource(false);
@@ -322,6 +326,44 @@ const Routing = () => {
       setShowEditPipeline(true);
     }
   };
+
+// get config codee here 
+
+const [getConfigMutation] = useMutation(GET_CONFIG);
+
+const getConfig = async () => {
+  try {
+    const { data } = await getConfigMutation({
+      variables: {
+        input: {
+          orgcode: "d3b6842d",
+          devicecode: "DM_HY_D01",
+        
+        }
+      }
+    });
+    
+    console.log("get Config Response:", data.getConfig.resposedata);
+  } catch (error) {
+    console.error("Error getting config:", error);
+  }
+};
+
+
+
+// get config code ends here 
+
+
+// save config code here 
+
+const [saveConfigMutation] = useMutation(SAVE_CONFIG);
+
+
+
+
+
+// save config ends here 
+
 
   const onAddSource = (source: object, sourceValues: object) => {
     const nodeData = { ...sourceValues };
@@ -601,7 +643,8 @@ const Routing = () => {
   };
 
   const onSave = () => {
-    let config = {
+   
+   let config = {
       node: {
         sources: {
           disabled: true,
@@ -616,7 +659,7 @@ const Routing = () => {
           disabled: true,
         },
       },
-    };
+    }
 
     if (enrichments.length === 0) {
       config.node.enrichments = {
@@ -971,7 +1014,41 @@ const Routing = () => {
         config.node.enrichments = finalConfigEnrichments;
 
         const yaml = convert(config);
-        console.log(yaml);
+
+
+        // yash code
+        const jsonToBase64 = (jsonData: any) => {
+          const jsonString = JSON.stringify(jsonData);
+          return btoa(jsonString); // Convert JSON to Base64
+        };
+        
+        
+        const config64code = jsonToBase64(config);
+
+console.log("SaveConfig Base64 Code:", config64code);
+
+saveConfigMutation({
+  variables: {
+    input: {
+      orgcode: "d3b6842d",
+      devicecode: "DM_HY_D01",
+      configdata: config64code
+    }
+  }
+})
+.then(response => {
+  // Handle the response
+  console.log("saveConfig Response:", response.data.saveConfig.message);
+  console.log("Base64 code data:", config64code);
+
+  if (response.data.saveConfig.resposestatus) {
+    console.log("Response Status:", response.data.saveConfig.resposestatus);
+  }
+})
+.catch(error => {
+  // Handle any errors
+  console.error("Error saving config:", error);
+});
       }
     } else {
       toast("No source-destination connections found!", {
@@ -1396,6 +1473,10 @@ const Routing = () => {
     setNodes((prevList) => [...prevNodes]);
     setShowEditPipeline(false);
   };
+
+  useEffect(() => {
+    getConfig();
+  }, []);
 
   useEffect(() => {
     handleEdgeChange();
