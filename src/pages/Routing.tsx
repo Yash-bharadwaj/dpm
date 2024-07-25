@@ -35,9 +35,16 @@ import { useMutation } from "@apollo/client";
 import jsyaml from "js-yaml";
 import { getSourceFromID } from "./AddNewRouting.tsx/helper";
 
+import { useLocation } from "react-router-dom";
+
 toastConfig({ theme: "dark" });
 
 const Routing = () => {
+  const location = useLocation();
+
+  const orgCode = location.state.orgcode;
+  const deviceCode = location.state.devicecode;
+
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
   const [addedSources, setAddedSources] = useState([]);
@@ -153,8 +160,8 @@ const Routing = () => {
       const { data } = await getConfigMutation({
         variables: {
           input: {
-            orgcode: "d3b6842d",
-            devicecode: "DM_HY_D01",
+            orgcode: orgCode,
+            devicecode: deviceCode,
           },
         },
       });
@@ -1027,8 +1034,8 @@ const Routing = () => {
         saveConfigMutation({
           variables: {
             input: {
-              orgcode: "d3b6842d",
-              devicecode: "DM_HY_D01",
+              orgcode: orgCode,
+              devicecode: deviceCode,
               configdata: config64code,
             },
           },
@@ -1507,8 +1514,8 @@ const Routing = () => {
     deploySavedConfig({
       variables: {
         input: {
-          orgcode: "d3b6842d",
-          devicecode: "DM_HY_D01",
+          orgcode: orgCode,
+          devicecode: deviceCode,
           configdata: config64code,
         },
       },

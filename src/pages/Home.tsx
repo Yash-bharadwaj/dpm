@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { Button, List, ListItem, ListItemText } from '@mui/material';
-import { GET_DEVICES_LIST } from '../query/query';
-import DeviceDetailsSidebar from './DeviceDetailsSidebar';
-import '../index.css';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useQuery, useMutation } from "@apollo/client";
+import { Button, List, ListItem, ListItemText } from "@mui/material";
+import { GET_DEVICES_LIST } from "../query/query";
+import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
+import "../index.css";
+import { useNavigate } from "react-router-dom";
 
 interface Device {
   deviceid: string;
@@ -24,12 +24,18 @@ const Home: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const { loading: devicesLoading, error: devicesError, data: devicesData } = useQuery(GET_DEVICES_LIST, {
+  const {
+    loading: devicesLoading,
+    error: devicesError,
+    data: devicesData,
+  } = useQuery(GET_DEVICES_LIST, {
     variables: { input: { orgcode: orgCode, devicecode: deviceCode } },
   });
 
   const handleDeviceCodeClick = (device: Device) => {
-    navigate('/config', { state: { device } });
+    navigate("/config", {
+      state: { orgcode: orgCode, devicecode: device.devicecode },
+    });
   };
 
   const handleViewDetailsClick = (device: Device) => {
@@ -46,32 +52,52 @@ const Home: React.FC = () => {
   if (devicesError) return <p>Error loading devices: {devicesError.message}</p>;
 
   return (
-    <div style={{ marginTop: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' , width:'100%', height:'100vh'}}>
-      <h3 style={{ alignSelf: 'self-start', marginLeft: '20rem' }}>List of LC Devices</h3>
-      <div style={{ width: '50%', backgroundColor: '#fbfbfb', borderRadius: '10px', boxShadow: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px' }}>
+    <div
+      style={{
+        marginTop: "4rem",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "1rem",
+        width: "100%",
+        height: "100vh",
+      }}
+    >
+      <h3 style={{ alignSelf: "self-start", marginLeft: "20rem" }}>
+        List of LC Devices
+      </h3>
+      <div
+        style={{
+          width: "50%",
+          backgroundColor: "#fbfbfb",
+          borderRadius: "10px",
+          boxShadow:
+            "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px",
+        }}
+      >
         <List>
           {devicesData?.getLcdeviceList.map((device: Device) => (
-            <ListItem 
-              key={device.deviceid} 
-              button 
+            <ListItem
+              key={device.deviceid}
+              button
               onClick={() => handleDeviceCodeClick(device)} // Move the click handler to ListItem
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: "pointer" }}
             >
-              <ListItemText 
+              <ListItemText
                 primary={device.devicecode}
-                style={{ fontWeight: 'normal' }}
+                style={{ fontWeight: "normal" }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.textDecoration = 'underline';
-                  e.currentTarget.style.fontWeight = '600';
+                  e.currentTarget.style.textDecoration = "underline";
+                  e.currentTarget.style.fontWeight = "600";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.textDecoration = 'none';
-                  e.currentTarget.style.fontWeight = 'normal';
+                  e.currentTarget.style.textDecoration = "none";
+                  e.currentTarget.style.fontWeight = "normal";
                 }}
               />
-              <Button 
-                className='button-19'
-                variant="outlined" 
+              <Button
+                className="button-19"
+                variant="outlined"
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent the button click from triggering the ListItem onClick
                   handleViewDetailsClick(device);
@@ -83,7 +109,11 @@ const Home: React.FC = () => {
           ))}
         </List>
       </div>
-      <DeviceDetailsSidebar open={sidebarOpen} onClose={handleCloseSidebar} device={selectedDevice} />
+      <DeviceDetailsSidebar
+        open={sidebarOpen}
+        onClose={handleCloseSidebar}
+        device={selectedDevice}
+      />
     </div>
   );
 };
