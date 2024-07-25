@@ -59,7 +59,7 @@ export const checkAssumeAuthFieldsTwo = (field) => {
   return field === "secret_access_key";
 };
 
-export const getSourceFromID = (uuid, type) => {
+export const getSourceFromID = (uuid, type, currentSource) => {
   let mainSource = {};
   let sourceJson = sources.sources;
 
@@ -72,6 +72,14 @@ export const getSourceFromID = (uuid, type) => {
       mainSource = source;
     }
   });
+
+  if (!mainSource.name) {
+    sourceJson.forEach((source) => {
+      if (source.type === currentSource.type) {
+        mainSource = source;
+      }
+    });
+  }
 
   return mainSource;
 };
