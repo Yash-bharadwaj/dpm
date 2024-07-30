@@ -3,9 +3,7 @@
 import { Button, Col, Modal, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
-
 import { useCallback, useEffect, useState } from "react";
-
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
 
