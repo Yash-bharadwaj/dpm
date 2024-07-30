@@ -15,17 +15,9 @@ import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
 import { useNavigate } from "react-router-dom";
 import CircleIcon from "@mui/icons-material/Circle";
-import LaptopMacIcon from "@mui/icons-material/LaptopMac";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+
 import eyeAnimationGif from "../assets/eyeanimation.gif";
 import computeranimation from "../assets/computeranimation.gif";
-import React, { useState } from "react";
-import { useQuery, useMutation } from "@apollo/client";
-import { Button, List, ListItem, ListItemText } from "@mui/material";
-import { GET_DEVICES_LIST } from "../query/query";
-import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
-import "../index.css";
-import { useNavigate } from "react-router-dom";
 
 interface Device {
   deviceid: string;
