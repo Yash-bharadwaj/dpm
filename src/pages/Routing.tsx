@@ -501,17 +501,103 @@ const Routing = () => {
         } else {
           let prevNodes = [...connectedNodes];
 
-          if (targetType === "pipeline") {
-            prevNodes[sourceIndex].pipelines.push(params.target);
-          }
-          if (targetType === "enrichment") {
-            prevNodes[sourceIndex].enrichments.push(params.target);
-          }
-          if (targetType === "destination") {
-            let currentDestIndex = prevNodes[sourceIndex].destinations.indexOf(
-              params.target
-            );
+          console.log("prev nodes", prevNodes);
 
+          const destType =
+            targetType === "pipeline"
+              ? "pipelines"
+              : targetType === "enrichment"
+              ? "enrichments"
+              : "destinations";
+
+          const currentDestIndex = prevNodes[sourceIndex][destType].indexOf(
+            params.target
+          );
+
+          console.log("dest type", destType);
+          console.log("current dest in", currentDestIndex);
+
+          if (targetType === "pipeline" || targetType === "enrichment") {
+            let nodeCheck = "";
+            let connectionPresent = false;
+            if (edges.length !== 0) {
+              edges.forEach((edge: any) => {
+                if (edge.source === params.target) {
+                  console.log("edge", edge);
+                  const targetSplit = edge.target.split("_");
+                  console.log("targetSplit", targetSplit);
+                  const currentTargetType =
+                    targetSplit[0] === "enrich"
+                      ? "enrichments"
+                      : "destinations";
+
+                  console.log("currentTargetType", currentTargetType);
+
+                  const currentTargetIndex = prevNodes[sourceIndex][
+                    currentTargetType
+                  ].indexOf(edge.target);
+
+                  if (currentTargetIndex !== -1) {
+                    // if (currentTargetType === "destinations") {
+                    //   connectionPresent = true;
+                    //   console.log("edge", edge);
+                    // } else {
+                    nodeCheck = edge.target;
+                    // }
+                  }
+                }
+              });
+            }
+
+            if (currentDestIndex === -1 && destType === "pipelines") {
+              destPresent = false;
+            } else {
+              if (connectionPresent) {
+                destPresent = true;
+              } else {
+                if (nodeCheck !== "") {
+                  console.log("node check", nodeCheck);
+
+                  let nodeConnectionCheck = false;
+
+                  edges.map((edge: any) => {
+                    if (edge.target === nodeCheck) {
+                      console.log("source connect present", edge);
+
+                      if (edge.source === params.target) {
+                        console.log("match", edge);
+                        nodeConnectionCheck = true;
+                      } else {
+                        console.log("dest not same", edge);
+                      }
+                    } else {
+                      if (edge.target === nodeCheck) {
+                        if (edge.source === params.source) {
+                          nodeConnectionCheck = true;
+                        }
+                      }
+                    }
+                  });
+
+                  if (nodeConnectionCheck) {
+                    destPresent = true;
+                  } else {
+                    destPresent = false;
+                  }
+                } else {
+                  if (targetType === "pipeline") {
+                    destPresent = false;
+                    prevNodes[sourceIndex].pipelines.push(params.target);
+                  } else {
+                    destPresent = false;
+                    prevNodes[sourceIndex].enrichments.push(params.target);
+                  }
+                }
+              }
+            }
+          }
+
+          if (targetType === "destination") {
             if (currentDestIndex !== -1) {
               destPresent = true;
             } else {
@@ -541,19 +627,122 @@ const Routing = () => {
               const edgeTargetIndex = node[destType].indexOf(params.target);
 
               if (targetType !== "destination") {
-                if (edgeTargetIndex === -1) {
-                  node[destType].push(params.target);
-                }
+                console.log("node", node);
+                console.log("params", params);
 
-                if (edgeSourceIndex === -1) {
-                  node[type].push(params.source);
+                if (edgeTargetIndex !== -1 && edgeSourceIndex !== -1) {
+                  let connectionPresent = false;
+                  let checkNode = "";
+                  if (edges.length !== 0) {
+                    edges.map((edge: any) => {
+                      if (edge.source === params.source) {
+                        console.log("source connect present", edge);
+
+                        if (edge.target === params.target) {
+                          connectionPresent = true;
+                        } else {
+                          checkNode = edge.target;
+                          console.log("dest not same");
+                        }
+                      }
+                    });
+                  }
+
+                  console.log("connection present", connectionPresent);
+
+                  if (connectionPresent) {
+                    destPresent = true;
+                  } else {
+                    console.log("no connection pressent", checkNode);
+                    if (checkNode !== "") {
+                      let nodeConnectionCheck = false;
+
+                      edges.map((edge: any) => {
+                        if (edge.source === checkNode) {
+                          console.log("source connect present", edge);
+
+                          if (edge.target === params.target) {
+                            nodeConnectionCheck = true;
+                          } else {
+                            console.log("dest not same");
+                          }
+                        } else {
+                          if (edge.target === checkNode) {
+                            if (edge.source === params.source) {
+                              nodeConnectionCheck = true;
+                            }
+                          }
+                        }
+                      });
+
+                      if (nodeConnectionCheck) {
+                        destPresent = true;
+                      } else {
+                        destPresent = false;
+                      }
+                    } else {
+                      destPresent = false;
+                    }
+                  }
+                } else {
+                  if (edgeTargetIndex === -1) {
+                    node[destType].push(params.target);
+                  }
+
+                  if (edgeSourceIndex === -1) {
+                    node[type].push(params.source);
+                  }
                 }
               } else {
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(params.target);
 
                   if (destIndex !== -1) {
-                    destPresent = true;
+                    let connectionPresent = false;
+                    let checkNode = "";
+                    console.log("params", params);
+                    if (edges.length !== 0) {
+                      edges.map((edge: any) => {
+                        if (edge.source === params.source) {
+                          console.log("source connect present", edge);
+
+                          if (edge.target === params.target) {
+                            connectionPresent = true;
+                          } else {
+                            checkNode = edge.target;
+                            console.log("dest not same");
+                          }
+                        }
+                      });
+                    }
+
+                    if (connectionPresent) {
+                      destPresent = true;
+                    } else {
+                      if (checkNode !== "") {
+                        let nodeConnectionCheck = false;
+
+                        edges.map((edge: any) => {
+                          if (edge.source === checkNode) {
+                            console.log("source connect present", edge);
+
+                            if (edge.target === params.target) {
+                              nodeConnectionCheck = true;
+                            } else {
+                              console.log("dest not same");
+                            }
+                          }
+                        });
+
+                        if (nodeConnectionCheck) {
+                          destPresent = true;
+                        } else {
+                          destPresent = false;
+                        }
+                      } else {
+                        destPresent = false;
+                      }
+                    }
                   } else {
                     node.destinations.push(params.target);
                     destPresent = false;
@@ -1351,8 +1540,9 @@ const Routing = () => {
                   if (edgeSourceIndex !== -1) {
                     console.log("source present");
                     // if (sourceConnectionPresent) {
-                    newEdges[index][destType].push(edge.target);
-
+                    if (newEdges[index]) {
+                      newEdges[index][destType].push(edge.target);
+                    }
                     console.log("new", newEdges);
                     // }
                   } else {

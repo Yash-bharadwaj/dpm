@@ -1206,7 +1206,7 @@ const EditDestinationData = ({
                 {selectedTab === "setting" ||
                 (selectedTab === "auth" && selectedDestination.advanced)
                   ? "Next"
-                  : selectedNode !== "undefined"
+                  : selectedNode !== undefined
                   ? "Update"
                   : "Save"}
               </Button>
