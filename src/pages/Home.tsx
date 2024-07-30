@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import {
@@ -16,7 +18,9 @@ import "../index.css";
 import { useNavigate } from "react-router-dom";
 import CircleIcon from "@mui/icons-material/Circle";
 
-import eyeAnimationGif from "../assets/eyeanimation.gif";
+// import LaptopMacIcon from "@mui/icons-material/LaptopMac";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+// import eyeAnimationGif from "../assets/eyeanimation.gif";
 import computeranimation from "../assets/computeranimation.gif";
 
 interface Device {
