@@ -82,7 +82,7 @@ const Home: React.FC = () => {
 
   return (
     <div style={{ marginTop: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'start', gap: '1.3rem', width: '100%', height: '100vh' }}>
-      <h3 style={{ alignSelf: 'self-start' }}>List of LC Devices</h3>
+      <h3 style={{ alignSelf: 'self-start' }}>DPM Devices <span style={{fontSize:'13px',marginBottom:'13px'}}>(click on device code to navigate)</span></h3>
       <TableContainer component={Paper} style={{ width: '70%', borderRadius: '10px', boxShadow: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px' }}>
         <Table>
           <TableHead>
@@ -121,27 +121,24 @@ const Home: React.FC = () => {
                 </TableCell>
                 <TableCell >
                   {heartbeatStatus[device.devicecode] === "true" ? (
-                    <Button variant="outlined" color="success" style={{height:'25px'}}>
-                      <CircleIcon style={{ fontSize: '9px', marginRight: '5px' }} /> Active
+                    <Button variant="contained" color="success" style={{height:'25px', fontWeight:'600'}}>
+                       ONLINE
                     </Button>
                   ) : heartbeatStatus[device.devicecode] === "false" ? (
-                    <Button variant="outlined" color="error">
-                      <CircleIcon style={{ fontSize: '9px', marginRight: '3px', }} /> Inactive
+                    <Button variant="outlined" color="error" style={{height:'25px'}}>
+                      <CircleIcon style={{ fontSize: '9px', marginRight: '3px' }} /> OFFLINE
                     </Button>
                   ) : (
+                    // <Button variant="contained" color="error"style={{height:'25px',fontWeight:'600'}}>
+                    //   OFFLINE
+                    // </Button>
+
                     "N/A"
                   )}
                 </TableCell>
                 <TableCell style={{display:'flex', justifyContent:'center'}}>
-                <img
-                    src={eyeAnimationGif}
-                    alt="View Details"
-                    style={{
-                      width: '25px',
-                      cursor: 'pointer',
-                      
-
-                    }}
+                <VisibilityIcon
+                  style={{color:'	#222222'}}
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent the button click from triggering the TableRow onClick
                       handleViewDetailsClick(device);

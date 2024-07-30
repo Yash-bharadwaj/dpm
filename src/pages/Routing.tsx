@@ -2,14 +2,10 @@
 
 import { Button, Col, Row } from "react-bootstrap";
 import { useLocation } from 'react-router-dom';
-
 import RoutingNavbar from "../components/RoutingNavbar";
-
 import { useCallback, useEffect, useState } from "react";
-
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
-
 import { SAVE_CONFIG, GET_CONFIG } from "../query/query";
 
 import ReactFlow, {

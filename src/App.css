@@ -119,6 +119,7 @@
   display: flex;
   align-items: center;
   width: 100%;
+  
 }
 
 .select-card {
@@ -160,7 +161,7 @@
 }
 
 .select-card:hover .main-card-div {
-  background-color: #00000099;
+  background-color: #16647c;
 }
 
 .modal-90w {
