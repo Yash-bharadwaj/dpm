@@ -564,6 +564,7 @@ const EditSourceData = ({
       });
 
       sourceValues["type"] = selectedSource.type;
+      sourceValues["uuid"] = selectedSource.uuid;
 
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;

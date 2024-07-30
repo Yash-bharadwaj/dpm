@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Button, Col, Row } from "react-bootstrap";
-import { useLocation } from 'react-router-dom';
+import { Button, Col, Modal, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
 
@@ -10,7 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
 
-import { SAVE_CONFIG, GET_CONFIG } from "../query/query";
+import { SAVE_CONFIG, GET_CONFIG, DEPLOY_CONFIG } from "../query/query";
 
 import ReactFlow, {
   Controls,
@@ -33,25 +32,28 @@ import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
 import { useMutation } from "@apollo/client";
 
+import jsyaml from "js-yaml";
+import { getSourceFromID } from "./AddNewRouting.tsx/helper";
+
+import { useParams } from "react-router-dom";
+
 toastConfig({ theme: "dark" });
 
-const initialEdges = [];
-const initialNodes = [];
-
 const Routing = () => {
-  const location = useLocation();
-  const state = location.state as { orgcode?: string; devicecode?: string } || {};
-  const { orgcode = "", devicecode = "" } = state;
+  const params = useParams();
+
+  const orgCode = params.orgcode;
+  const deviceCode = params.devicecode;
 
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
-  const [addedSources, setAddedSources] = useState(Array);
-  const [addedDestinations, setAddedDestinations] = useState(Array);
-  const [edges, setEdges] = useState(initialEdges);
+  const [addedSources, setAddedSources] = useState([]);
+  const [addedDestinations, setAddedDestinations] = useState([]);
+  const [edges, setEdges] = useState([]);
   const [showPipelines, setShowPipelines] = useState(false);
   const [showEnrichment, setShowEnrichments] = useState(false);
-  const [addedPipelines, setPipelines] = useState(Array);
-  const [enrichments, setEnrichments] = useState(Array);
+  const [addedPipelines, setPipelines] = useState([]);
+  const [enrichments, setEnrichments] = useState([]);
   const [showEditSource, setShowEditSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState(Object);
   const [selectedNode, setSelectedNode] = useState(Object);
@@ -59,15 +61,22 @@ const Routing = () => {
   const [connectedNodes, setConnectedNodes] = useState(Array);
   const [currentSource, setCurrentSource] = useState("");
   const [enableDelete, setEnableDelete] = useState(false);
+  const [showEditPipeline, setShowEditPipeline] = useState(false);
+  const [nodeType, setNodeType] = useState("");
+  const [configExists, setConfigExists] = useState(false);
+  const [configYaml, setConfigYaml] = useState("");
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [config,setConfig]=useState({});
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
   const handleClose = () => {
     setShowSource(false);
     setShowDestination(false);
     setShowPipelines(false);
     setShowEnrichments(false);
+    setSelectedSource({});
+    setSelectedNode({});
+    setShowEditPipeline(false);
+    setNodeType("");
   };
 
   const onAddSourceClick = () => {
@@ -108,52 +117,265 @@ const Routing = () => {
       });
     }
 
+    if (addedPipelines.length !== 0) {
+      addedPipelines.forEach((pipeline) => {
+        if (pipeline.name === node.id) {
+          mainSource = pipeline;
+          type = "pipeline";
+        }
+      });
+    }
+
+    if (enrichments.length !== 0) {
+      enrichments.forEach((enrichment) => {
+        if (enrichment.name === node.id) {
+          mainSource = enrichment;
+          type = "enrichment";
+        }
+      });
+    }
+
     setSelectedSource(mainSource);
     setSelectedNode(node);
+    setNodeType(type);
 
     if (type === "source") {
       setShowEditSource(true);
     } else if (type === "destination") {
       setShowEditDestination(true);
+    } else if (type === "pipeline") {
+      setShowEditPipeline(true);
+    } else if (type === "enrichment") {
+      setShowEditPipeline(true);
     }
   };
 
-// get config codee here 
+  // get config codee here
 
-const [getConfigMutation] = useMutation(GET_CONFIG);
+  const [getConfigMutation] = useMutation(GET_CONFIG);
 
-const getConfig = async () => {
-  try {
-    const { data } = await getConfigMutation({
-      variables: {
-        input: {
-          orgcode,
-          devicecode,
-        
+  const getConfig = async () => {
+    setConfigExists(true);
+    try {
+      const { data } = await getConfigMutation({
+        variables: {
+          input: {
+            orgcode: orgCode,
+            devicecode: deviceCode,
+          },
+        },
+      });
+
+      const savedConfig = atob(data.getConfig.resposedata);
+
+      if (savedConfig && configYaml === "") {
+        const sample = jsyaml.load(savedConfig);
+
+        let initialAddedSources = [];
+        let initialAddedDestinations = [];
+        let initialAddedPipelines = [];
+        let initialAddedEnrichments = [];
+
+        let existingNodes = [];
+        let existingEdges = [];
+
+        if (!sample.node.sources.disabled) {
+          const sources = sample.node.sources;
+          const destinations = sample.node.destinations;
+          const pipelines = sample.node.pipelines;
+          const enrichments = sample.node.enrichments;
+
+          Object.keys(sources).forEach((source, index) => {
+            if (source !== "disabled") {
+              const sourceId = sources[source].name;
+
+              const originalSource = getSourceFromID(
+                sources[source].uuid,
+                "source",
+                sources[source]
+              );
+              originalSource.id = sourceId;
+
+              const yPosition = -200 + index * 40;
+
+              const currentSource = {
+                id: sourceId,
+                sourcePosition: Position.Right,
+                type: "input",
+                position: { x: -220, y: yPosition },
+                height: 35,
+                width: 150,
+                data: {
+                  label: sourceId,
+                  nodeData: sources[source],
+                  type: "source",
+                },
+              };
+
+              existingNodes.push(currentSource);
+              initialAddedSources.push(originalSource);
+
+              if (sources[source].outputs.length !== 0) {
+                sources[source].outputs.forEach((edge: string) => {
+                  const edgeId = sourceId + "-" + edge;
+
+                  const newEdge = {
+                    animated: true,
+                    id: edgeId,
+                    source: sourceId,
+                    target: edge,
+                    type: "smoothstep",
+                  };
+
+                  existingEdges.push(newEdge);
+                });
+              }
+            }
+          });
+
+          if (pipelines) {
+            Object.keys(pipelines).forEach((pipeline, index) => {
+              if (pipeline !== "disabled") {
+                const pipelineId = pipelines[pipeline].name;
+
+                const yPosition = -200 + index * 40;
+
+                const currentPipeline = {
+                  id: pipelineId,
+                  sourcePosition: "right",
+                  targetPosition: "left",
+                  type: "default",
+                  height: 35,
+                  width: 150,
+                  position: { x: -30, y: yPosition },
+                  data: {
+                    label: pipelineId,
+                    nodeData: pipelines[pipeline],
+                    type: "pipeline",
+                  },
+                };
+
+                existingNodes.push(currentPipeline);
+                initialAddedPipelines.push(pipelines[pipeline]);
+
+                if (pipelines[pipeline].outputs.length !== 0) {
+                  pipelines[pipeline].outputs.forEach((edge: string) => {
+                    const edgeId = pipelineId + "-" + edge;
+
+                    const newEdge = {
+                      animated: true,
+                      id: edgeId,
+                      source: pipelineId,
+                      target: edge,
+                      type: "smoothstep",
+                    };
+
+                    existingEdges.push(newEdge);
+                  });
+                }
+              }
+            });
+          }
+
+          if (enrichments) {
+            Object.keys(enrichments).forEach((enrichment, index) => {
+              if (enrichment !== "disabled") {
+                const enrichmentId = enrichments[enrichment].name;
+
+                const yPosition = -200 + index * 40;
+
+                const currentEnrichment = {
+                  id: enrichmentId,
+                  sourcePosition: "right",
+                  targetPosition: "left",
+                  type: "default",
+                  height: 35,
+                  width: 150,
+                  position: { x: 180, y: yPosition },
+                  data: {
+                    label: enrichmentId,
+                    nodeData: enrichments[enrichment],
+                    type: "enrichment",
+                  },
+                };
+
+                existingNodes.push(currentEnrichment);
+                initialAddedEnrichments.push(enrichments[enrichment]);
+
+                if (enrichments[enrichment].outputs.length !== 0) {
+                  enrichments[enrichment].outputs.forEach((edge: string) => {
+                    const edgeId = enrichmentId + "-" + edge;
+
+                    const newEdge = {
+                      animated: true,
+                      id: edgeId,
+                      source: enrichmentId,
+                      target: edge,
+                      type: "smoothstep",
+                    };
+
+                    existingEdges.push(newEdge);
+                  });
+                }
+              }
+            });
+          }
+
+          Object.keys(destinations).forEach((destination, index) => {
+            if (destination !== "disabled") {
+              const destinationId = destinations[destination].name;
+
+              const originalSource = getSourceFromID(
+                destinations[destination].uuid,
+                "destination",
+                destinations[destination]
+              );
+              originalSource.id = destinationId;
+
+              const yPosition = -200 + index * 40;
+
+              const currentDestination = {
+                id: destinationId,
+                targetPosition: Position.Left,
+                type: "output",
+                height: 35,
+                width: 150,
+                position: { x: 380, y: yPosition },
+                data: {
+                  label: destinationId,
+                  nodeData: destinations[destination],
+                  type: "destination",
+                },
+              };
+
+              existingNodes.push(currentDestination);
+              initialAddedDestinations.push(originalSource);
+            }
+          });
         }
+
+        setConfigYaml(savedConfig);
+        setNodes(existingNodes);
+        setEdges(existingEdges);
+        setAddedDestinations(initialAddedDestinations);
+        setAddedSources(initialAddedSources);
+        setEnrichments(initialAddedEnrichments);
+        setPipelines(initialAddedPipelines);
       }
-    });
-    console.log("get Config Response:", data.getConfig.resposedata);
-  } catch (error) {
-    console.error("Error getting config:", error);
-  }
-};
+    } catch (error) {
+      console.error("Error getting config:", error);
+    }
+  };
 
+  // get config code ends here
 
+  // save config code here
 
-// get config code ends here 
+  const [saveConfigMutation] = useMutation(SAVE_CONFIG);
 
+  const [deploySavedConfig] = useMutation(DEPLOY_CONFIG);
 
-// save config code here 
-
-const [saveConfigMutation] = useMutation(SAVE_CONFIG);
-
-
-
-
-
-// save config ends here 
-
+  // save config ends here
 
   const onAddSource = (source: object, sourceValues: object) => {
     const nodeData = { ...sourceValues };
@@ -166,7 +388,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
       data: { label: sourceValues.name, type: "source", nodeData },
       type: "input",
       sourcePosition: Position.Right,
-      position: { x: -150, y: 0 },
+      position: { x: -220, y: 0 },
     };
 
     addNode(newNode);
@@ -188,7 +410,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
       id: destinationValues.name,
       data: { label: destinationValues.name, type: "destination", nodeData },
       targetPosition: Position.Left,
-      position: { x: 300, y: 100 },
+      position: { x: 380, y: 100 },
       type: "output",
     };
 
@@ -198,7 +420,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
     setAddedDestinations((prevList) => [...prevList, destData]);
   };
 
-  const onEdgesChange = useCallback((changes: any) => {
+  const onEdgesUpdate = useCallback((changes: any) => {
     if (changes[0].selected) {
       setEnableDelete(true);
     } else {
@@ -279,17 +501,103 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
         } else {
           let prevNodes = [...connectedNodes];
 
-          if (targetType === "pipeline") {
-            prevNodes[sourceIndex].pipelines.push(params.target);
-          }
-          if (targetType === "enrichment") {
-            prevNodes[sourceIndex].enrichments.push(params.target);
-          }
-          if (targetType === "destination") {
-            let currentDestIndex = prevNodes[sourceIndex].destinations.indexOf(
-              params.target
-            );
+          console.log("prev nodes", prevNodes);
 
+          const destType =
+            targetType === "pipeline"
+              ? "pipelines"
+              : targetType === "enrichment"
+              ? "enrichments"
+              : "destinations";
+
+          const currentDestIndex = prevNodes[sourceIndex][destType].indexOf(
+            params.target
+          );
+
+          console.log("dest type", destType);
+          console.log("current dest in", currentDestIndex);
+
+          if (targetType === "pipeline" || targetType === "enrichment") {
+            let nodeCheck = "";
+            let connectionPresent = false;
+            if (edges.length !== 0) {
+              edges.forEach((edge: any) => {
+                if (edge.source === params.target) {
+                  console.log("edge", edge);
+                  const targetSplit = edge.target.split("_");
+                  console.log("targetSplit", targetSplit);
+                  const currentTargetType =
+                    targetSplit[0] === "enrich"
+                      ? "enrichments"
+                      : "destinations";
+
+                  console.log("currentTargetType", currentTargetType);
+
+                  const currentTargetIndex = prevNodes[sourceIndex][
+                    currentTargetType
+                  ].indexOf(edge.target);
+
+                  if (currentTargetIndex !== -1) {
+                    // if (currentTargetType === "destinations") {
+                    //   connectionPresent = true;
+                    //   console.log("edge", edge);
+                    // } else {
+                    nodeCheck = edge.target;
+                    // }
+                  }
+                }
+              });
+            }
+
+            if (currentDestIndex === -1 && destType === "pipelines") {
+              destPresent = false;
+            } else {
+              if (connectionPresent) {
+                destPresent = true;
+              } else {
+                if (nodeCheck !== "") {
+                  console.log("node check", nodeCheck);
+
+                  let nodeConnectionCheck = false;
+
+                  edges.map((edge: any) => {
+                    if (edge.target === nodeCheck) {
+                      console.log("source connect present", edge);
+
+                      if (edge.source === params.target) {
+                        console.log("match", edge);
+                        nodeConnectionCheck = true;
+                      } else {
+                        console.log("dest not same", edge);
+                      }
+                    } else {
+                      if (edge.target === nodeCheck) {
+                        if (edge.source === params.source) {
+                          nodeConnectionCheck = true;
+                        }
+                      }
+                    }
+                  });
+
+                  if (nodeConnectionCheck) {
+                    destPresent = true;
+                  } else {
+                    destPresent = false;
+                  }
+                } else {
+                  if (targetType === "pipeline") {
+                    destPresent = false;
+                    prevNodes[sourceIndex].pipelines.push(params.target);
+                  } else {
+                    destPresent = false;
+                    prevNodes[sourceIndex].enrichments.push(params.target);
+                  }
+                }
+              }
+            }
+          }
+
+          if (targetType === "destination") {
             if (currentDestIndex !== -1) {
               destPresent = true;
             } else {
@@ -319,19 +627,122 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
               const edgeTargetIndex = node[destType].indexOf(params.target);
 
               if (targetType !== "destination") {
-                if (edgeTargetIndex === -1) {
-                  node[destType].push(params.target);
-                }
+                console.log("node", node);
+                console.log("params", params);
 
-                if (edgeSourceIndex === -1) {
-                  node[type].push(params.source);
+                if (edgeTargetIndex !== -1 && edgeSourceIndex !== -1) {
+                  let connectionPresent = false;
+                  let checkNode = "";
+                  if (edges.length !== 0) {
+                    edges.map((edge: any) => {
+                      if (edge.source === params.source) {
+                        console.log("source connect present", edge);
+
+                        if (edge.target === params.target) {
+                          connectionPresent = true;
+                        } else {
+                          checkNode = edge.target;
+                          console.log("dest not same");
+                        }
+                      }
+                    });
+                  }
+
+                  console.log("connection present", connectionPresent);
+
+                  if (connectionPresent) {
+                    destPresent = true;
+                  } else {
+                    console.log("no connection pressent", checkNode);
+                    if (checkNode !== "") {
+                      let nodeConnectionCheck = false;
+
+                      edges.map((edge: any) => {
+                        if (edge.source === checkNode) {
+                          console.log("source connect present", edge);
+
+                          if (edge.target === params.target) {
+                            nodeConnectionCheck = true;
+                          } else {
+                            console.log("dest not same");
+                          }
+                        } else {
+                          if (edge.target === checkNode) {
+                            if (edge.source === params.source) {
+                              nodeConnectionCheck = true;
+                            }
+                          }
+                        }
+                      });
+
+                      if (nodeConnectionCheck) {
+                        destPresent = true;
+                      } else {
+                        destPresent = false;
+                      }
+                    } else {
+                      destPresent = false;
+                    }
+                  }
+                } else {
+                  if (edgeTargetIndex === -1) {
+                    node[destType].push(params.target);
+                  }
+
+                  if (edgeSourceIndex === -1) {
+                    node[type].push(params.source);
+                  }
                 }
               } else {
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(params.target);
 
                   if (destIndex !== -1) {
-                    destPresent = true;
+                    let connectionPresent = false;
+                    let checkNode = "";
+                    console.log("params", params);
+                    if (edges.length !== 0) {
+                      edges.map((edge: any) => {
+                        if (edge.source === params.source) {
+                          console.log("source connect present", edge);
+
+                          if (edge.target === params.target) {
+                            connectionPresent = true;
+                          } else {
+                            checkNode = edge.target;
+                            console.log("dest not same");
+                          }
+                        }
+                      });
+                    }
+
+                    if (connectionPresent) {
+                      destPresent = true;
+                    } else {
+                      if (checkNode !== "") {
+                        let nodeConnectionCheck = false;
+
+                        edges.map((edge: any) => {
+                          if (edge.source === checkNode) {
+                            console.log("source connect present", edge);
+
+                            if (edge.target === params.target) {
+                              nodeConnectionCheck = true;
+                            } else {
+                              console.log("dest not same");
+                            }
+                          }
+                        });
+
+                        if (nodeConnectionCheck) {
+                          destPresent = true;
+                        } else {
+                          destPresent = false;
+                        }
+                      } else {
+                        destPresent = false;
+                      }
+                    }
                   } else {
                     node.destinations.push(params.target);
                     destPresent = false;
@@ -393,7 +804,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
         type: "pipeline",
         nodeData,
       },
-      position: { x: 50, y: 50 },
+      position: { x: -30, y: 50 },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -419,7 +830,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
         type: "enrichment",
         nodeData,
       },
-      position: { x: 70, y: 50 },
+      position: { x: 180, y: 50 },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -433,8 +844,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
   };
 
   const onSave = () => {
-   
-   let config = {
+    let config = {
       node: {
         sources: {
           disabled: true,
@@ -449,7 +859,7 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
           disabled: true,
         },
       },
-    }
+    };
 
     if (enrichments.length === 0) {
       config.node.enrichments = {
@@ -804,41 +1214,46 @@ const [saveConfigMutation] = useMutation(SAVE_CONFIG);
         config.node.enrichments = finalConfigEnrichments;
 
         const yaml = convert(config);
+        setConfigYaml(yaml);
 
+        console.log("yaml", yaml);
 
-        // saveconfig code here...
-        const jsonToBase64 = (jsonData: any) => {
-          const jsonString = JSON.stringify(jsonData);
-          return btoa(jsonString); // Convert JSON to Base64
-        };
-        
-        
-        const config64code = jsonToBase64(config);
+        const config64code = btoa(yaml);
 
-console.log(" Base64 Code:", config64code);
+        saveConfigMutation({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              configdata: config64code,
+            },
+          },
+        })
+          .then((response) => {
+            // Handle the response
 
-saveConfigMutation({
-  variables: {
-    input: {
-      orgcode,
-      devicecode,
-      configdata: config64code
-    }
-  }
-})
-.then(response => {
-  // Handle the response
-  console.log("saveConfig Response:", response.data.saveConfig.message);
-  console.log("Base64 code data:", config64code);
+            if (response.data.saveConfig.resposestatus) {
+              toast("Config saved successfully!", {
+                position: "top-right",
+                zIndex: 9999,
+                theme: "success",
+              });
 
-  if (response.data.saveConfig.resposestatus) {
-    console.log("Response Status:", response.data.saveConfig.resposestatus);
-  }
-})
-.catch(error => {
-  // Handle any errors
-  console.error("Error saving config:", error);
-});
+              setConfigExists(true);
+            }
+          })
+          .catch((error) => {
+            // Handle any errors
+            console.error("Error saving config:", error);
+
+            toast(error, {
+              position: "top-right",
+              zIndex: 9999,
+              theme: "failure",
+            });
+
+            setConfigExists(false);
+          });
       }
     } else {
       toast("No source-destination connections found!", {
@@ -853,6 +1268,7 @@ saveConfigMutation({
     setShowEditSource(false);
     setShowEditDestination(false);
     setSelectedSource(Object);
+    setNodeType("");
   };
 
   const onEditSettings = (value: any) => {
@@ -899,7 +1315,7 @@ saveConfigMutation({
       }
 
       if (changes.length !== 0) {
-        onEdgesChange(changes);
+        setEdges((eds) => applyEdgeChanges(changes, eds));
       }
 
       setAddedSources((prevList) => [...prevSources]);
@@ -966,7 +1382,7 @@ saveConfigMutation({
       }
 
       if (changes.length !== 0) {
-        onEdgesChange(changes);
+        setEdges((eds) => applyEdgeChanges(changes, eds));
       }
 
       setAddedDestinations((prevList) => [...prevDestinations]);
@@ -1018,13 +1434,20 @@ saveConfigMutation({
       });
 
       if (sourceType === "source") {
+        console.log("edge", edge);
+
         if (newEdges.length !== 0) {
+          console.log("new edges", newEdges);
           newEdges.forEach((connect: any, index: number) => {
+            console.log("connect", connect);
+            console.log("edge", edge);
             if (connect.source === edge.source) {
               sourceIndex = index;
             }
           });
         }
+
+        console.log("source index", sourceIndex);
 
         if (sourceIndex === -1) {
           const newConnection = {
@@ -1077,12 +1500,23 @@ saveConfigMutation({
               const edgeTargetIndex = node[destType].indexOf(edge.target);
 
               if (targetType !== "destination") {
+                console.log("node", node);
+                console.log("edge", edge);
+                console.log("source index", edgeSourceIndex);
+                console.log("target index", edgeTargetIndex);
                 if (edgeTargetIndex !== -1) {
+                  console.log("here", node);
+                  const sourceConnectionPresent = sourceCheck(
+                    node.source,
+                    edge.source
+                  );
+
                   if (newEdges[index]) {
-                    newEdges[index][destType].push(edge.target);
+                    if (sourceConnectionPresent) {
+                      newEdges[index][destType].push(edge.target);
+                    }
                   } else {
                     //target present but edge not created
-
                     //check if source is connected before
                     const sourceConnectionPresent = sourceCheck(
                       node.source,
@@ -1091,6 +1525,7 @@ saveConfigMutation({
 
                     //create new only if node source is connected to edge source
                     if (sourceConnectionPresent) {
+                      console.log("create new");
                       const newConnection = {
                         source: node.source,
                         pipelines: type === "pipelines" ? [edge.source] : [],
@@ -1111,29 +1546,80 @@ saveConfigMutation({
                     edge.source
                   );
 
-                  //create new only if node source is connected to edge source
-                  if (sourceConnectionPresent) {
-                    const newConnection = {
-                      source: node.source,
-                      pipelines: type === "pipelines" ? [edge.source] : [],
-                      enrichments:
-                        destType === "enrichments" || type === "enrichments"
-                          ? [edge.target]
-                          : [],
-                      destinations:
-                        destType === "destinations" ? [edge.target] : [],
-                    };
+                  console.log(
+                    "sourceConnectionPresent",
+                    sourceConnectionPresent
+                  );
 
-                    newEdges.push(newConnection);
+                  if (edgeSourceIndex !== -1) {
+                    console.log("source present", newEdges);
+
+                    console.log("new", newEdges[index]);
+                    if (newEdges[index]) {
+                      newEdges[index][destType].push(edge.target);
+                    } else {
+                      if (sourceConnectionPresent) {
+                        const newConnection = {
+                          source: node.source,
+                          pipelines:
+                            type === "pipelines"
+                              ? [edge.source]
+                              : node.pipelines,
+                          enrichments:
+                            destType === "enrichments" || type === "enrichments"
+                              ? [edge.target]
+                              : node.enrichments,
+                          destinations:
+                            destType === "destinations"
+                              ? [edge.target]
+                              : node.destinations,
+                        };
+
+                        newEdges.push(newConnection);
+                      }
+                    }
+                  } else {
+                    //create new only if node source is connected to edge source
+                    if (sourceConnectionPresent) {
+                      console.log("create new", node);
+                      console.log("edge", edge);
+                      const newConnection = {
+                        source: node.source,
+                        pipelines: type === "pipelines" ? [edge.source] : [],
+                        enrichments:
+                          destType === "enrichments" || type === "enrichments"
+                            ? [edge.target]
+                            : [],
+                        destinations:
+                          destType === "destinations" ? [edge.target] : [],
+                      };
+
+                      newEdges.push(newConnection);
+                    }
                   }
                 }
               } else {
+                console.log("node", node);
+                console.log("edge", edge);
+                console.log("source index", edgeSourceIndex);
+                console.log("target index", edgeTargetIndex);
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(edge.target);
 
                   if (destIndex !== -1) {
+                    const sourceConnectionPresent = sourceCheck(
+                      node.source,
+                      edge.source
+                    );
+
                     if (newEdges[index]) {
-                      newEdges[index][destType].push(edge.target);
+                      console.log("new edge", newEdges[index]);
+                      const currentSourceIndex = newEdges[index][type].indexOf(
+                        edge.source
+                      );
+                      if (currentSourceIndex !== -1) {
+                        newEdges[index][destType].push(edge.target);
+                      }
                     } else {
                       //check if source is connected before
                       const sourceConnectionPresent = sourceCheck(
@@ -1145,9 +1631,14 @@ saveConfigMutation({
                       if (sourceConnectionPresent) {
                         const newConnection = {
                           source: node.source,
-                          pipelines: type === "pipelines" ? [edge.source] : [],
+                          pipelines:
+                            type === "pipelines"
+                              ? [edge.source]
+                              : node.pipelines,
                           enrichments:
-                            type === "enrichments" ? [edge.source] : [],
+                            type === "enrichments"
+                              ? [edge.source]
+                              : node.enrichments,
                           destinations: [edge.target],
                         };
 
@@ -1169,13 +1660,38 @@ saveConfigMutation({
 
                         newEdges.push(newConnection);
                       }
+                    } else {
+                      console.log("here", newEdges[index]);
+                      if (newEdges[index]) {
+                        const currentSourceIndex = newEdges[index][
+                          type
+                        ].indexOf(edge.source);
+
+                        if (currentSourceIndex !== -1) {
+                          newEdges[index][destType].push(edge.target);
+                        }
+                      }
                     }
                   }
                 } else {
                   if (newEdges[index]) {
-                    newEdges[index][destType].push(edge.target);
-                    newEdges[index][type].push(edge.source);
+                    console.log("new edge", newEdges[index]);
+                    const currentSourceIndex = newEdges[index][type].indexOf(
+                      edge.source
+                    );
+                    const currentDestIndex = newEdges[index][destType].indexOf(
+                      edge.target
+                    );
+
+                    console.log("currentSourceIndex", currentSourceIndex);
+
+                    if (currentSourceIndex !== -1) {
+                      newEdges[index][destType].push(edge.target);
+                      newEdges[index][type].push(edge.source);
+                    }
                   } else {
+                    console.log("no new edge");
+
                     const sourceConnectionPresent = sourceCheck(
                       node.source,
                       edge.source
@@ -1205,12 +1721,119 @@ saveConfigMutation({
       }
     });
 
+    console.log("new connections", newEdges);
+
     setConnectedNodes((prevList) => [...newEdges]);
   };
 
+  const onDeletePipeline = () => {
+    let prevNodes = nodes;
+
+    let selectedIndex = -1;
+    let nodeIndex = -1;
+
+    const id = selectedSource.name;
+
+    if (nodeType === "pipeline") {
+      let prevPipelines = [...addedPipelines];
+
+      prevPipelines.forEach((pipeline, index) => {
+        if (pipeline.name === id) {
+          selectedIndex = index;
+        }
+      });
+
+      prevPipelines.splice(selectedIndex, 1);
+
+      setPipelines((prevList) => [...prevPipelines]);
+    } else {
+      let prevEnrichments = enrichments;
+      prevEnrichments.forEach((enrichment, index) => {
+        if (enrichment.name === id) {
+          selectedIndex = index;
+        }
+      });
+
+      prevEnrichments.splice(selectedIndex, 1);
+
+      setEnrichments((prevList) => [...prevEnrichments]);
+    }
+
+    nodes.forEach((node, index) => {
+      if (node.id === id) {
+        nodeIndex = index;
+      }
+    });
+
+    prevNodes.splice(nodeIndex, 1);
+
+    let changes = [];
+
+    if (edges.length !== 0) {
+      edges.forEach((edge) => {
+        if (edge.source === id || edge.target === id) {
+          const removeEdge = {
+            id: edge.id,
+            type: "remove",
+          };
+
+          changes.push(removeEdge);
+        }
+      });
+
+      if (changes.length !== 0) {
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+      }
+    }
+
+    setNodes((prevList) => [...prevNodes]);
+    setShowEditPipeline(false);
+  };
+
+  const onDeployConfig = () => {
+    const config64code = btoa(configYaml);
+
+    console.log("yaml", configYaml);
+
+    deploySavedConfig({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+          configdata: config64code,
+        },
+      },
+      onCompleted: (response) => {
+        if (response.deployConfig.resposestatus === "true") {
+          toast(response.deployConfig.message, {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "success",
+          });
+        } else {
+          toast(response.deployConfig.message, {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "failure",
+          });
+        }
+      },
+      onError: (error) => {
+        console.log("error", error);
+        toast("Something went wrong", {
+          position: "top-right",
+          zIndex: 9999,
+          theme: "failure",
+        });
+      },
+    });
+  };
+
   useEffect(() => {
-    getConfig();
-  }, []);
+    if (!configExists) {
+      getConfig();
+    }
+  }, [configExists]);
 
   useEffect(() => {
     handleEdgeChange();
@@ -1223,6 +1846,21 @@ saveConfigMutation({
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col xl={12} lg={12} md={12} sm={12}>
+            {configExists && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={onDeployConfig}
+                style={{
+                  float: "right",
+                  marginBottom: "12px",
+                  marginLeft: "8px",
+                }}
+              >
+                Deploy Configuration
+              </Button>
+            )}
+
             <Button
               variant="primary"
               size="sm"
@@ -1298,7 +1936,7 @@ saveConfigMutation({
                 onNodesChange={onNodesChange}
                 onNodeClick={onNodeClick}
                 edges={edges}
-                onEdgesChange={onEdgesChange}
+                onEdgesChange={onEdgesUpdate}
                 onConnect={onConnect}
                 fitView
                 maxZoom={1.3}
@@ -1332,6 +1970,7 @@ saveConfigMutation({
             savePipeline={savePipeline}
             addedSources={addedSources}
             addedPipelines={addedPipelines}
+            selectedPipeline={selectedNode}
           />
         )}
 
@@ -1364,6 +2003,16 @@ saveConfigMutation({
             selectedNode={selectedNode}
             addedNodes={nodes}
           />
+        )}
+
+        {showEditPipeline && (
+          <Modal show={showEditPipeline} onHide={handleClose}>
+            <Modal.Body style={{ textAlign: "center" }}>
+              <Button variant="primary" onClick={onDeletePipeline} size="sm">
+                Delete
+              </Button>
+            </Modal.Body>
+          </Modal>
         )}
       </div>
     </>

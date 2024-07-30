@@ -8,16 +8,14 @@ import Home from "./pages/Home";
 import Routing from "./pages/Routing";
 
 function App() {
-  
-
   return (
     <div className="App">
-      <Router >
+      <Router>
         <MainNavbar />
 
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/config" element={<Routing />} />
+          <Route path="/config/:orgcode/:devicecode" element={<Routing />} />
         </Routes>
       </Router>
     </div>

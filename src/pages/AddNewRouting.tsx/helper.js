@@ -1,5 +1,7 @@
 import cidrRegex from "cidr-regex";
 
+import sources from "../../data/sources.json";
+
 const ipRegex = /^((25[0-5]|(2[0-4]|1[0-9]|[1-9]|)[0-9])(.(?!$)|$)){4}$/;
 
 const alphaNumericRegex = /^[a-z0-9]+$/i;
@@ -55,4 +57,29 @@ export const checkAssumeAuthFieldsOne = (field) => {
 };
 export const checkAssumeAuthFieldsTwo = (field) => {
   return field === "secret_access_key";
+};
+
+export const getSourceFromID = (uuid, type, currentSource) => {
+  let mainSource = {};
+  let sourceJson = sources.sources;
+
+  if (type === "destination") {
+    sourceJson = sources.destinations;
+  }
+
+  sourceJson.forEach((source) => {
+    if (source.uuid === uuid) {
+      mainSource = source;
+    }
+  });
+
+  if (!mainSource.name) {
+    sourceJson.forEach((source) => {
+      if (source.type === currentSource.type) {
+        mainSource = source;
+      }
+    });
+  }
+
+  return mainSource;
 };

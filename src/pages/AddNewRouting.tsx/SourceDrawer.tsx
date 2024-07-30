@@ -56,7 +56,7 @@ const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
 
       <Offcanvas.Body>
         <Row className="justify-content-md-center">
-          <Col xl={12} lg={12} md={12} sm={12}>
+          {/* <Col xl={12} lg={12} md={12} sm={12}>
             <InputGroup className="mb-3">
               <InputGroup.Text id="filter">@</InputGroup.Text>
               <Form.Control
@@ -65,7 +65,7 @@ const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
                 aria-describedby="filter"
               />
             </InputGroup>
-          </Col>
+          </Col> */}
 
           <Col xl={12} lg={12} md={12} sm={12}>
             <Row>
