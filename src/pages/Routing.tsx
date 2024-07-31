@@ -61,7 +61,7 @@ const Routing = () => {
   const [connectedNodes, setConnectedNodes] = useState(Array);
   const [currentSource, setCurrentSource] = useState("");
   const [enableDelete, setEnableDelete] = useState(false);
-  const [showEditPipeline, setShowEditPipeline] = useState(false);
+  //   const [showEditPipeline, setShowEditPipeline] = useState(false);
   const [nodeType, setNodeType] = useState("");
   const [configYaml, setConfigYaml] = useState("");
   const [showMenu, setShowMenu] = useState(null);
@@ -77,7 +77,7 @@ const Routing = () => {
     setShowEnrichments(false);
     setSelectedSource({});
     setSelectedNode({});
-    setShowEditPipeline(false);
+    // setShowEditPipeline(false);
     setNodeType("");
   };
 
@@ -146,9 +146,9 @@ const Routing = () => {
     } else if (type === "destination") {
       setShowEditDestination(true);
     } else if (type === "pipeline") {
-      setShowEditPipeline(true);
+      //   setShowEditPipeline(true);
     } else if (type === "enrichment") {
-      setShowEditPipeline(true);
+      //   setShowEditPipeline(true);
     }
   };
 
@@ -1801,7 +1801,7 @@ const Routing = () => {
     }
 
     setNodes((prevList) => [...prevNodes]);
-    setShowEditPipeline(false);
+    // setShowEditPipeline(false);
   };
 
   const onDeployConfig = () => {
@@ -2056,7 +2056,7 @@ const Routing = () => {
           />
         )}
 
-        {showEditPipeline && (
+        {/* {showEditPipeline && (
           <Modal show={showEditPipeline} onHide={handleClose}>
             <Modal.Body style={{ textAlign: "center" }}>
               <Button variant="primary" onClick={onDeletePipeline} size="sm">
@@ -2064,7 +2064,7 @@ const Routing = () => {
               </Button>
             </Modal.Body>
           </Modal>
-        )}
+        )} */}
       </div>
     </>
   );
