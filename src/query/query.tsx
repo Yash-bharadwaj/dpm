@@ -24,10 +24,11 @@ export const GET_HEARTBEAT_STATUS = gql`
 `;
 
 export const GET_CONFIG = gql`
-  mutation getConfig($input: deviceinput!) {
+  query getConfig($input: deviceinput!) {
     getConfig(input: $input) {
-      resposestatus
-      resposedata
+      responsestatus
+      responsedata
+      deployedstatus
     }
   }
 `;
@@ -35,7 +36,7 @@ export const GET_CONFIG = gql`
 export const SAVE_CONFIG = gql`
   mutation SaveConfig($input: deviceinput!) {
     saveConfig(input: $input) {
-      resposestatus
+      responsestatus
       message
     }
   }
@@ -44,7 +45,7 @@ export const SAVE_CONFIG = gql`
 export const DEPLOY_CONFIG = gql`
   mutation deployConfig($input: deviceinput!) {
     deployConfig(input: $input) {
-      resposestatus
+      responsestatus
       message
     }
   }

@@ -3,7 +3,7 @@
 import { Button, Col, Modal, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
 
@@ -28,12 +28,14 @@ import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
 import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 
 import jsyaml from "js-yaml";
 import { getSourceFromID } from "./AddNewRouting.tsx/helper";
 
 import { useParams } from "react-router-dom";
+import ContextMenu from "../components/ContextMenu";
+import DataLoading from "../components/DataLoading";
 
 toastConfig({ theme: "dark" });
 
@@ -61,10 +63,12 @@ const Routing = () => {
   const [enableDelete, setEnableDelete] = useState(false);
   const [showEditPipeline, setShowEditPipeline] = useState(false);
   const [nodeType, setNodeType] = useState("");
-  const [configExists, setConfigExists] = useState(false);
   const [configYaml, setConfigYaml] = useState("");
+  const [showMenu, setShowMenu] = useState(null);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
+
+  const ref = useRef(null);
 
   const handleClose = () => {
     setShowSource(false);
@@ -150,228 +154,222 @@ const Routing = () => {
 
   // get config codee here
 
-  const [getConfigMutation] = useMutation(GET_CONFIG);
+  const { loading, data, refetch } = useQuery(GET_CONFIG, {
+    variables: {
+      input: {
+        orgcode: orgCode,
+        devicecode: deviceCode,
+      },
+    },
+    onCompleted: (response) => {
+      if (response.getConfig.responsestatus) {
+        const savedConfig = atob(response.getConfig.responsedata);
 
-  const getConfig = async () => {
-    setConfigExists(true);
-    try {
-      const { data } = await getConfigMutation({
-        variables: {
-          input: {
-            orgcode: orgCode,
-            devicecode: deviceCode,
-          },
-        },
-      });
+        if (savedConfig && configYaml === "") {
+          const sample = jsyaml.load(savedConfig);
 
-      const savedConfig = atob(data.getConfig.resposedata);
+          let initialAddedSources = [];
+          let initialAddedDestinations = [];
+          let initialAddedPipelines = [];
+          let initialAddedEnrichments = [];
 
-      if (savedConfig && configYaml === "") {
-        const sample = jsyaml.load(savedConfig);
+          let existingNodes = [];
+          let existingEdges = [];
 
-        let initialAddedSources = [];
-        let initialAddedDestinations = [];
-        let initialAddedPipelines = [];
-        let initialAddedEnrichments = [];
+          if (!sample.node.sources.disabled) {
+            const sources = sample.node.sources;
+            const destinations = sample.node.destinations;
+            const pipelines = sample.node.pipelines;
+            const enrichments = sample.node.enrichments;
 
-        let existingNodes = [];
-        let existingEdges = [];
+            Object.keys(sources).forEach((source, index) => {
+              if (source !== "disabled") {
+                const sourceId = sources[source].name;
 
-        if (!sample.node.sources.disabled) {
-          const sources = sample.node.sources;
-          const destinations = sample.node.destinations;
-          const pipelines = sample.node.pipelines;
-          const enrichments = sample.node.enrichments;
+                const originalSource = getSourceFromID(
+                  sources[source].uuid,
+                  "source",
+                  sources[source]
+                );
+                originalSource.id = sourceId;
 
-          Object.keys(sources).forEach((source, index) => {
-            if (source !== "disabled") {
-              const sourceId = sources[source].name;
+                const yPosition = 10 + index * 40;
 
-              const originalSource = getSourceFromID(
-                sources[source].uuid,
-                "source",
-                sources[source]
-              );
-              originalSource.id = sourceId;
+                const currentSource = {
+                  id: sourceId,
+                  sourcePosition: Position.Right,
+                  type: "input",
+                  position: { x: 0, y: yPosition },
+                  height: 35,
+                  width: 150,
+                  data: {
+                    label: sourceId,
+                    nodeData: sources[source],
+                    type: "source",
+                  },
+                };
 
-              const yPosition = -200 + index * 40;
+                existingNodes.push(currentSource);
+                initialAddedSources.push(originalSource);
 
-              const currentSource = {
-                id: sourceId,
-                sourcePosition: Position.Right,
-                type: "input",
-                position: { x: -220, y: yPosition },
-                height: 35,
-                width: 150,
-                data: {
-                  label: sourceId,
-                  nodeData: sources[source],
-                  type: "source",
-                },
-              };
+                if (sources[source].outputs.length !== 0) {
+                  sources[source].outputs.forEach((edge: string) => {
+                    const edgeId = sourceId + "-" + edge;
 
-              existingNodes.push(currentSource);
-              initialAddedSources.push(originalSource);
+                    const newEdge = {
+                      animated: true,
+                      id: edgeId,
+                      source: sourceId,
+                      target: edge,
+                      type: "smoothstep",
+                    };
 
-              if (sources[source].outputs.length !== 0) {
-                sources[source].outputs.forEach((edge: string) => {
-                  const edgeId = sourceId + "-" + edge;
+                    existingEdges.push(newEdge);
+                  });
+                }
+              }
+            });
 
-                  const newEdge = {
-                    animated: true,
-                    id: edgeId,
-                    source: sourceId,
-                    target: edge,
-                    type: "smoothstep",
+            if (pipelines) {
+              Object.keys(pipelines).forEach((pipeline, index) => {
+                if (pipeline !== "disabled") {
+                  const pipelineId = pipelines[pipeline].name;
+
+                  const yPosition = 10 + index * 40;
+
+                  const currentPipeline = {
+                    id: pipelineId,
+                    sourcePosition: "right",
+                    targetPosition: "left",
+                    type: "default",
+                    height: 35,
+                    width: 150,
+                    position: { x: 250, y: yPosition },
+                    data: {
+                      label: pipelineId,
+                      nodeData: pipelines[pipeline],
+                      type: "pipeline",
+                    },
                   };
 
-                  existingEdges.push(newEdge);
-                });
-              }
+                  existingNodes.push(currentPipeline);
+                  initialAddedPipelines.push(pipelines[pipeline]);
+
+                  if (pipelines[pipeline].outputs.length !== 0) {
+                    pipelines[pipeline].outputs.forEach((edge: string) => {
+                      const edgeId = pipelineId + "-" + edge;
+
+                      const newEdge = {
+                        animated: true,
+                        id: edgeId,
+                        source: pipelineId,
+                        target: edge,
+                        type: "smoothstep",
+                      };
+
+                      existingEdges.push(newEdge);
+                    });
+                  }
+                }
+              });
             }
-          });
 
-          if (pipelines) {
-            Object.keys(pipelines).forEach((pipeline, index) => {
-              if (pipeline !== "disabled") {
-                const pipelineId = pipelines[pipeline].name;
+            if (enrichments) {
+              Object.keys(enrichments).forEach((enrichment, index) => {
+                if (enrichment !== "disabled") {
+                  const enrichmentId = enrichments[enrichment].name;
 
-                const yPosition = -200 + index * 40;
+                  const yPosition = 10 + index * 40;
 
-                const currentPipeline = {
-                  id: pipelineId,
-                  sourcePosition: "right",
-                  targetPosition: "left",
-                  type: "default",
+                  const currentEnrichment = {
+                    id: enrichmentId,
+                    sourcePosition: "right",
+                    targetPosition: "left",
+                    type: "default",
+                    height: 35,
+                    width: 150,
+                    position: { x: 250 * 2, y: yPosition },
+                    data: {
+                      label: enrichmentId,
+                      nodeData: enrichments[enrichment],
+                      type: "enrichment",
+                    },
+                  };
+
+                  existingNodes.push(currentEnrichment);
+                  initialAddedEnrichments.push(enrichments[enrichment]);
+
+                  if (enrichments[enrichment].outputs.length !== 0) {
+                    enrichments[enrichment].outputs.forEach((edge: string) => {
+                      const edgeId = enrichmentId + "-" + edge;
+
+                      const newEdge = {
+                        animated: true,
+                        id: edgeId,
+                        source: enrichmentId,
+                        target: edge,
+                        type: "smoothstep",
+                      };
+
+                      existingEdges.push(newEdge);
+                    });
+                  }
+                }
+              });
+            }
+
+            Object.keys(destinations).forEach((destination, index) => {
+              if (destination !== "disabled") {
+                const destinationId = destinations[destination].name;
+
+                const originalSource = getSourceFromID(
+                  destinations[destination].uuid,
+                  "destination",
+                  destinations[destination]
+                );
+                originalSource.id = destinationId;
+
+                const yPosition = 10 + index * 40;
+
+                const currentDestination = {
+                  id: destinationId,
+                  targetPosition: Position.Left,
+                  type: "output",
                   height: 35,
                   width: 150,
-                  position: { x: -30, y: yPosition },
+                  position: { x: 250 * 3, y: yPosition },
                   data: {
-                    label: pipelineId,
-                    nodeData: pipelines[pipeline],
-                    type: "pipeline",
+                    label: destinationId,
+                    nodeData: destinations[destination],
+                    type: "destination",
                   },
                 };
 
-                existingNodes.push(currentPipeline);
-                initialAddedPipelines.push(pipelines[pipeline]);
-
-                if (pipelines[pipeline].outputs.length !== 0) {
-                  pipelines[pipeline].outputs.forEach((edge: string) => {
-                    const edgeId = pipelineId + "-" + edge;
-
-                    const newEdge = {
-                      animated: true,
-                      id: edgeId,
-                      source: pipelineId,
-                      target: edge,
-                      type: "smoothstep",
-                    };
-
-                    existingEdges.push(newEdge);
-                  });
-                }
+                existingNodes.push(currentDestination);
+                initialAddedDestinations.push(originalSource);
               }
             });
           }
 
-          if (enrichments) {
-            Object.keys(enrichments).forEach((enrichment, index) => {
-              if (enrichment !== "disabled") {
-                const enrichmentId = enrichments[enrichment].name;
-
-                const yPosition = -200 + index * 40;
-
-                const currentEnrichment = {
-                  id: enrichmentId,
-                  sourcePosition: "right",
-                  targetPosition: "left",
-                  type: "default",
-                  height: 35,
-                  width: 150,
-                  position: { x: 180, y: yPosition },
-                  data: {
-                    label: enrichmentId,
-                    nodeData: enrichments[enrichment],
-                    type: "enrichment",
-                  },
-                };
-
-                existingNodes.push(currentEnrichment);
-                initialAddedEnrichments.push(enrichments[enrichment]);
-
-                if (enrichments[enrichment].outputs.length !== 0) {
-                  enrichments[enrichment].outputs.forEach((edge: string) => {
-                    const edgeId = enrichmentId + "-" + edge;
-
-                    const newEdge = {
-                      animated: true,
-                      id: edgeId,
-                      source: enrichmentId,
-                      target: edge,
-                      type: "smoothstep",
-                    };
-
-                    existingEdges.push(newEdge);
-                  });
-                }
-              }
-            });
-          }
-
-          Object.keys(destinations).forEach((destination, index) => {
-            if (destination !== "disabled") {
-              const destinationId = destinations[destination].name;
-
-              const originalSource = getSourceFromID(
-                destinations[destination].uuid,
-                "destination",
-                destinations[destination]
-              );
-              originalSource.id = destinationId;
-
-              const yPosition = -200 + index * 40;
-
-              const currentDestination = {
-                id: destinationId,
-                targetPosition: Position.Left,
-                type: "output",
-                height: 35,
-                width: 150,
-                position: { x: 380, y: yPosition },
-                data: {
-                  label: destinationId,
-                  nodeData: destinations[destination],
-                  type: "destination",
-                },
-              };
-
-              existingNodes.push(currentDestination);
-              initialAddedDestinations.push(originalSource);
-            }
-          });
+          setConfigYaml(savedConfig);
+          setNodes(existingNodes);
+          setEdges(existingEdges);
+          setAddedDestinations(initialAddedDestinations);
+          setAddedSources(initialAddedSources);
+          setEnrichments(initialAddedEnrichments);
+          setPipelines(initialAddedPipelines);
         }
-
-        setConfigYaml(savedConfig);
-        setNodes(existingNodes);
-        setEdges(existingEdges);
-        setAddedDestinations(initialAddedDestinations);
-        setAddedSources(initialAddedSources);
-        setEnrichments(initialAddedEnrichments);
-        setPipelines(initialAddedPipelines);
       }
-    } catch (error) {
-      console.error("Error getting config:", error);
-    }
-  };
-
-  // get config code ends here
+    },
+  });
 
   // save config code here
 
-  const [saveConfigMutation] = useMutation(SAVE_CONFIG);
+  const [saveConfigMutation, { loading: saveLoading }] =
+    useMutation(SAVE_CONFIG);
 
-  const [deploySavedConfig] = useMutation(DEPLOY_CONFIG);
+  const [deploySavedConfig, { loading: deployLoading }] =
+    useMutation(DEPLOY_CONFIG);
 
   // save config ends here
 
@@ -381,12 +379,17 @@ const Routing = () => {
 
     sourceData.id = nodeData.name;
 
+    const nodeCount = addedSources.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const xPosition = 0;
+
     const newNode = {
       id: sourceValues.name,
       data: { label: sourceValues.name, type: "source", nodeData },
       type: "input",
       sourcePosition: Position.Right,
-      position: { x: -220, y: 0 },
+      position: { x: xPosition, y: yPosition },
     };
 
     addNode(newNode);
@@ -401,6 +404,11 @@ const Routing = () => {
   const onAddDestination = (destination: object, destinationValues: object) => {
     const nodeData = { ...destinationValues };
 
+    const nodeCount = addedDestinations.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const xPosition = 250 * 3;
+
     let destData = { ...destination };
     destData.id = nodeData?.name;
 
@@ -408,7 +416,7 @@ const Routing = () => {
       id: destinationValues.name,
       data: { label: destinationValues.name, type: "destination", nodeData },
       targetPosition: Position.Left,
-      position: { x: 380, y: 100 },
+      position: { x: xPosition, y: yPosition },
       type: "output",
     };
 
@@ -419,7 +427,7 @@ const Routing = () => {
   };
 
   const onEdgesUpdate = useCallback((changes: any) => {
-    if (changes[0].selected) {
+    if (changes[0]?.selected) {
       setEnableDelete(true);
     } else {
       setEnableDelete(false);
@@ -791,6 +799,11 @@ const Routing = () => {
   );
 
   const savePipeline = (pipeline: object) => {
+    const nodeCount = addedPipelines.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const xPosition = 250 * 1;
+
     const nodeData = { ...pipeline };
 
     const pipelineData = { ...pipeline };
@@ -802,7 +815,7 @@ const Routing = () => {
         type: "pipeline",
         nodeData,
       },
-      position: { x: -30, y: 50 },
+      position: { x: xPosition, y: yPosition },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -816,6 +829,11 @@ const Routing = () => {
   };
 
   const onAddEnrichment = (enrichment: object) => {
+    const nodeCount = enrichments.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const xPosition = 250 * 2;
+
     const nodeData = { ...enrichment };
 
     let enrichData = { ...enrichment };
@@ -828,7 +846,7 @@ const Routing = () => {
         type: "enrichment",
         nodeData,
       },
-      position: { x: 180, y: 50 },
+      position: { x: xPosition, y: yPosition },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -1230,14 +1248,14 @@ const Routing = () => {
           .then((response) => {
             // Handle the response
 
-            if (response.data.saveConfig.resposestatus) {
+            if (response.data.saveConfig.responsestatus) {
               toast("Config saved successfully!", {
                 position: "top-right",
                 zIndex: 9999,
                 theme: "success",
               });
 
-              setConfigExists(true);
+              refetch();
             }
           })
           .catch((error) => {
@@ -1249,8 +1267,6 @@ const Routing = () => {
               zIndex: 9999,
               theme: "failure",
             });
-
-            setConfigExists(false);
           });
       }
     } else {
@@ -1802,12 +1818,14 @@ const Routing = () => {
         },
       },
       onCompleted: (response) => {
-        if (response.deployConfig.resposestatus === "true") {
+        if (response.deployConfig.responsestatus === "true") {
           toast(response.deployConfig.message, {
             position: "top-right",
             zIndex: 9999,
             theme: "success",
           });
+
+          refetch();
         } else {
           toast(response.deployConfig.message, {
             position: "top-right",
@@ -1827,11 +1845,36 @@ const Routing = () => {
     });
   };
 
-  useEffect(() => {
-    if (!configExists) {
-      getConfig();
-    }
-  }, [configExists]);
+  const onNodeContextMenu = useCallback(
+    (event: any, node: any) => {
+      // Prevent native context menu from showing
+      event.preventDefault();
+
+      if (node.data.type === "pipeline" || node.data.type === "enrichment") {
+        // Calculate position of the context menu. We want to make sure it
+        // doesn't get positioned off-screen.
+        const pane = ref.current.getBoundingClientRect();
+
+        const top =
+          event.clientY < pane.height - 200
+            ? event.clientY - 200
+            : event.clientY - 200;
+
+        setShowMenu({
+          id: node.id,
+          top: top,
+          left: event.clientX < pane.width - 200 && event.clientX,
+          right:
+            event.clientX >= pane.width - 200 && pane.width - event.clientX,
+          // bottom:
+          //   event.clientY >= pane.height - 200 && pane.height - event.clientY,
+        });
+      }
+    },
+    [setShowMenu]
+  );
+
+  const onPaneClick = useCallback(() => setShowMenu(null), [setShowMenu]);
 
   useEffect(() => {
     handleEdgeChange();
@@ -1844,7 +1887,7 @@ const Routing = () => {
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col xl={12} lg={12} md={12} sm={12}>
-            {configExists && (
+            {!data?.getConfig?.deployedstatus && (
               <Button
                 variant="primary"
                 size="sm"
@@ -1871,7 +1914,7 @@ const Routing = () => {
 
           <Col xl={12} lg={12} md={12} sm={12}>
             <div className="source-dest-div">
-              <div style={{ width: "20%" }}>
+              <div style={{ width: "23%" }}>
                 <div className="source-dest-sub-div">
                   <div>Sources</div>
 
@@ -1885,7 +1928,7 @@ const Routing = () => {
                 </div>
               </div>
 
-              <div style={{ width: "20%" }}>
+              <div style={{ width: "23%" }}>
                 <div className="source-dest-sub-div">
                   <div>Pipelines</div>
 
@@ -1899,7 +1942,7 @@ const Routing = () => {
                 </div>
               </div>
 
-              <div style={{ width: "20%" }}>
+              <div style={{ width: "23%" }}>
                 <div className="source-dest-sub-div">
                   <div>Enrichments</div>
 
@@ -1913,7 +1956,7 @@ const Routing = () => {
                 </div>
               </div>
 
-              <div style={{ width: "20%" }}>
+              <div style={{ width: "23%" }}>
                 <div className="source-dest-sub-div">
                   <div>Destinations</div>
 
@@ -1928,20 +1971,30 @@ const Routing = () => {
               </div>
             </div>
 
+            {(loading || saveLoading || deployLoading) && (
+              <DataLoading open={loading || saveLoading || deployLoading} />
+            )}
+
             <div style={{ height: "100vh" }}>
               <ReactFlow
+                ref={ref}
                 nodes={nodes}
                 onNodesChange={onNodesChange}
                 onNodeClick={onNodeClick}
                 edges={edges}
                 onEdgesChange={onEdgesUpdate}
                 onConnect={onConnect}
-                fitView
+                // fitView
                 maxZoom={1.3}
                 minZoom={1.3}
                 deleteKeyCode={enableDelete ? ["Backspace", "Delete"] : null}
+                onPaneClick={onPaneClick}
+                onNodeContextMenu={onNodeContextMenu}
               >
                 <Controls />
+                {showMenu && (
+                  <ContextMenu onClick={onPaneClick} {...showMenu} />
+                )}
               </ReactFlow>
             </div>
           </Col>
