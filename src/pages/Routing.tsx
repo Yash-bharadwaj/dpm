@@ -1563,8 +1563,10 @@ const Routing = () => {
                         source: node.source,
                         pipelines: type === "pipelines" ? [edge.source] : [],
                         enrichments:
-                          destType === "enrichments" || type === "enrichments"
+                          destType === "enrichments"
                             ? [edge.target]
+                            : type === "enrichments"
+                            ? [edge.source]
                             : [],
                         destinations:
                           destType === "destinations" ? [edge.target] : [],
@@ -1599,8 +1601,10 @@ const Routing = () => {
                               ? [edge.source]
                               : node.pipelines,
                           enrichments:
-                            destType === "enrichments" || type === "enrichments"
+                            destType === "enrichments"
                               ? [edge.target]
+                              : type === "enrichments"
+                              ? [edge.source]
                               : node.enrichments,
                           destinations:
                             destType === "destinations"
@@ -1620,8 +1624,10 @@ const Routing = () => {
                         source: node.source,
                         pipelines: type === "pipelines" ? [edge.source] : [],
                         enrichments:
-                          destType === "enrichments" || type === "enrichments"
+                          destType === "enrichments"
                             ? [edge.target]
+                            : type === "enrichments"
+                            ? [edge.source]
                             : [],
                         destinations:
                           destType === "destinations" ? [edge.target] : [],
@@ -1767,8 +1773,10 @@ const Routing = () => {
                         source: node.source,
                         pipelines: type === "pipelines" ? [edge.source] : [],
                         enrichments:
-                          destType === "enrichments" || type === "enrichments"
+                          destType === "enrichments"
                             ? [edge.target]
+                            : type === "enrichments"
+                            ? [edge.source]
                             : [],
                         destinations:
                           destType === "destinations" ? [edge.target] : [],
