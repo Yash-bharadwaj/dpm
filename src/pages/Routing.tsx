@@ -65,6 +65,7 @@ const Routing = () => {
   const [nodeType, setNodeType] = useState("");
   const [configYaml, setConfigYaml] = useState("");
   const [showMenu, setShowMenu] = useState(null);
+  const [configUpdated, setConfigUpdated] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
@@ -152,7 +153,7 @@ const Routing = () => {
     }
   };
 
-  // get config codee here
+  // get config code here
 
   const { loading, data, refetch } = useQuery(GET_CONFIG, {
     variables: {
@@ -364,6 +365,7 @@ const Routing = () => {
           setAddedSources(initialAddedSources);
           setEnrichments(initialAddedEnrichments);
           setPipelines(initialAddedPipelines);
+          setConfigUpdated(false);
         }
       }
     },
@@ -439,6 +441,7 @@ const Routing = () => {
       setEnableDelete(false);
     }
     setEdges((eds) => applyEdgeChanges(changes, eds));
+    setConfigUpdated(true);
   }, []);
 
   const onConnect = useCallback(
@@ -792,6 +795,7 @@ const Routing = () => {
         newEdge.type = "smoothstep";
 
         setEdges((eds) => addEdge(newEdge, eds));
+        setConfigUpdated(true);
       }
     },
     [nodes, connectedNodes, currentSource]
@@ -1342,6 +1346,7 @@ const Routing = () => {
 
       setAddedSources((prevList) => [...prevSources]);
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     } else {
       if (value.name !== selectedSource.id) {
         prevSources[selectedIndex].id = value.name;
@@ -1356,6 +1361,7 @@ const Routing = () => {
       };
 
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     }
   };
 
@@ -1409,6 +1415,7 @@ const Routing = () => {
 
       setAddedDestinations((prevList) => [...prevDestinations]);
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     } else {
       if (value.name !== selectedSource.id) {
         prevDestinations[selectedIndex].id = value.name;
@@ -1423,6 +1430,7 @@ const Routing = () => {
       };
 
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     }
   };
 
@@ -1442,6 +1450,7 @@ const Routing = () => {
     let newEdges = [];
 
     edges.forEach((edge) => {
+      console.log("edge", edge);
       let targetType = "";
       let sourceType = "";
       let sourceIndex = -1;
@@ -1509,6 +1518,8 @@ const Routing = () => {
       } else {
         if (sourceType === "pipeline" || sourceType === "enrichment") {
           let prevConnection = [...connectedNodes];
+
+          console.log("prevConnection", prevConnection);
 
           if (prevConnection.length !== 0) {
             const type =
@@ -1738,6 +1749,30 @@ const Routing = () => {
                 }
               }
             });
+          } else {
+            console.log("edge", edge);
+            console.log("new edges", newEdges);
+
+            if (newEdges.length !== 0) {
+              const type =
+                sourceType === "pipeline" ? "pipelines" : "enrichments";
+
+              const destType =
+                targetType === "enrichment" ? "enrichments" : "destinations";
+
+              let edgeSourceIndex = -1;
+
+              newEdges.forEach((connect: any, index: number) => {
+                console.log("connect", connect);
+                console.log("edge", edge);
+
+                edgeSourceIndex = connect[type].indexOf(edge.source);
+
+                if (edgeSourceIndex !== -1) {
+                  connect[destType].push(edge.target);
+                }
+              });
+            }
           }
         }
       }
@@ -1844,7 +1879,7 @@ const Routing = () => {
             }}
           >
             <div>
-              {data?.getConfig?.deployedstatus && (
+              {data?.getConfig?.deployedstatus && !configUpdated && (
                 <Badge bg="success">Current Deployed Config</Badge>
               )}
             </div>
@@ -1858,7 +1893,7 @@ const Routing = () => {
                   float: "right",
                   marginLeft: "8px",
                 }}
-                disabled={data?.getConfig?.deployedstatus}
+                disabled={data?.getConfig?.deployedstatus && !configUpdated}
               >
                 Deploy Configuration
               </Button>
