@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Button, Col, Modal, Row } from "react-bootstrap";
+import { Alert, Badge, Button, Col, Modal, Row } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -443,6 +443,7 @@ const Routing = () => {
 
   const onConnect = useCallback(
     (params: any) => {
+      console.log("params", params);
       let targetType = "";
       let sourceType = "";
       let sourceIndex = -1;
@@ -616,6 +617,7 @@ const Routing = () => {
         }
       } else {
         if (sourceType === "pipeline" || sourceType === "enrichment") {
+          console.log("source - pipeline/enrichment");
           if (connectedNodes.length !== 0) {
             let prevNodes = [...connectedNodes];
 
@@ -632,6 +634,11 @@ const Routing = () => {
             prevNodes.forEach((node: any) => {
               const edgeSourceIndex = node[type].indexOf(params.source);
               const edgeTargetIndex = node[destType].indexOf(params.target);
+
+              console.log("node", node);
+
+              console.log("edge source index", edgeSourceIndex);
+              console.log("edge target index", edgeTargetIndex);
 
               if (targetType !== "destination") {
                 console.log("node", node);
@@ -1741,70 +1748,6 @@ const Routing = () => {
     setConnectedNodes((prevList) => [...newEdges]);
   };
 
-  const onDeletePipeline = () => {
-    let prevNodes = nodes;
-
-    let selectedIndex = -1;
-    let nodeIndex = -1;
-
-    const id = selectedSource.name;
-
-    if (nodeType === "pipeline") {
-      let prevPipelines = [...addedPipelines];
-
-      prevPipelines.forEach((pipeline, index) => {
-        if (pipeline.name === id) {
-          selectedIndex = index;
-        }
-      });
-
-      prevPipelines.splice(selectedIndex, 1);
-
-      setPipelines((prevList) => [...prevPipelines]);
-    } else {
-      let prevEnrichments = enrichments;
-      prevEnrichments.forEach((enrichment, index) => {
-        if (enrichment.name === id) {
-          selectedIndex = index;
-        }
-      });
-
-      prevEnrichments.splice(selectedIndex, 1);
-
-      setEnrichments((prevList) => [...prevEnrichments]);
-    }
-
-    nodes.forEach((node, index) => {
-      if (node.id === id) {
-        nodeIndex = index;
-      }
-    });
-
-    prevNodes.splice(nodeIndex, 1);
-
-    let changes = [];
-
-    if (edges.length !== 0) {
-      edges.forEach((edge) => {
-        if (edge.source === id || edge.target === id) {
-          const removeEdge = {
-            id: edge.id,
-            type: "remove",
-          };
-
-          changes.push(removeEdge);
-        }
-      });
-
-      if (changes.length !== 0) {
-        setEdges((eds) => applyEdgeChanges(changes, eds));
-      }
-    }
-
-    setNodes((prevList) => [...prevNodes]);
-    // setShowEditPipeline(false);
-  };
-
   const onDeployConfig = () => {
     const config64code = btoa(configYaml);
 
@@ -1887,30 +1830,48 @@ const Routing = () => {
 
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
-          <Col xl={12} lg={12} md={12} sm={12}>
-            {!data?.getConfig?.deployedstatus && (
+          <Col
+            xl={12}
+            lg={12}
+            md={12}
+            sm={12}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+
+              marginBottom: "12px",
+            }}
+          >
+            <div>
+              {data?.getConfig?.deployedstatus && (
+                <Badge bg="success">Current Deployed Config</Badge>
+              )}
+            </div>
+
+            <div>
               <Button
                 variant="primary"
                 size="sm"
                 onClick={onDeployConfig}
                 style={{
                   float: "right",
-                  marginBottom: "12px",
                   marginLeft: "8px",
                 }}
+                disabled={data?.getConfig?.deployedstatus}
               >
                 Deploy Configuration
               </Button>
-            )}
 
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onSave}
-              style={{ float: "right", marginBottom: "12px" }}
-            >
-              Save Configuration
-            </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={onSave}
+                style={{ float: "right" }}
+              >
+                Save Configuration
+              </Button>
+            </div>
           </Col>
 
           <Col xl={12} lg={12} md={12} sm={12}>
