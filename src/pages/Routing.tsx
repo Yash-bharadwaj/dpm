@@ -1842,7 +1842,7 @@ const Routing = () => {
         setShowMenu({
           id: node.id,
           top: top,
-          left: event.clientX < pane.width - 200 && event.clientX,
+          left: event.clientX - 100,
           right:
             event.clientX >= pane.width - 200 && pane.width - event.clientX,
           // bottom:
