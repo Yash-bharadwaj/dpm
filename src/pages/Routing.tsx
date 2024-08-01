@@ -169,6 +169,8 @@ const Routing = () => {
         if (savedConfig && configYaml === "") {
           const sample = jsyaml.load(savedConfig);
 
+          console.log("sample", sample);
+
           let initialAddedSources = [];
           let initialAddedDestinations = [];
           let initialAddedPipelines = [];
@@ -1544,6 +1546,11 @@ const Routing = () => {
                     edge.source
                   );
 
+                  console.log(
+                    "sourceConnectionPresent",
+                    sourceConnectionPresent
+                  );
+
                   if (newEdges[index]) {
                     if (sourceConnectionPresent) {
                       newEdges[index][destType].push(edge.target);
@@ -1638,7 +1645,7 @@ const Routing = () => {
                   }
                 }
               } else {
-                console.log("node", node.enrichments);
+                console.log("node", node);
                 console.log("edge", edge);
                 console.log("source index", edgeSourceIndex);
                 console.log("target index", edgeTargetIndex);
@@ -1657,6 +1664,7 @@ const Routing = () => {
                       const currentSourceIndex = newEdges[index][type].indexOf(
                         edge.source
                       );
+
                       if (currentSourceIndex !== -1) {
                         newEdges[index][destType].push(edge.target);
                       }
@@ -1669,6 +1677,10 @@ const Routing = () => {
 
                       //create new only if node source is connected to edge source
                       if (sourceConnectionPresent) {
+                        console.log(
+                          "sourceConnectionPresent",
+                          sourceConnectionPresent
+                        );
                         const newConnection = {
                           source: node.source,
                           pipelines:
@@ -1701,7 +1713,7 @@ const Routing = () => {
                         newEdges.push(newConnection);
                       }
                     } else {
-                      console.log("here", newEdges[index]?.enrichments);
+                      console.log("newEdge", newEdges[index]);
                       if (newEdges[index]) {
                         const currentSourceIndex = newEdges[index][
                           type
@@ -1711,6 +1723,57 @@ const Routing = () => {
 
                         if (currentSourceIndex !== -1) {
                           newEdges[index][destType].push(edge.target);
+                        } else {
+                          console.log("present in old connection", node);
+                          if (edgeSourceIndex !== -1) {
+                            console.log("present in old connection", node);
+                            let nodeCheck = "";
+                            if (edges.length !== 0) {
+                              edges.forEach((connect) => {
+                                if (connect.target === edge.source) {
+                                  nodeCheck = edge.target;
+                                }
+                              });
+                            }
+
+                            console.log("node check", nodeCheck);
+
+                            if (nodeCheck !== "") {
+                              let nodeType = "";
+                              nodes.forEach((node) => {
+                                if (nodeCheck === node.id) {
+                                  nodeType = node.data.type;
+                                }
+                              });
+
+                              if (nodeType !== "source") {
+                                const targetType =
+                                  nodeType === "enrichment"
+                                    ? "enrichments"
+                                    : nodeType === "pipeline"
+                                    ? "pipelines"
+                                    : "destinations";
+
+                                if (newEdges[index] && newEdges[index]) {
+                                  console.log(
+                                    "targetType",
+                                    newEdges[index][targetType]
+                                  );
+
+                                  const targetIndex =
+                                    newEdges[index][targetType].indexOf(
+                                      nodeCheck
+                                    );
+
+                                  if (targetIndex === -1) {
+                                    newEdges[index][targetType].push(
+                                      edge.target
+                                    );
+                                  }
+                                }
+                              }
+                            }
+                          }
                         }
                       } else {
                         console.log("no new edge", edge);
