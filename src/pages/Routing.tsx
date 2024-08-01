@@ -186,12 +186,15 @@ const Routing = () => {
               if (source !== "disabled") {
                 const sourceId = sources[source].name;
 
-                const originalSource = getSourceFromID(
+                let originalSource = getSourceFromID(
                   sources[source].uuid,
                   "source",
                   sources[source]
                 );
-                originalSource.id = sourceId;
+
+                let currentOrigin = { ...originalSource };
+
+                currentOrigin.id = sourceId;
 
                 const yPosition = 10 + index * 40;
 
@@ -210,7 +213,7 @@ const Routing = () => {
                 };
 
                 existingNodes.push(currentSource);
-                initialAddedSources.push(originalSource);
+                initialAddedSources.push(currentOrigin);
 
                 if (sources[source].outputs.length !== 0) {
                   sources[source].outputs.forEach((edge: string) => {
@@ -327,7 +330,10 @@ const Routing = () => {
                   "destination",
                   destinations[destination]
                 );
-                originalSource.id = destinationId;
+
+                let currentOrigin = { ...originalSource };
+
+                currentOrigin.id = destinationId;
 
                 const yPosition = 10 + index * 40;
 
@@ -346,7 +352,7 @@ const Routing = () => {
                 };
 
                 existingNodes.push(currentDestination);
-                initialAddedDestinations.push(originalSource);
+                initialAddedDestinations.push(currentOrigin);
               }
             });
           }
@@ -507,8 +513,6 @@ const Routing = () => {
         } else {
           let prevNodes = [...connectedNodes];
 
-          console.log("prev nodes", prevNodes);
-
           const destType =
             targetType === "pipeline"
               ? "pipelines"
@@ -519,9 +523,6 @@ const Routing = () => {
           const currentDestIndex = prevNodes[sourceIndex][destType].indexOf(
             params.target
           );
-
-          console.log("dest type", destType);
-          console.log("current dest in", currentDestIndex);
 
           if (targetType === "pipeline" || targetType === "enrichment") {
             let nodeCheck = "";
