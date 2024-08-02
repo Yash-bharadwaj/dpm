@@ -651,20 +651,47 @@ const Routing = () => {
 
                 if (edgeTargetIndex !== -1 && edgeSourceIndex !== -1) {
                   let connectionPresent = false;
-                  let checkNode = "";
+                  //let checkNode = "";
                   if (edges.length !== 0) {
-                    edges.map((edge: any) => {
-                      if (edge.source === params.source) {
-                        console.log("source connect present", edge);
+                    let connectionPresent = false;
+                    edges.forEach((connect: any) => {
+                      if (connect.source === params.target) {
+                        const targetNode = connect.target;
+                        console.log("targetNode", targetNode);
+                        let targetType = "";
 
-                        if (edge.target === params.target) {
+                        nodes.forEach((node) => {
+                          if (targetNode === node.id) {
+                            targetType = node.data.type;
+                          }
+                        });
+
+                        const destType =
+                          targetType === "pipeline"
+                            ? "pipelines"
+                            : targetType === "enrichment"
+                            ? "enrichments"
+                            : "destinations";
+
+                        if (
+                          node[destType].indexOf(targetNode) !== -1 &&
+                          edgeSourceIndex !== -1
+                        ) {
+                          console.log("connection present");
                           connectionPresent = true;
                         } else {
-                          checkNode = edge.target;
-                          console.log("dest not same");
+                          console.log("not present");
                         }
                       }
                     });
+
+                    if (connectionPresent) {
+                      destPresent = true;
+                    } else {
+                      console.log("add edge");
+                      node[destType].push(params.target);
+                      destPresent = false;
+                    }
                   }
 
                   console.log("connection present", connectionPresent);
@@ -672,44 +699,90 @@ const Routing = () => {
                   if (connectionPresent) {
                     destPresent = true;
                   } else {
-                    console.log("no connection pressent", checkNode);
-                    if (checkNode !== "") {
-                      let nodeConnectionCheck = false;
+                    destPresent = false;
+                    // console.log("no connection pressent", checkNode);
+                    // if (checkNode !== "") {
+                    //   let nodeConnectionCheck = false;
 
-                      edges.map((edge: any) => {
-                        if (edge.source === checkNode) {
-                          console.log("source connect present", edge);
+                    //   edges.map((edge: any) => {
+                    //     if (edge.source === checkNode) {
+                    //       console.log("source connect present", edge);
 
-                          if (edge.target === params.target) {
-                            nodeConnectionCheck = true;
-                          } else {
-                            console.log("dest not same");
-                          }
-                        } else {
-                          if (edge.target === checkNode) {
-                            if (edge.source === params.source) {
-                              nodeConnectionCheck = true;
+                    //       if (edge.target === params.target) {
+                    //         nodeConnectionCheck = true;
+                    //       } else {
+                    //         console.log("dest not same");
+                    //       }
+                    //     } else {
+                    //       if (edge.target === checkNode) {
+                    //         if (edge.source === params.source) {
+                    //           nodeConnectionCheck = true;
+                    //         }
+                    //       }
+                    //     }
+                    //   });
+
+                    //   if (nodeConnectionCheck) {
+                    //     destPresent = true;
+                    //   } else {
+                    //     destPresent = false;
+                    //   }
+                    // } else {
+                    //   destPresent = false;
+                    // }
+                  }
+                } else {
+                  if (edgeTargetIndex === -1) {
+                    if (edges.length !== 0) {
+                      let connectionPresent = false;
+                      edges.forEach((connect: any) => {
+                        if (connect.source === params.target) {
+                          const targetNode = connect.target;
+                          let targetType = "";
+
+                          console.log("target", targetNode);
+
+                          nodes.forEach((node) => {
+                            if (targetNode === node.id) {
+                              targetType = node.data.type;
                             }
+                          });
+
+                          const destType =
+                            targetType === "pipeline"
+                              ? "pipelines"
+                              : targetType === "enrichment"
+                              ? "enrichments"
+                              : "destinations";
+
+                          if (
+                            node[destType].indexOf(targetNode) !== -1 &&
+                            edgeSourceIndex !== -1
+                          ) {
+                            console.log("connection pressent");
+                            connectionPresent = true;
+                          } else {
+                            console.log("not present");
                           }
                         }
                       });
 
-                      if (nodeConnectionCheck) {
+                      if (connectionPresent) {
                         destPresent = true;
                       } else {
-                        destPresent = false;
+                        console.log("add edge", params);
+                        if (edgeSourceIndex !== -1) {
+                          node[destType].push(params.target);
+                          destPresent = false;
+                        }
                       }
-                    } else {
-                      destPresent = false;
                     }
-                  }
-                } else {
-                  if (edgeTargetIndex === -1) {
-                    node[destType].push(params.target);
                   }
 
                   if (edgeSourceIndex === -1) {
-                    node[type].push(params.source);
+                    console.log("edge source not present");
+                    // destPresent = true;
+                    // node[type].push(params.source);
                   }
                 }
               } else {
@@ -1899,7 +1972,7 @@ const Routing = () => {
         },
       },
       onCompleted: (response) => {
-        if (response.deployConfig.responsestatus === "true") {
+        if (response.deployConfig.responsestatus) {
           toast(response.deployConfig.message, {
             position: "top-right",
             zIndex: 9999,
