@@ -538,7 +538,7 @@ const Routing = () => {
 
           if (targetType === "pipeline" || targetType === "enrichment") {
             let nodeCheck = "";
-            let connectionPresent = false;
+            // let connectionPresent = false;
             if (edges.length !== 0) {
               edges.forEach((edge: any) => {
                 if (edge.source === params.target) {
@@ -659,7 +659,7 @@ const Routing = () => {
                   let connectionPresent = false;
                   //let checkNode = "";
                   if (edges.length !== 0) {
-                    let connectionPresent = false;
+                    // let connectionPresent = false;
                     edges.forEach((connect: any) => {
                       if (connect.source === params.target) {
                         const targetNode = connect.target;
@@ -761,14 +761,18 @@ const Routing = () => {
                               ? "enrichments"
                               : "destinations";
 
-                          if (
-                            node[destType].indexOf(targetNode) !== -1 &&
-                            edgeSourceIndex !== -1
-                          ) {
-                            console.log("connection pressent");
-                            connectionPresent = true;
+                          console.log("destType", destType);
+
+                          if (node[destType].indexOf(targetNode) !== -1) {
+                            if (
+                              destType === "destinations" ||
+                              edgeSourceIndex !== -1
+                            ) {
+                              console.log("connection present");
+                              connectionPresent = true;
+                            }
                           } else {
-                            console.log("not present");
+                            console.log("connection not present");
                           }
                         }
                       });
@@ -780,6 +784,8 @@ const Routing = () => {
                         if (edgeSourceIndex !== -1) {
                           node[destType].push(params.target);
                           destPresent = false;
+                        } else {
+                          destPresent = true;
                         }
                       }
                     }
@@ -857,6 +863,8 @@ const Routing = () => {
           }
         }
       }
+
+      console.log("destPresent", destPresent);
 
       if (destPresent) {
         toast("Source and Destination connection already present!", {
