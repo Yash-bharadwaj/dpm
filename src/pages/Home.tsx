@@ -53,7 +53,8 @@ const Home: React.FC = () => {
   });
 
   const [getHeartbeatStatus] = useMutation(GET_HEARTBEAT_STATUS, {
-    onError: (error: any) => {
+    onError: (error) => {
+      console.log("error", error.networkError);
       console.error("Error fetching heartbeat status:", error);
     },
     onCompleted: (data: any, { variables }: any) => {

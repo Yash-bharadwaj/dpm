@@ -371,16 +371,22 @@ const Routing = () => {
         }
       }
     },
+    onError: (error) => {
+      console.log("error", error?.networkError);
+      if (error?.networkError) {
+        if (error?.message === "Failed to fetch") {
+          window.location.reload();
+        }
+      }
+    },
   });
 
   // save config code here
-
   const [saveConfigMutation, { loading: saveLoading }] =
     useMutation(SAVE_CONFIG);
 
   const [deploySavedConfig, { loading: deployLoading }] =
     useMutation(DEPLOY_CONFIG);
-
   // save config ends here
 
   const onAddSource = (source: object, sourceValues: object) => {
@@ -1969,6 +1975,7 @@ const Routing = () => {
           orgcode: orgCode,
           devicecode: deviceCode,
           configdata: config64code,
+          versionid: data?.getConfig?.versionid,
         },
       },
       onCompleted: (response) => {
