@@ -1,4 +1,5 @@
 import { Container, Nav, Navbar } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 const RoutingNavbar = () => {
   return (
@@ -12,6 +13,7 @@ const RoutingNavbar = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="#home">Overview</Nav.Link>
+            <Nav.Link as={Link} to="/versions">Versions</Nav.Link>
             {/* <Nav.Link href="#link">Routing</Nav.Link> */}
           </Nav>
         </Navbar.Collapse>

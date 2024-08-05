@@ -15,13 +15,14 @@ export const GET_DEVICES_LIST = gql`
 `;
 
 export const GET_HEARTBEAT_STATUS = gql`
-  mutation GetHeartbeatStatus($input: deviceinput!) {
+  query GetHeartbeatStatus($input: DeviceInput!) {
     getHeartbeat(input: $input) {
       responsestatus
       responsedata
     }
   }
 `;
+
 
 export const GET_CONFIG = gql`
   query getConfig($input: deviceinput!) {
