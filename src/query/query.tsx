@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_DEVICES_LIST = gql`
-  query GetDevicesList($input: deviceinput!) {
+  query getDevicesList($input: deviceinput!) {
     getLcdeviceList(input: $input) {
       deviceid
       orgcode
@@ -15,14 +15,13 @@ export const GET_DEVICES_LIST = gql`
 `;
 
 export const GET_HEARTBEAT_STATUS = gql`
-  query GetHeartbeatStatus($input: DeviceInput!) {
+  mutation getHeartbeatStatus($input: deviceinput!) {
     getHeartbeat(input: $input) {
       responsestatus
       responsedata
     }
   }
 `;
-
 
 export const GET_CONFIG = gql`
   query getConfig($input: deviceinput!) {
@@ -49,6 +48,16 @@ export const DEPLOY_CONFIG = gql`
     deployConfig(input: $input) {
       responsestatus
       message
+    }
+  }
+`;
+
+export const GET_CONFIG_VERSION = gql`
+  query getConfigVersion($orgcode: String!, $devicecode: String!, $timezone: String!) {
+    getConfigVersion(input: { orgcode: $orgcode, devicecode: $devicecode, timezone: $timezone }) {
+      lastmodified
+      versionid
+      status
     }
   }
 `;
