@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import {
@@ -17,10 +15,7 @@ import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
 import { useNavigate } from "react-router-dom";
 import CircleIcon from "@mui/icons-material/Circle";
-
-// import LaptopMacIcon from "@mui/icons-material/LaptopMac";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-// import eyeAnimationGif from "../assets/eyeanimation.gif";
 import computeranimation from "../assets/computeranimation.gif";
 
 interface Device {
@@ -39,7 +34,13 @@ const Home: React.FC = () => {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [heartbeatStatus, setHeartbeatStatus] = useState<{
-    [key: string]: string | null;
+    [key: string]: {
+      status: string | null;
+      packageVersion: string | null;
+      configVersion: string | null;
+      lastSeen: string | null;
+      serviceStatus: string | null;
+    };
   }>({});
 
   const navigate = useNavigate();
@@ -52,20 +53,7 @@ const Home: React.FC = () => {
     variables: { input: { orgcode: orgCode, devicecode: deviceCode } },
   });
 
-  const [getHeartbeatStatus] = useMutation(GET_HEARTBEAT_STATUS, {
-    onError: (error) => {
-      console.log("error", error.networkError);
-      console.error("Error fetching heartbeat status:", error);
-    },
-    onCompleted: (data: any, { variables }: any) => {
-      if (data.getHeartbeat && data.getHeartbeat.resposestatus) {
-        setHeartbeatStatus((prev) => ({
-          ...prev,
-          [variables.input.devicecode]: data.getHeartbeat.resposestatus,
-        }));
-      }
-    },
-  });
+  const [getHeartbeatStatus] = useMutation(GET_HEARTBEAT_STATUS);
 
   useEffect(() => {
     if (devicesData) {
@@ -77,16 +65,29 @@ const Home: React.FC = () => {
               devicecode: device.devicecode,
             },
           },
+        }).then(({ data }) => {
+          if (data.getHeartbeat && data.getHeartbeat.responsestatus) {
+            const responseData = JSON.parse(data.getHeartbeat.responsedata);
+            setHeartbeatStatus((prev) => ({
+              ...prev,
+              [device.devicecode]: {
+                status: data.getHeartbeat.responsestatus ? "true" : "false",
+                packageVersion: responseData.package_version?.version_id || "N/A",
+                configVersion: responseData.config_version?.version_id || "N/A",
+                lastSeen: responseData.last_seen || "N/A",
+                serviceStatus: responseData.service_status || "N/A",
+              },
+            }));
+          }
+        }).catch(error => {
+          console.error("Error fetching heartbeat status:", error);
         });
       });
     }
   }, [devicesData, getHeartbeatStatus]);
 
   const handleDeviceCodeClick = (device: Device) => {
-    const orgCode = device.orgcode;
-    const deviceCode = device.devicecode;
-
-    navigate("/config/" + orgCode + "/" + deviceCode);
+    navigate(`/config/${device.orgcode}/${device.devicecode}`);
   };
 
   const handleViewDetailsClick = (device: Device) => {
@@ -123,24 +124,36 @@ const Home: React.FC = () => {
       <TableContainer
         component={Paper}
         style={{
-          width: "70%",
-          borderRadius: "10px",
-          boxShadow:
-            "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px",
+          width: "100%",
+          marginInline: "auto",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <Table>
           <TableHead>
-            <TableRow style={{ backgroundColor: "#11a1cd", color: "white" }}>
-              <TableCell style={{ color: "white", flex: 1 }}>
+            <TableRow style={{ backgroundColor: "#EEEEEE", color: "black" }}>
+              <TableCell style={{ color: "black", flex: 1 }}>
                 <strong>Device Code</strong>
               </TableCell>
-              <TableCell style={{ color: "white", flex: 1 }}>
+              <TableCell style={{ color: "black", flex: 1 }}>
                 <strong>Status</strong>
+              </TableCell>
+              <TableCell style={{ color: "black", flex: 1 }}>
+                <strong>Package Version</strong>
+              </TableCell>
+              <TableCell style={{ color: "black", flex: 1 }}>
+                <strong>Config Version</strong>
+              </TableCell>
+              <TableCell style={{ color: "black", flex: 1 }}>
+                <strong>Last Seen</strong>
+              </TableCell>
+              <TableCell style={{ color: "black", flex: 1 }}>
+                <strong>Service Status</strong>
               </TableCell>
               <TableCell
                 style={{
-                  color: "white",
+                  color: "black",
                   flex: 1,
                   display: "flex",
                   justifyContent: "center",
@@ -175,7 +188,6 @@ const Home: React.FC = () => {
                     e.currentTarget.style.fontWeight = "normal";
                   }}
                 >
-                  {/* <LaptopMacIcon style={{marginRight:'6px', fontSize:'22px'}}/> */}
                   <img
                     src={computeranimation}
                     alt=""
@@ -184,15 +196,15 @@ const Home: React.FC = () => {
                   {device.devicecode}
                 </TableCell>
                 <TableCell>
-                  {heartbeatStatus[device.devicecode] === "true" ? (
+                  {heartbeatStatus[device.devicecode]?.status === "true" ? (
                     <Button
                       variant="contained"
                       color="success"
                       style={{ height: "25px", fontWeight: "600" }}
                     >
-                      ONLINE
+                      ACTIVE
                     </Button>
-                  ) : heartbeatStatus[device.devicecode] === "false" ? (
+                  ) : heartbeatStatus[device.devicecode]?.status === "false" ? (
                     <Button
                       variant="outlined"
                       color="error"
@@ -201,21 +213,27 @@ const Home: React.FC = () => {
                       <CircleIcon
                         style={{ fontSize: "9px", marginRight: "3px" }}
                       />{" "}
-                      OFFLINE
+                      INACTIVE
                     </Button>
                   ) : (
-                    // <Button variant="contained" color="error"style={{height:'25px',fontWeight:'600'}}>
-                    //   OFFLINE
-                    // </Button>
-
                     "N/A"
                   )}
                 </TableCell>
-                <TableCell
-                  style={{ display: "flex", justifyContent: "center" }}
-                >
+                <TableCell>
+                  {heartbeatStatus[device.devicecode]?.packageVersion || "N/A"}
+                </TableCell>
+                <TableCell>
+                  {heartbeatStatus[device.devicecode]?.configVersion || "N/A"}
+                </TableCell>
+                <TableCell>
+                  {heartbeatStatus[device.devicecode]?.lastSeen || "N/A"}
+                </TableCell>
+                <TableCell>
+                  {heartbeatStatus[device.devicecode]?.serviceStatus || "N/A"}
+                </TableCell>
+                <TableCell style={{ display: "flex", justifyContent: "center" }}>
                   <VisibilityIcon
-                    style={{ color: "	#222222" }}
+                    style={{ color: "#222222" }}
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent the button click from triggering the TableRow onClick
                       handleViewDetailsClick(device);
