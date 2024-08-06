@@ -28,8 +28,8 @@ export const GET_CONFIG = gql`
     getConfig(input: $input) {
       responsestatus
       responsedata
-      deployedstatus
       versionid
+      configstatus
     }
   }
 `;
