@@ -2130,9 +2130,12 @@ const Routing = () => {
             }}
           >
             <div>
-              {data?.getConfig?.configstatus === "deployed" && (
-                <Badge bg="success">Deployed</Badge>
-              )}
+              <Badge bg="success">
+                {data?.getConfig?.configstatus.toUpperCase()}
+              </Badge>
+              {/* {data?.getConfig?.configstatus === "deployed" && (
+                <Badge bg="success">{data?.getConfig?.configstatus}</Badge>
+              )} */}
             </div>
 
             <div>
