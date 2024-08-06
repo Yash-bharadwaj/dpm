@@ -197,6 +197,11 @@
   background: white;
 }
 
+.current-config-data {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);

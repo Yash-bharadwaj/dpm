@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Alert, Badge, Button, Col, Modal, Row } from "react-bootstrap";
+import {
+  Alert,
+  Badge,
+  Button,
+  Col,
+  Dropdown,
+  DropdownButton,
+  Modal,
+  Row,
+} from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -2125,17 +2134,34 @@ const Routing = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-
-              marginBottom: "12px",
+              marginBottom: "20px",
             }}
           >
             <div>
-              <Badge bg="success">
-                {data?.getConfig?.configstatus.toUpperCase()}
-              </Badge>
-              {/* {data?.getConfig?.configstatus === "deployed" && (
-                <Badge bg="success">{data?.getConfig?.configstatus}</Badge>
-              )} */}
+              <Row className="justify-content-md-center">
+                <div className="current-config-data">
+                  Current Config Version : {data?.getConfig?.versionid}
+                </div>
+
+                <div className="current-config-data">
+                  Current Config Last Modified :
+                </div>
+
+                <div className="current-config-data">
+                  Current Status :{" "}
+                  <Badge bg="success">
+                    {data?.getConfig?.configstatus.toUpperCase()}
+                  </Badge>
+                </div>
+              </Row>
+            </div>
+
+            <div>
+              <DropdownButton title="Last Valid Configs" size="sm">
+                <Dropdown.Item>Version 1</Dropdown.Item>
+                <Dropdown.Item>Version 2</Dropdown.Item>
+                <Dropdown.Item>Version 3</Dropdown.Item>
+              </DropdownButton>
             </div>
 
             <div>
@@ -2147,7 +2173,7 @@ const Routing = () => {
                   float: "right",
                   marginLeft: "8px",
                 }}
-                disabled={data?.getConfig?.deployedstatus === "draft"}
+                disabled={data?.getConfig?.configstatus !== "draft"}
               >
                 Deploy Configuration
               </Button>
