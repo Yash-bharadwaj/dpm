@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
-  Alert,
   Badge,
   Button,
   Col,
   Dropdown,
   DropdownButton,
-  Modal,
   Row,
 } from "react-bootstrap";
 
@@ -16,7 +14,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
 
-import { SAVE_CONFIG, GET_CONFIG, DEPLOY_CONFIG } from "../query/query";
+import {
+  SAVE_CONFIG,
+  GET_CONFIG,
+  DEPLOY_CONFIG,
+  GET_CONFIG_VERSION,
+  GET_CONFIG_TIMELINE_BY_VERSION,
+} from "../query/query";
 
 import ReactFlow, {
   Controls,
@@ -37,7 +41,7 @@ import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
 import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
-import { useMutation, useQuery } from "@apollo/client";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 
 import jsyaml from "js-yaml";
 import { getSourceFromID } from "./AddNewRouting.tsx/helper";
@@ -79,6 +83,10 @@ const Routing = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
   const ref = useRef(null);
+
+  const getCurrentTimezone = () => {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  };
 
   const handleClose = () => {
     setShowSource(false);
@@ -162,18 +170,35 @@ const Routing = () => {
     }
   };
 
-  // get config code here
+  //get config timeline data
+  const [getConfigTimelineData] = useLazyQuery(GET_CONFIG_TIMELINE_BY_VERSION, {
+    onCompleted: (response) => {
+      console.log("response", response);
+    },
+  });
 
+  // get config code here
   const { loading, data, refetch } = useQuery(GET_CONFIG, {
     variables: {
       input: {
         orgcode: orgCode,
         devicecode: deviceCode,
+        timezone: getCurrentTimezone(),
       },
     },
     onCompleted: (response) => {
       if (response.getConfig.responsestatus) {
         const savedConfig = atob(response.getConfig.responsedata);
+
+        getConfigTimelineData({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              versionid: response.getConfig.versionid,
+            },
+          },
+        });
 
         if (savedConfig && configYaml === "") {
           const sample = jsyaml.load(savedConfig);
@@ -389,6 +414,21 @@ const Routing = () => {
       }
     },
   });
+
+  //get config versions
+  const { loading: versionsLoading, data: versionsData } = useQuery(
+    GET_CONFIG_VERSION,
+    {
+      variables: {
+        orgcode: orgCode,
+        devicecode: deviceCode,
+        timezone: getCurrentTimezone(),
+      },
+      onCompleted: (response) => {
+        console.log("response", response);
+      },
+    }
+  );
 
   // save config code here
   const [saveConfigMutation, { loading: saveLoading }] =
@@ -2115,6 +2155,21 @@ const Routing = () => {
 
   const onPaneClick = useCallback(() => setShowMenu(null), [setShowMenu]);
 
+  const getLastModifiedDate = () => {
+    const currentStatus = data?.getConfig.configstatus;
+    let timestamp = "";
+
+    data?.getConfig.configtags.forEach((tag) => {
+      if (tag.tagkey === "timestamp_" + currentStatus) {
+        timestamp = tag.tagvalue;
+      }
+    });
+
+    console.log("timestamp", timestamp);
+
+    return timestamp;
+  };
+
   useEffect(() => {
     handleEdgeChange();
   }, [edges]);
@@ -2144,7 +2199,8 @@ const Routing = () => {
                 </div>
 
                 <div className="current-config-data">
-                  Current Config Last Modified :
+                  Current Config Last Modified :{" "}
+                  {data?.getConfig && getLastModifiedDate()}
                 </div>
 
                 <div className="current-config-data">
@@ -2158,9 +2214,9 @@ const Routing = () => {
 
             <div>
               <DropdownButton title="Last Valid Configs" size="sm">
-                <Dropdown.Item>Version 1</Dropdown.Item>
-                <Dropdown.Item>Version 2</Dropdown.Item>
-                <Dropdown.Item>Version 3</Dropdown.Item>
+                {versionsData?.getConfigVersion.map((version: any) => (
+                  <Dropdown.Item>{version.versionid}</Dropdown.Item>
+                ))}
               </DropdownButton>
             </div>
 

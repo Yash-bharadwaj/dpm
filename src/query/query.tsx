@@ -30,6 +30,10 @@ export const GET_CONFIG = gql`
       responsedata
       versionid
       configstatus
+      configtags {
+        tagkey
+        tagvalue
+      }
     }
   }
 `;
@@ -53,11 +57,26 @@ export const DEPLOY_CONFIG = gql`
 `;
 
 export const GET_CONFIG_VERSION = gql`
-  query getConfigVersion($orgcode: String!, $devicecode: String!, $timezone: String!) {
-    getConfigVersion(input: { orgcode: $orgcode, devicecode: $devicecode, timezone: $timezone }) {
+  query getConfigVersion(
+    $orgcode: String!
+    $devicecode: String!
+    $timezone: String!
+  ) {
+    getConfigVersion(
+      input: { orgcode: $orgcode, devicecode: $devicecode, timezone: $timezone }
+    ) {
       lastmodified
       versionid
       status
+    }
+  }
+`;
+
+export const GET_CONFIG_TIMELINE_BY_VERSION = gql`
+  query getConfigTimelineByVersion($input: deviceinput!) {
+    getConfigTimeline(input: $input) {
+      status
+      timestamp
     }
   }
 `;
