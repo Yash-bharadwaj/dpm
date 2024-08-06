@@ -86,7 +86,7 @@ export default function AuthorizedApolloProvider(props) {
               }
             },
             () => {
-              console.error("Authenticated Failed");
+              console.log("Authentication Failed");
             }
           );
       }

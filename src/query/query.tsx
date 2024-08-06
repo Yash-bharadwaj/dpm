@@ -30,6 +30,7 @@ export const GET_CONFIG = gql`
       responsestatus
       responsedata
       deployedstatus
+      versionid
     }
   }
 `;
