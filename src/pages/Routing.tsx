@@ -95,7 +95,6 @@ const Routing = () => {
     setShowEnrichments(false);
     setSelectedSource({});
     setSelectedNode({});
-    // setShowEditPipeline(false);
     setNodeType("");
   };
 
@@ -186,7 +185,6 @@ const Routing = () => {
         timezone: getCurrentTimezone(),
       },
     },
-    fetchPolicy: "cache-and-network",
     onCompleted: (response) => {
       if (response.getConfig.responsestatus) {
         const savedConfig = atob(response.getConfig.responsedata);
@@ -197,6 +195,7 @@ const Routing = () => {
               orgcode: orgCode,
               devicecode: deviceCode,
               versionid: response.getConfig.versionid,
+              timezone: getCurrentTimezone(),
             },
           },
         });
@@ -2080,6 +2079,8 @@ const Routing = () => {
 
     console.log("new connections", newEdges);
 
+    setConfigUpdated(true);
+
     setConnectedNodes((prevList) => [...newEdges]);
   };
 
@@ -2160,13 +2161,11 @@ const Routing = () => {
     const currentStatus = data?.getConfig.configstatus;
     let timestamp = "";
 
-    data?.getConfig.configtags.forEach((tag) => {
+    data?.getConfig.configtags.forEach((tag: any) => {
       if (tag.tagkey === "timestamp_" + currentStatus) {
         timestamp = tag.tagvalue;
       }
     });
-
-    console.log("timestamp", timestamp);
 
     return timestamp;
   };
@@ -2177,10 +2176,12 @@ const Routing = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      refetch();
+      if (!configUpdated && data?.getConfig.configstatus !== "draft") {
+        refetch();
+      }
     }, 1000 * 60); // in milliseconds
     return () => clearInterval(intervalId);
-  }, []);
+  }, [configUpdated]);
 
   return (
     <>
@@ -2203,12 +2204,12 @@ const Routing = () => {
             <div>
               <Row className="justify-content-md-center">
                 <div className="current-config-data">
-                  Config Version : {data?.getConfig?.versionid}
+                  Config Version : <b>{data?.getConfig?.versionid}</b>
                 </div>
 
                 <div className="current-config-data">
                   Config Last Timestamp :{" "}
-                  {data?.getConfig && getLastModifiedDate()}
+                  <b>{data?.getConfig && getLastModifiedDate()}</b>
                 </div>
 
                 <div className="current-config-data">
