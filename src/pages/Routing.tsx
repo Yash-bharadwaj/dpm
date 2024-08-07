@@ -6,7 +6,9 @@ import {
   Col,
   Dropdown,
   DropdownButton,
+  OverlayTrigger,
   Row,
+  Tooltip,
 } from "react-bootstrap";
 
 import RoutingNavbar from "../components/RoutingNavbar";
@@ -27,6 +29,10 @@ import ReactFlow, {
   Position,
   addEdge,
   applyEdgeChanges,
+  getIncomers,
+  getOutgoers,
+  isEdge,
+  isNode,
   useNodesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -247,6 +253,9 @@ const Routing = () => {
                     nodeData: sources[source],
                     type: "source",
                   },
+                  style: {
+                    backgroundColor: "#EBF8FF",
+                  },
                 };
 
                 existingNodes.push(currentSource);
@@ -289,6 +298,9 @@ const Routing = () => {
                       label: pipelineId,
                       nodeData: pipelines[pipeline],
                       type: "pipeline",
+                    },
+                    style: {
+                      backgroundColor: "#E6FFFA",
                     },
                   };
 
@@ -333,6 +345,9 @@ const Routing = () => {
                       label: enrichmentId,
                       nodeData: enrichments[enrichment],
                       type: "enrichment",
+                    },
+                    style: {
+                      backgroundColor: "#F0FFF4",
                     },
                   };
 
@@ -385,6 +400,9 @@ const Routing = () => {
                     label: destinationId,
                     nodeData: destinations[destination],
                     type: "destination",
+                  },
+                  style: {
+                    backgroundColor: "#FFFAF0",
                   },
                 };
 
@@ -455,6 +473,9 @@ const Routing = () => {
       type: "input",
       sourcePosition: Position.Right,
       position: { x: xPosition, y: yPosition },
+      style: {
+        backgroundColor: "#EBF8FF",
+      },
     };
 
     addNode(newNode);
@@ -483,6 +504,9 @@ const Routing = () => {
       targetPosition: Position.Left,
       position: { x: xPosition, y: yPosition },
       type: "output",
+      style: {
+        backgroundColor: "#FFFAF0",
+      },
     };
 
     addNode(newNode);
@@ -1013,6 +1037,9 @@ const Routing = () => {
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
+      style: {
+        backgroundColor: "#E6FFFA",
+      },
     };
 
     addNode(newNode);
@@ -1044,6 +1071,9 @@ const Routing = () => {
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
+      style: {
+        backgroundColor: "#F0FFF4",
+      },
     };
 
     addNode(newNode);
@@ -2170,6 +2200,79 @@ const Routing = () => {
     return timestamp;
   };
 
+  const getAllIncomers = (node: any) => {
+    return getIncomers(node, nodes, edges).reduce(
+      (memo, incomer) => [...memo, incomer, ...getAllIncomers(incomer, nodes)],
+      []
+    );
+  };
+
+  const getAllOutgoers = (node: any) => {
+    return getOutgoers(node, nodes, edges).reduce(
+      (memo, outgoer) => [...memo, outgoer, ...getAllOutgoers(outgoer, nodes)],
+      []
+    );
+  };
+
+  const highlightPath = (node: any, selection: boolean) => {
+    const allIncomers = getAllIncomers(node);
+    const allOutgoers = getAllOutgoers(node);
+
+    setNodes((prevElements) => {
+      return prevElements?.map((elem) => {
+        const incomerIds = allIncomers.map((i) => i.id);
+        const outgoerIds = allOutgoers.map((o) => o.id);
+
+        if (
+          isNode(elem) &&
+          (allOutgoers.length > 0 || allIncomers.length > 0)
+        ) {
+          const highlight =
+            elem.id === node.id ||
+            incomerIds.includes(elem.id) ||
+            outgoerIds.includes(elem.id);
+
+          elem.style = {
+            ...elem.style,
+            opacity: highlight ? 1 : 0.25,
+          };
+        }
+
+        if (isEdge(elem)) {
+          if (selection) {
+            elem.animated = true;
+          } else {
+            elem.animated = true;
+          }
+        }
+
+        return elem;
+      });
+    });
+  };
+
+  const resetNodeStyles = () => {
+    setNodes((prevElements) => {
+      return prevElements?.map((elem) => {
+        if (isNode(elem)) {
+          elem.style = {
+            ...elem.style,
+            opacity: 1,
+          };
+        } else {
+          elem.animated = true;
+          elem.style = {
+            ...elem.style,
+            stroke: "#b1b1b7",
+            opacity: 1,
+          };
+        }
+
+        return elem;
+      });
+    });
+  };
+
   useEffect(() => {
     handleEdgeChange();
   }, [edges]);
@@ -2208,8 +2311,7 @@ const Routing = () => {
                 </div>
 
                 <div className="current-config-data">
-                  Config Last Timestamp :{" "}
-                  <b>{data?.getConfig && getLastModifiedDate()}</b>
+                  Timestamp : <b>{data?.getConfig && getLastModifiedDate()}</b>
                 </div>
 
                 <div className="current-config-data">
@@ -2222,9 +2324,22 @@ const Routing = () => {
             </div>
 
             <div className="versions-div">
-              <DropdownButton title="Last Valid Configs" size="sm">
+              <DropdownButton title="Config Versions" size="sm">
                 {versionsData?.getConfigVersion.map((version: any) => (
-                  <Dropdown.Item>{version.versionid}</Dropdown.Item>
+                  <Dropdown.Item>
+                    <OverlayTrigger
+                      placement="right"
+                      overlay={
+                        <Tooltip id={version.versionid}>
+                          {version.comment || "No comment"}
+                        </Tooltip>
+                      }
+                    >
+                      <span style={{ display: "flex" }}>
+                        {version.lastmodified} (<p>{version.versionid}</p>)
+                      </span>
+                    </OverlayTrigger>
+                  </Dropdown.Item>
                 ))}
               </DropdownButton>
             </div>
@@ -2333,6 +2448,8 @@ const Routing = () => {
                 deleteKeyCode={enableDelete ? ["Backspace", "Delete"] : null}
                 onPaneClick={onPaneClick}
                 onNodeContextMenu={onNodeContextMenu}
+                onNodeMouseEnter={(event, node) => highlightPath(node, true)}
+                onNodeMouseLeave={() => resetNodeStyles()}
               >
                 <Controls />
                 {showMenu && (

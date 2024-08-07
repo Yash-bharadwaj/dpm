@@ -202,11 +202,19 @@
   margin-bottom: 4px;
 }
 
-.versions-div .dropdown-item {
+.versions-div .dropdown-item,
+.versions-div .dropdown-item span {
   font-size: 14px;
-  max-width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.versions-div .dropdown-item p {
+  font-size: 13px;
+  max-width: 70px;
   text-overflow: ellipsis;
   overflow-x: hidden;
+  margin-bottom: 0;
 }
 
 @keyframes logo-spin {
