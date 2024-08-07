@@ -2109,8 +2109,6 @@ const Routing = () => {
 
     console.log("new connections", newEdges);
 
-    setConfigUpdated(true);
-
     setConnectedNodes((prevList) => [...newEdges]);
   };
 
@@ -2279,6 +2277,7 @@ const Routing = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
+      console.log("config updated", configUpdated);
       if (!configUpdated && data?.getConfig.configstatus !== "draft") {
         refetch();
       }
