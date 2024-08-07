@@ -186,6 +186,7 @@ const Routing = () => {
         timezone: getCurrentTimezone(),
       },
     },
+    fetchPolicy: "cache-and-network",
     onCompleted: (response) => {
       if (response.getConfig.responsestatus) {
         const savedConfig = atob(response.getConfig.responsedata);
@@ -2174,6 +2175,13 @@ const Routing = () => {
     handleEdgeChange();
   }, [edges]);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refetch();
+    }, 1000 * 60); // in milliseconds
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
     <>
       <RoutingNavbar />
@@ -2195,16 +2203,16 @@ const Routing = () => {
             <div>
               <Row className="justify-content-md-center">
                 <div className="current-config-data">
-                  Current Config Version : {data?.getConfig?.versionid}
+                  Config Version : {data?.getConfig?.versionid}
                 </div>
 
                 <div className="current-config-data">
-                  Current Config Last Modified :{" "}
+                  Config Last Timestamp :{" "}
                   {data?.getConfig && getLastModifiedDate()}
                 </div>
 
                 <div className="current-config-data">
-                  Current Status :{" "}
+                  Status :{" "}
                   <Badge bg="success">
                     {data?.getConfig?.configstatus.toUpperCase()}
                   </Badge>
@@ -2212,7 +2220,7 @@ const Routing = () => {
               </Row>
             </div>
 
-            <div>
+            <div className="versions-div">
               <DropdownButton title="Last Valid Configs" size="sm">
                 {versionsData?.getConfigVersion.map((version: any) => (
                   <Dropdown.Item>{version.versionid}</Dropdown.Item>
@@ -2220,27 +2228,28 @@ const Routing = () => {
               </DropdownButton>
             </div>
 
-            <div>
+            <div style={{ display: "flex" }}>
               <Button
                 variant="primary"
                 size="sm"
-                onClick={onDeployConfig}
+                onClick={onSave}
                 style={{
-                  float: "right",
                   marginLeft: "8px",
                 }}
-                disabled={data?.getConfig?.configstatus !== "draft"}
               >
-                Deploy Configuration
+                Save Config
               </Button>
 
               <Button
                 variant="primary"
                 size="sm"
-                onClick={onSave}
-                style={{ float: "right" }}
+                onClick={onDeployConfig}
+                style={{
+                  marginLeft: "8px",
+                }}
+                disabled={data?.getConfig?.configstatus !== "draft"}
               >
-                Save Configuration
+                Deploy Config
               </Button>
             </div>
           </Col>

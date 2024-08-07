@@ -202,6 +202,13 @@
   margin-bottom: 4px;
 }
 
+.versions-div .dropdown-item {
+  font-size: 14px;
+  max-width: 200px;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
