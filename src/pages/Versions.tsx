@@ -18,7 +18,9 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import { useQuery } from "@apollo/client";
+import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION } from "../query/query";
+import loadingAnimation from "../utils/Loading.json";
 
 interface Version {
   id: string;
@@ -29,12 +31,12 @@ interface Version {
 
 const statusColors: any = {
   deployed: "green",
-  "in progress": "blue",
-  saved: "orange",
-  new: "gray",
+  "in progress": "#FFAF00",
+  saved: "#399918",
+  new: "blue",
   valid: "purple",
   "not deployed": "red",
-  draft: "yellow",
+  draft: "orange",
 };
 
 const Versions: React.FC = () => {
@@ -44,6 +46,13 @@ const Versions: React.FC = () => {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
   };
 
+  const getCurrentTimezoneOffset = () => {
+    const offset = new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(offset) / 60);
+    const minutes = Math.abs(offset % 60);
+    const sign = offset <= 0 ? "+" : "-";
+    return `UTC ${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  };
   const { loading, error, data } = useQuery(GET_CONFIG_VERSION, {
     variables: {
       orgcode: "d3b6842d",
@@ -58,7 +67,24 @@ const Versions: React.FC = () => {
     }
   }, [data]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Lottie 
+          options={{
+            loop: true,
+            autoplay: true,
+            animationData: loadingAnimation,
+            rendererSettings: {
+              preserveAspectRatio: "xMidYMid slice"
+            }
+          }}
+          height={400}
+          width={400}
+        />
+      </div>
+    );
+  }
   if (error) return <p>Error: {error.message}</p>;
 
   const versions = data?.getConfigVersion.map((version: any) => ({
@@ -73,14 +99,16 @@ const Versions: React.FC = () => {
   };
 
   return (
-    <TableContainer style={{marginTop:'5rem'}} component={Paper}>
+    <TableContainer style={{ marginTop: "5rem" }} component={Paper}>
       <Table>
         <TableHead>
-          <TableRow>
-            <TableCell />
-            <TableCell>Version ID</TableCell>
-            <TableCell>Last Updated</TableCell>
-            <TableCell>Status</TableCell>
+          <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>
+            <TableCell style={{ width: "30px" }} />
+            <TableCell style={{ fontWeight: "600" }}>Version ID</TableCell>
+            <TableCell style={{ fontWeight: "600" }}>
+              Last Updated <span style={{ fontSize: '13px' }}>({getCurrentTimezoneOffset()}) </span>
+            </TableCell>
+            <TableCell style={{ fontWeight: "600" }}>Status</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -101,7 +129,13 @@ const Versions: React.FC = () => {
                 <TableCell>
                   <Chip
                     label={version.status}
-                    style={{ backgroundColor: statusColors[version.status], color: "white" }}
+                    style={{
+                      backgroundColor: statusColors[version.status],
+                      color: "white",
+                      fontWeight: "600",
+                      borderRadius: "7px",
+                      height: "26px"
+                    }}
                   />
                 </TableCell>
               </TableRow>

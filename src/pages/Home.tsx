@@ -14,9 +14,11 @@ import { GET_DEVICES_LIST, GET_HEARTBEAT_STATUS } from "../query/query";
 import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
 import { useNavigate } from "react-router-dom";
-import CircleIcon from "@mui/icons-material/Circle";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
+import { MdLocationPin } from "react-icons/md";
+import Lottie from 'react-lottie';
+import loadingAnimation from '../utils/Loading.json';
 
 interface Device {
   deviceid: string;
@@ -36,14 +38,16 @@ const Home: React.FC = () => {
   const [heartbeatStatus, setHeartbeatStatus] = useState<{
     [key: string]: {
       status: string | null;
-      packageVersion: string | null;
-      configVersion: string | null;
       lastSeen: string | null;
       serviceStatus: string | null;
     };
   }>({});
 
   const navigate = useNavigate();
+
+  const getCurrentTimezone = () => {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  };
 
   const {
     loading: devicesLoading,
@@ -63,25 +67,28 @@ const Home: React.FC = () => {
             input: {
               orgcode: device.orgcode,
               devicecode: device.devicecode,
+              timezone: getCurrentTimezone(),
             },
           },
-        }).then(({ data }) => {
-          if (data.getHeartbeat && data.getHeartbeat.responsestatus) {
-            const responseData = JSON.parse(data.getHeartbeat.responsedata);
-            setHeartbeatStatus((prev) => ({
-              ...prev,
-              [device.devicecode]: {
-                status: data.getHeartbeat.responsestatus ? "true" : "false",
-                packageVersion: responseData.package_version?.version_id || "N/A",
-                configVersion: responseData.config_version?.version_id || "N/A",
-                lastSeen: responseData.last_seen || "N/A",
-                serviceStatus: responseData.service_status || "N/A",
-              },
-            }));
-          }
-        }).catch(error => {
-          console.error("Error fetching heartbeat status:", error);
-        });
+        })
+          .then(({ data }) => {
+            if (data.getHeartbeat && data.getHeartbeat.responsestatus) {
+              const responseData = JSON.parse(
+                data.getHeartbeat.responsedata
+              );
+              setHeartbeatStatus((prev) => ({
+                ...prev,
+                [device.devicecode]: {
+                  status: data.getHeartbeat.responsestatus ? "true" : "false",
+                  lastSeen: responseData.last_seen || "N/A",
+                  serviceStatus: responseData.service_status || "N/A",
+                },
+              }));
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching heartbeat status:", error);
+          });
       });
     }
   }, [devicesData, getHeartbeatStatus]);
@@ -100,7 +107,23 @@ const Home: React.FC = () => {
     setSelectedDevice(null);
   };
 
-  if (devicesLoading) return <p>Loading devices...</p>;
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: loadingAnimation,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
+
+  if (devicesLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Lottie options={defaultOptions} height={400} width={400} />
+      </div>
+    );
+  }
+
   if (devicesError) return <p>Error loading devices: {devicesError.message}</p>;
 
   return (
@@ -140,16 +163,10 @@ const Home: React.FC = () => {
                 <strong>Status</strong>
               </TableCell>
               <TableCell style={{ color: "black", flex: 1 }}>
-                <strong>Package Version</strong>
-              </TableCell>
-              <TableCell style={{ color: "black", flex: 1 }}>
-                <strong>Config Version</strong>
-              </TableCell>
-              <TableCell style={{ color: "black", flex: 1 }}>
                 <strong>Last Seen</strong>
               </TableCell>
               <TableCell style={{ color: "black", flex: 1 }}>
-                <strong>Service Status</strong>
+                <strong>Device Location</strong>
               </TableCell>
               <TableCell
                 style={{
@@ -196,7 +213,7 @@ const Home: React.FC = () => {
                   {device.devicecode}
                 </TableCell>
                 <TableCell>
-                  {heartbeatStatus[device.devicecode]?.status === "true" ? (
+                  {heartbeatStatus[device.devicecode]?.serviceStatus === "active" ? (
                     <Button
                       variant="contained"
                       color="success"
@@ -204,15 +221,12 @@ const Home: React.FC = () => {
                     >
                       ACTIVE
                     </Button>
-                  ) : heartbeatStatus[device.devicecode]?.status === "false" ? (
+                  ) : heartbeatStatus[device.devicecode]?.serviceStatus === "in-active" ? (
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       color="error"
-                      style={{ height: "25px" }}
+                      style={{ height: "25px", fontWeight:'600' }}
                     >
-                      <CircleIcon
-                        style={{ fontSize: "9px", marginRight: "3px" }}
-                      />{" "}
                       INACTIVE
                     </Button>
                   ) : (
@@ -220,22 +234,16 @@ const Home: React.FC = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  {heartbeatStatus[device.devicecode]?.packageVersion || "N/A"}
-                </TableCell>
-                <TableCell>
-                  {heartbeatStatus[device.devicecode]?.configVersion || "N/A"}
-                </TableCell>
-                <TableCell>
                   {heartbeatStatus[device.devicecode]?.lastSeen || "N/A"}
                 </TableCell>
                 <TableCell>
-                  {heartbeatStatus[device.devicecode]?.serviceStatus || "N/A"}
+                  <MdLocationPin /> {device.devicelocation || "N/A"}
                 </TableCell>
                 <TableCell style={{ display: "flex", justifyContent: "center" }}>
                   <VisibilityIcon
                     style={{ color: "#222222" }}
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent the button click from triggering the TableRow onClick
+                      e.stopPropagation(); 
                       handleViewDetailsClick(device);
                     }}
                   />
