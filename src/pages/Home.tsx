@@ -153,7 +153,7 @@ const Home: React.FC = () => {
           flexDirection: "column",
         }}
       >
-        <Table>
+        <Table >
           <TableHead>
             <TableRow style={{ backgroundColor: "#EEEEEE", color: "black" }}>
               <TableCell style={{ color: "black", flex: 1 }}>
@@ -185,7 +185,6 @@ const Home: React.FC = () => {
               <TableRow
                 key={device.deviceid}
                 hover
-                onClick={() => handleDeviceCodeClick(device)}
                 style={{ cursor: "pointer" }}
               >
                 <TableCell
@@ -195,15 +194,10 @@ const Home: React.FC = () => {
                     fontWeight: "normal",
                     color: "#11a1cd",
                     fontSize: "15px",
+                    textDecoration: "underline",
+                    cursor: "pointer"
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.textDecoration = "underline";
-                    e.currentTarget.style.fontWeight = "600";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.textDecoration = "none";
-                    e.currentTarget.style.fontWeight = "normal";
-                  }}
+                  onClick={() => handleDeviceCodeClick(device)}
                 >
                   <img
                     src={computeranimation}
