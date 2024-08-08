@@ -34,6 +34,7 @@ export const GET_CONFIG = gql`
         tagkey
         tagvalue
       }
+      comment
     }
   }
 `;
@@ -68,6 +69,7 @@ export const GET_CONFIG_VERSION = gql`
       lastmodified
       versionid
       status
+      comment
     }
   }
 `;
@@ -81,12 +83,22 @@ export const GET_CONFIG_TIMELINE_BY_VERSION = gql`
   }
 `;
 
-
 export const GET_CONFIG_TIMELINE = gql`
   query GetConfigTimeline($input: deviceinput!) {
     getConfigTimeline(input: $input) {
       status
       timestamp
+    }
+  }
+`;
+
+export const GET_CONFIG_VALID_VERSIONS = gql`
+  query getConfigValidVersion($input: deviceinput!) {
+    getConfigValidVersion(input: $input) {
+      lastmodified
+      versionid
+      status
+      comment
     }
   }
 `;

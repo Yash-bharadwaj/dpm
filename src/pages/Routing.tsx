@@ -6,6 +6,8 @@ import {
   Col,
   Dropdown,
   DropdownButton,
+  Form,
+  Modal,
   OverlayTrigger,
   Row,
   Tooltip,
@@ -22,6 +24,7 @@ import {
   DEPLOY_CONFIG,
   GET_CONFIG_VERSION,
   GET_CONFIG_TIMELINE_BY_VERSION,
+  GET_CONFIG_VALID_VERSIONS,
 } from "../query/query";
 
 import ReactFlow, {
@@ -50,7 +53,7 @@ import "react-simple-toasts/dist/theme/success.css";
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 
 import jsyaml from "js-yaml";
-import { getSourceFromID } from "./AddNewRouting.tsx/helper";
+import { getSourceFromID, getVersionId } from "./AddNewRouting.tsx/helper";
 
 import { useParams } from "react-router-dom";
 import ContextMenu from "../components/ContextMenu";
@@ -80,11 +83,13 @@ const Routing = () => {
   const [connectedNodes, setConnectedNodes] = useState(Array);
   const [currentSource, setCurrentSource] = useState("");
   const [enableDelete, setEnableDelete] = useState(false);
-  //   const [showEditPipeline, setShowEditPipeline] = useState(false);
+  const [confirmDeploy, setConfirmDeploy] = useState(false);
   const [nodeType, setNodeType] = useState("");
   const [configYaml, setConfigYaml] = useState("");
   const [showMenu, setShowMenu] = useState(null);
   const [configUpdated, setConfigUpdated] = useState(false);
+  const [comment, setComment] = useState("");
+  const [selectedVersion, setSelectedVersion] = useState("");
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
@@ -427,26 +432,25 @@ const Routing = () => {
       console.log("error", error?.networkError);
       if (error?.networkError) {
         if (error?.message === "Failed to fetch") {
-          window.location.reload();
+          //   window.location.reload();
         }
       }
     },
   });
 
   //get config versions
-  const { loading: versionsLoading, data: versionsData } = useQuery(
-    GET_CONFIG_VERSION,
-    {
-      variables: {
+  const { data: versionsData } = useQuery(GET_CONFIG_VALID_VERSIONS, {
+    variables: {
+      input: {
         orgcode: orgCode,
         devicecode: deviceCode,
         timezone: getCurrentTimezone(),
       },
-      onCompleted: (response) => {
-        console.log("response", response);
-      },
-    }
-  );
+    },
+    onCompleted: (response) => {
+      console.log("response", response);
+    },
+  });
 
   // save config code here
   const [saveConfigMutation, { loading: saveLoading }] =
@@ -2113,9 +2117,15 @@ const Routing = () => {
   };
 
   const onDeployConfig = () => {
+    setConfirmDeploy(true);
+  };
+
+  const onConfirmDeploy = () => {
     const config64code = btoa(configYaml);
 
     console.log("yaml", configYaml);
+
+    setConfirmDeploy(false);
 
     deploySavedConfig({
       variables: {
@@ -2124,9 +2134,11 @@ const Routing = () => {
           devicecode: deviceCode,
           configdata: config64code,
           versionid: data?.getConfig?.versionid,
+          comment: comment,
         },
       },
       onCompleted: (response) => {
+        setComment("");
         if (response.deployConfig.responsestatus) {
           toast(response.deployConfig.message, {
             position: "top-right",
@@ -2271,6 +2283,12 @@ const Routing = () => {
     });
   };
 
+  const onVersionClick = (version: any) => {
+    console.log("version", version);
+
+    setSelectedVersion(version.versionid);
+  };
+
   useEffect(() => {
     handleEdgeChange();
   }, [edges]);
@@ -2304,28 +2322,50 @@ const Routing = () => {
             }}
           >
             <div>
-              <Row className="justify-content-md-center">
-                <div className="current-config-data">
-                  Config Version : <b>{data?.getConfig?.versionid}</b>
-                </div>
+              {/* <Row className="justify-content-md-center"> */}
+              <div className="current-config-data">
+                Current Version : <b>{data?.getConfig?.versionid}</b>
+              </div>
 
-                <div className="current-config-data">
-                  Timestamp : <b>{data?.getConfig && getLastModifiedDate()}</b>
-                </div>
-
-                <div className="current-config-data">
+              <div className="current-config-data" style={{ display: "flex" }}>
+                Timestamp : <b> {data?.getConfig && getLastModifiedDate()}</b>
+                <div
+                  className="current-config-data"
+                  style={{ marginLeft: "12px" }}
+                >
                   Status :{" "}
                   <Badge bg="success">
                     {data?.getConfig?.configstatus.toUpperCase()}
                   </Badge>
                 </div>
-              </Row>
+              </div>
+              {/* </Row> */}
             </div>
 
             <div className="versions-div">
-              <DropdownButton title="Config Versions" size="sm">
-                {versionsData?.getConfigVersion.map((version: any) => (
-                  <Dropdown.Item>
+              <Form.Label
+                htmlFor={"configVersions"}
+                className="current-config-data"
+                style={{ marginRight: "8px" }}
+              >
+                Versions
+              </Form.Label>
+
+              <Form.Select
+                aria-label="Select"
+                className="mb-3"
+                size="sm"
+                onChange={() => {
+                  onVersionClick(version);
+                }}
+                id={"version"}
+                value={selectedVersion}
+              >
+                <option value="" hidden>
+                  Select Version
+                </option>
+                {versionsData?.getConfigValidVersion.map((version: any) => (
+                  <option value={version.versionid}>
                     <OverlayTrigger
                       placement="right"
                       overlay={
@@ -2335,12 +2375,13 @@ const Routing = () => {
                       }
                     >
                       <span style={{ display: "flex" }}>
-                        {version.lastmodified} (<p>{version.versionid}</p>)
+                        {version.lastmodified} (
+                        <p>{getVersionId(version.versionid)}</p>)
                       </span>
                     </OverlayTrigger>
-                  </Dropdown.Item>
+                  </option>
                 ))}
-              </DropdownButton>
+              </Form.Select>
             </div>
 
             <div style={{ display: "flex" }}>
@@ -2515,15 +2556,53 @@ const Routing = () => {
           />
         )}
 
-        {/* {showEditPipeline && (
-          <Modal show={showEditPipeline} onHide={handleClose}>
+        {confirmDeploy && (
+          <Modal show={confirmDeploy} onHide={handleClose}>
+            <Modal.Header>Deploy Config</Modal.Header>
             <Modal.Body style={{ textAlign: "center" }}>
-              <Button variant="primary" onClick={onDeletePipeline} size="sm">
-                Delete
+              <h6>
+                Deploying a new configuration requires restarting of DPM
+                service, process can take sometime
+              </h6>
+
+              <Form.Control
+                placeholder={`Enter Comment`}
+                aria-label={"comment"}
+                aria-describedby={"comment"}
+                className="mb-3 mt-3"
+                size="sm"
+                id={"comment"}
+                onChange={(event) => {
+                  setComment(event.target.value);
+                }}
+                value={comment}
+                type={"text"}
+              />
+
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setConfirmDeploy(false);
+                }}
+                size="sm"
+                style={{ marginRight: "8px" }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="primary"
+                onClick={() => {
+                  onConfirmDeploy();
+                }}
+                size="sm"
+                disabled={comment.trim() === ""}
+              >
+                Deploy
               </Button>
             </Modal.Body>
           </Modal>
-        )} */}
+        )}
       </div>
     </>
   );

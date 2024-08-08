@@ -202,17 +202,21 @@
   margin-bottom: 4px;
 }
 
-.versions-div .dropdown-item,
-.versions-div .dropdown-item span {
+.versions-div {
+  display: flex;
+  align-items: baseline;
+}
+
+.versions-div .form-select,
+.versions-div .form-select span {
   font-size: 14px;
   display: flex;
   align-items: center;
 }
 
-.versions-div .dropdown-item p {
+.versions-div .form-select p {
   font-size: 13px;
   max-width: 70px;
-  text-overflow: ellipsis;
   overflow-x: hidden;
   margin-bottom: 0;
 }
