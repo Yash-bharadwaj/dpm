@@ -80,3 +80,13 @@ export const GET_CONFIG_TIMELINE_BY_VERSION = gql`
     }
   }
 `;
+
+
+export const GET_CONFIG_TIMELINE = gql`
+  query GetConfigTimeline($input: deviceinput!) {
+    getConfigTimeline(input: $input) {
+      status
+      timestamp
+    }
+  }
+`;
