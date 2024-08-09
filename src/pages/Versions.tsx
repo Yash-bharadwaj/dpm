@@ -12,23 +12,22 @@ import {
   Chip,
   Typography,
   IconButton,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
+// @ts-ignore
 import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
 import loadingAnimation from "../utils/Loading.json";
-import { Display } from "react-bootstrap-icons";
-
-interface Version {
-  id: string;
-  lastUpdated: string;
-  status: "deployed" | "in progress" | "saved" | "new" | "valid" | "not deployed" | "draft";
-}
-
+import { WiMoonAltNew } from "react-icons/wi";
+import { RiDraftFill, RiProgress6Fill } from "react-icons/ri";
+// Define status colors and icons
 const statusColors: Record<string, string> = {
   deployed: "green",
   "in progress": "#FFAF00",
@@ -39,96 +38,31 @@ const statusColors: Record<string, string> = {
   draft: "orange",
 };
 
-const Timeline: React.FC<{ timeline: { status: string; timestamp: string }[] }> = ({ timeline }) => {
-  return (
-    <Box style={{ position: 'relative', overflowX: 'auto', whiteSpace: 'nowrap', padding: '10px', display: 'flex', alignItems: 'center', gap:'6rem' }}>
-      {timeline.map((event, index) => (
-        <Box
-          key={index}
-          style={{
-            display: 'inline-block',
-            textAlign: 'center',
-            position: 'relative',
-            marginRight: index < timeline.length - 1 ? '40px' : '0', // Increased space for the line
-          }}
-        >
-          {/* Line connecting statuses */}
-          {index > 0 && (
-            <Box
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '-20px', // Position the line to the left of the current circle
-                width: '20px',
-                height: '2px',
-                backgroundColor: statusColors[timeline[index - 1].status], // Match the color with the previous status
-                zIndex: -1,
-                transform: 'translateY(-50%)',
-              }}
-            />
-          )}
-          <Typography variant="caption" style={{ fontWeight: 'bold' }}>
-            {event.timestamp}
-          </Typography>
-          <Box
-            style={{
-              border: `2px solid ${statusColors[event.status]}`,
-              borderRadius: '50%',
-              width: '20px',
-              height: '20px',
-              margin: '0 auto',
-              backgroundColor: statusColors[event.status],
-              position: 'relative',
-              zIndex: 1,
-            }}
-          />
-          <Typography variant="caption" style={{ fontSize: '16px' }}>{event.status}</Typography>
-        </Box>
-      ))}
-    </Box>
-  );
+const statusIcons: Record<string, JSX.Element> = {
+  deployed: <span style={{ fontSize: 24, color: statusColors.deployed }}>✔️</span>,
+  "in progress": <span style={{ fontSize: 24, color: statusColors["in progress"] }}><RiProgress6Fill /></span>,
+  saved: <span style={{ fontSize: 24, color: statusColors.saved }}>💾</span>,
+  new: <span style={{ fontSize: 24, color: statusColors.new }}><WiMoonAltNew /></span>,
+  valid: <span style={{ fontSize: 24, color: statusColors.valid }}>✅</span>,
+  "not deployed": <span style={{ fontSize: 24, color: statusColors["not deployed"] }}>❌</span>,
+  draft: <span style={{ fontSize: 24, color: statusColors.draft }}><RiDraftFill /></span>,
 };
 
+interface Version {
+  id: string;
+  lastUpdated: string;
+  status: "deployed" | "in progress" | "saved" | "new" | "valid" | "not deployed" | "draft";
+}
 
-// const Timeline: React.FC<{ timeline: { status: string; timestamp: string }[] }> = ({ timeline }) => {
-//   return (
-//     <Box style={{ overflowX: 'auto', whiteSpace: 'nowrap', padding: '10px' , display:'flex', gap:'8rem'}}>
-//       {timeline.map((event, index) => (
-//         <Box
-//           key={index}
-//           style={{
-//             display: 'inline-block',
-//             marginRight: '20px',
-//             textAlign: 'center',
-//           }}
-//         >
-//           <Typography variant="caption" style={{ fontWeight: 'bold' }}>
-//             {event.timestamp}
-//           </Typography>
-//           <Box
-//             style={{
-//               border: `2px solid ${statusColors[event.status]}`,
-//               borderRadius: '40%',
-//               width: '20px',
-//               height: '20px',
-//               margin: '0 auto',
-//               backgroundColor: statusColors[event.status],
-//             }}
-//           />
-//           <Typography variant="caption" style={{fontSize:'16px'}}>{event.status}</Typography>
-//         </Box>
-//       ))}
-//     </Box>
-//   );
-// };
-
-
-
+interface TimelineEventData {
+  status: string;
+  timestamp: string;
+}
 
 const Versions: React.FC = () => {
   const [versionsData, setVersionsData] = useState<Version[]>([]);
-  const [timelineData, setTimelineData] = useState<Record<string, { status: string; timestamp: string }[]>>({});
-  const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
+  const [timelineData, setTimelineData] = useState<Record<string, TimelineEventData[]>>({});
+  const [openRowId, setOpenRowId] = useState<string | null>(null);
 
   const getCurrentTimezone = () => {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -203,8 +137,8 @@ const Versions: React.FC = () => {
               preserveAspectRatio: "xMidYMid slice"
             }
           }}
-          height={400}
-          width={400}
+          height={200}
+          width={200}
         />
       </div>
     );
@@ -213,8 +147,7 @@ const Versions: React.FC = () => {
   if (timelineError) return <p>Error: {timelineError.message}</p>;
 
   const handleRowClick = (id: string) => {
-    const isCurrentlyOpen = openRows[id];
-    setOpenRows((prev) => ({ ...prev, [id]: !isCurrentlyOpen }));
+    setOpenRowId((prevId) => (prevId === id ? null : id));
   };
 
   return (
@@ -240,7 +173,7 @@ const Versions: React.FC = () => {
                     size="small"
                     onClick={() => handleRowClick(version.id)}
                   >
-                    {openRows[version.id] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                    {openRowId === version.id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                   </IconButton>
                 </TableCell>
                 <TableCell>{version.id}</TableCell>
@@ -260,13 +193,36 @@ const Versions: React.FC = () => {
               </TableRow>
               <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                  <Collapse in={openRows[version.id]} timeout="auto" unmountOnExit>
+                  <Collapse in={openRowId === version.id} timeout="auto" unmountOnExit>
                     <Box margin={1}>
                       <Typography variant="h6" gutterBottom component="div">
                         Timeline
                       </Typography>
                       {timelineData[version.id]?.length > 0 ? (
-                        <Timeline timeline={timelineData[version.id]} />
+                        <Stepper orientation="horizontal">
+                          {timelineData[version.id].map((event: TimelineEventData, index: number) => (
+                            <Step key={index} active={true}>
+                              <StepLabel
+                                StepIconComponent={() => (
+                                  <div style={{ textAlign: 'center' }}>
+                                      <Typography variant="caption" style={{ color: 'grey' }}>
+                                      {event.timestamp}
+                                    </Typography>
+                                    <div style={{ fontSize: 24, color: statusColors[event.status] || 'grey' }}>
+                                      {statusIcons[event.status]}
+                                    </div>
+                                  
+                                    <Typography variant="body2" style={{ color: statusColors[event.status] || 'grey' }}>
+                                      {event.status}
+                                    </Typography>
+                                  </div>
+                                )}
+                              >
+                                {/* Additional content can be placed here if needed */}
+                              </StepLabel>
+                            </Step>
+                          ))}
+                        </Stepper>
                       ) : (
                         <Typography>No timeline data available.</Typography>
                       )}
