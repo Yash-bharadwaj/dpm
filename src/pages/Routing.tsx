@@ -23,6 +23,7 @@ import {
   GET_CONFIG_TIMELINE_BY_VERSION,
   GET_CONFIG_VALID_VERSIONS,
   GET_OLDER_CONFIG_DETAILS,
+  GET_ERROR_LOGS,
 } from "../query/query";
 
 import ReactFlow, {
@@ -48,6 +49,8 @@ import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
 import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
+import "react-simple-toasts/dist/theme/info.css";
+
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 
 import jsyaml from "js-yaml";
@@ -56,6 +59,8 @@ import { getSourceFromID, getVersionId } from "./AddNewRouting.tsx/helper";
 import { useParams } from "react-router-dom";
 import ContextMenu from "../components/ContextMenu";
 import DataLoading from "../components/DataLoading";
+
+import { MdOutlineReplyAll, MdReportGmailerrorred } from "react-icons/md";
 
 toastConfig({ theme: "dark" });
 
@@ -88,6 +93,7 @@ const Routing = () => {
   const [configUpdated, setConfigUpdated] = useState(false);
   const [comment, setComment] = useState("");
   const [selectedVersion, setSelectedVersion] = useState("");
+  const [viewError, setViewError] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
@@ -105,6 +111,7 @@ const Routing = () => {
     setSelectedSource({});
     setSelectedNode({});
     setNodeType("");
+    setViewError(false);
   };
 
   const onAddSourceClick = () => {
@@ -179,33 +186,33 @@ const Routing = () => {
   };
 
   //get config timeline data
-  const [getConfigTimelineData, ,] = useLazyQuery(
-    GET_CONFIG_TIMELINE_BY_VERSION,
-    {
-      onCompleted: (response) => {
-        console.log("response", response);
+  const [getConfigTimelineData] = useLazyQuery(GET_CONFIG_TIMELINE_BY_VERSION, {
+    onCompleted: (response) => {
+      console.log("response", response);
 
-        if (response?.getConfig?.responsestatus) {
-          const savedConfig = atob(response.getConfig.responsedata);
+      if (response?.getConfig?.responsestatus) {
+        const savedConfig = atob(response.getConfig.responsedata);
 
-          getConfigTimelineData({
-            variables: {
-              input: {
-                orgcode: orgCode,
-                devicecode: deviceCode,
-                versionid: response.getConfig.versionid,
-                timezone: getCurrentTimezone(),
-              },
+        getConfigTimelineData({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              versionid: response.getConfig.versionid,
+              timezone: getCurrentTimezone(),
             },
-          });
+          },
+        });
 
-          if (savedConfig && configYaml === "") {
-            getConfigDetails(savedConfig);
-          }
+        if (savedConfig && configYaml === "") {
+          getConfigDetails(savedConfig);
         }
-      },
-    }
-  );
+      }
+    },
+  });
+
+  const [getErrorLogs, { loading: errorLoading, data: errorData }] =
+    useLazyQuery(GET_ERROR_LOGS);
 
   const [
     getOlderConfigDetails,
@@ -213,6 +220,25 @@ const Routing = () => {
   ] = useLazyQuery(GET_OLDER_CONFIG_DETAILS, {
     onCompleted: (response) => {
       console.log("response", response);
+
+      if (response.getConfig.responsestatus) {
+        const savedConfig = atob(response.getConfig.responsedata);
+
+        getConfigTimelineData({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              versionid: response.getConfig.versionid,
+              timezone: getCurrentTimezone(),
+            },
+          },
+        });
+
+        if (savedConfig && configYaml === "") {
+          getConfigDetails(savedConfig);
+        }
+      }
     },
     fetchPolicy: "no-cache",
   });
@@ -443,6 +469,7 @@ const Routing = () => {
         versionid: "",
       },
     },
+    fetchPolicy: "no-cache",
     onCompleted: (response) => {
       if (response.getConfig.responsestatus) {
         const savedConfig = atob(response.getConfig.responsedata);
@@ -1122,7 +1149,15 @@ const Routing = () => {
     handleClose();
   };
 
-  const onSave = () => {
+  const onSave = (type: string) => {
+    if (type === "revert") {
+      toast("Switching to selected version", {
+        position: "top-right",
+        zIndex: 9999,
+        theme: "info",
+      });
+    }
+
     let config = {
       node: {
         sources: {
@@ -1479,11 +1514,13 @@ const Routing = () => {
         }
       });
 
+      console.log("config", config);
+
       if (
         config.node.destinations.disabled === true ||
         config.node.sources.disabled === true
       ) {
-        toast("No source-destination connections found!", {
+        toast("No complete source-destination connections found!", {
           position: "top-right",
           zIndex: 9999,
           theme: "failure",
@@ -1492,45 +1529,72 @@ const Routing = () => {
         config.node.pipelines = finalConfigPipelines;
         config.node.enrichments = finalConfigEnrichments;
 
-        const yaml = convert(config);
-        setConfigYaml(yaml);
+        let validConfig = true;
+        Object.keys(config.node.sources).forEach((source) => {
+          if (source !== "disabled") {
+            if (config.node.sources[source].outputs.length === 0) {
+              validConfig = false;
+            }
+          }
+        });
 
-        console.log("yaml", yaml);
+        Object.keys(config.node.destinations).forEach((destination) => {
+          if (destination !== "disabled") {
+            if (config.node.destinations[destination].inputs.length === 0) {
+              validConfig = false;
+            }
+          }
+        });
 
-        const config64code = btoa(yaml);
+        if (validConfig) {
+          const yaml = convert(config);
+          setConfigYaml(yaml);
 
-        saveConfigMutation({
-          variables: {
-            input: {
-              orgcode: orgCode,
-              devicecode: deviceCode,
-              configdata: config64code,
+          console.log("yaml", yaml);
+
+          const config64code = btoa(yaml);
+
+          saveConfigMutation({
+            variables: {
+              input: {
+                orgcode: orgCode,
+                devicecode: deviceCode,
+                configdata: config64code,
+              },
             },
-          },
-        })
-          .then((response) => {
-            // Handle the response
+          })
+            .then((response) => {
+              // Handle the response
 
-            if (response.data.saveConfig.responsestatus) {
-              toast("Config saved successfully!", {
+              if (response.data.saveConfig.responsestatus) {
+                toast(response.data.saveConfig.message, {
+                  position: "top-right",
+                  zIndex: 9999,
+                  theme: "success",
+                });
+
+                setSelectedVersion("");
+
+                refetch();
+              }
+            })
+            .catch((error) => {
+              // Handle any errors
+              console.error("Error saving config:", error);
+
+              toast(error, {
                 position: "top-right",
                 zIndex: 9999,
-                theme: "success",
+                theme: "failure",
               });
-
-              refetch();
-            }
-          })
-          .catch((error) => {
-            // Handle any errors
-            console.error("Error saving config:", error);
-
-            toast(error, {
-              position: "top-right",
-              zIndex: 9999,
-              theme: "failure",
             });
+        } else {
+          toast("No complete source-destination connections found!", {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "failure",
           });
+        }
       }
     } else {
       toast("No source-destination connections found!", {
@@ -2152,7 +2216,15 @@ const Routing = () => {
   };
 
   const onDeployConfig = () => {
-    setConfirmDeploy(true);
+    if (edges.length !== 0) {
+      setConfirmDeploy(true);
+    } else {
+      toast("No source-destination connections found!", {
+        position: "top-right",
+        zIndex: 9999,
+        theme: "failure",
+      });
+    }
   };
 
   const onConfirmDeploy = () => {
@@ -2331,11 +2403,55 @@ const Routing = () => {
         },
       },
     });
+
+    setConfigYaml("");
   };
 
-  const onRevert = () => {};
+  const onRevert = () => {
+    onSave("revert");
+  };
 
-  const onCancelRevert = () => {};
+  const onCancelRevert = () => {
+    setSelectedVersion("");
+
+    toast("Switching to current version", {
+      position: "top-right",
+      zIndex: 9999,
+      theme: "info",
+    });
+
+    getOlderConfigDetails({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+          timezone: getCurrentTimezone(),
+        },
+      },
+    });
+
+    setConfigYaml("");
+  };
+
+  const onGetErrorLogs = () => {
+    getErrorLogs({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+        },
+      },
+      onCompleted: () => {
+        setViewError(true);
+      },
+    });
+  };
+
+  const getErrorData = () => {
+    const errorLogs = atob(errorData.getErrorLogs.responsedata);
+
+    return errorLogs;
+  };
 
   useEffect(() => {
     handleEdgeChange();
@@ -2343,13 +2459,29 @@ const Routing = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      console.log("config updated", configUpdated);
-      if (!configUpdated && data?.getConfig.configstatus !== "draft") {
-        refetch();
+      console.log("get data again", selectedVersion);
+      console.log("configUpdated", configUpdated);
+      console.log("status", data);
+      if (
+        configUpdated === false &&
+        data?.getConfig.configstatus !== "draft" &&
+        data?.getConfig.configstatus !== undefined &&
+        data?.getConfig.configstatus !== "invalid" &&
+        selectedVersion === ""
+      ) {
+        getOlderConfigDetails({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              timezone: getCurrentTimezone(),
+            },
+          },
+        });
       }
     }, 1000 * 60); // in milliseconds
     return () => clearInterval(intervalId);
-  }, [configUpdated]);
+  }, [configUpdated, data, configUpdated, selectedVersion]);
 
   return (
     <>
@@ -2398,6 +2530,22 @@ const Routing = () => {
                       ? oldVersionData?.getConfig?.configstatus.toUpperCase()
                       : data?.getConfig?.configstatus.toUpperCase()}
                   </Badge>
+                  {(data?.getConfig.configstatus === "failed" ||
+                    data?.getConfig.configstatus === "invalid" ||
+                    data?.getConfig.configstatus === "notdeployed") && (
+                    <MdReportGmailerrorred
+                      style={{
+                        height: "25px",
+                        width: "25px",
+                        fill: "red",
+                        marginLeft: "4px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        onGetErrorLogs();
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -2439,16 +2587,25 @@ const Routing = () => {
 
               {selectedVersion !== "" ? (
                 <>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={onCancelRevert}
-                    style={{
-                      marginLeft: "8px",
-                    }}
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={"cancel"}>
+                        Go back to the current version
+                      </Tooltip>
+                    }
                   >
-                    Cancel
-                  </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={onCancelRevert}
+                      style={{
+                        marginLeft: "8px",
+                      }}
+                    >
+                      <MdOutlineReplyAll />
+                    </Button>
+                  </OverlayTrigger>
 
                   <Button
                     variant="primary"
@@ -2466,7 +2623,9 @@ const Routing = () => {
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={onSave}
+                    onClick={() => {
+                      onSave("");
+                    }}
                     style={{
                       marginLeft: "8px",
                     }}
@@ -2549,10 +2708,18 @@ const Routing = () => {
               </div>
             </div>
 
-            {(loading || saveLoading || deployLoading || oldVersionLoading) && (
+            {(loading ||
+              saveLoading ||
+              deployLoading ||
+              errorLoading ||
+              (oldVersionLoading && selectedVersion !== "")) && (
               <DataLoading
                 open={
-                  loading || saveLoading || deployLoading || oldVersionLoading
+                  loading ||
+                  saveLoading ||
+                  deployLoading ||
+                  errorLoading ||
+                  (oldVersionLoading && selectedVersion !== "")
                 }
               />
             )}
@@ -2642,8 +2809,7 @@ const Routing = () => {
 
         {confirmDeploy && (
           <Modal show={confirmDeploy} onHide={handleClose}>
-            <Modal.Header>Deploy Config</Modal.Header>
-            <Modal.Body style={{ textAlign: "center" }}>
+            <Modal.Body>
               <h6>
                 Deploying a new configuration requires restarting of DPM
                 service, process can take sometime
@@ -2684,6 +2850,25 @@ const Routing = () => {
               >
                 Deploy
               </Button>
+            </Modal.Body>
+          </Modal>
+        )}
+
+        {viewError && (
+          <Modal show={viewError} onHide={handleClose}>
+            <Modal.Body>
+              {getErrorData()}
+
+              <div>
+                <Button
+                  variant="secondary"
+                  onClick={handleClose}
+                  size="sm"
+                  style={{ marginTop: "12px" }}
+                >
+                  OK
+                </Button>
+              </div>
             </Modal.Body>
           </Modal>
         )}

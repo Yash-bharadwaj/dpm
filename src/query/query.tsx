@@ -118,3 +118,12 @@ export const GET_OLDER_CONFIG_DETAILS = gql`
     }
   }
 `;
+
+export const GET_ERROR_LOGS = gql`
+  query getErrorLogs($input: deviceinput!) {
+    getErrorLogs(input: $input) {
+      responsestatus
+      responsedata
+    }
+  }
+`;
