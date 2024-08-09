@@ -1,4 +1,4 @@
-import { Container, Nav, Navbar } from "react-bootstrap";
+import { Nav, Navbar } from "react-bootstrap";
 
 const MainNavbar = () => {
   return (
@@ -8,15 +8,15 @@ const MainNavbar = () => {
       fixed="top"
       style={{ backgroundColor: "#008ac1 !important" }}
     >
-      <Container>
-        <Navbar.Brand href="/">Data Pipeline Manager</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link href="/">Home</Nav.Link>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
+      <Navbar.Brand href="/" style={{ marginLeft: "8px" }}>
+        Data Pipeline Manager
+      </Navbar.Brand>
+      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Collapse id="basic-navbar-nav">
+        <Nav className="me-auto">
+          <Nav.Link href="/">Home</Nav.Link>
+        </Nav>
+      </Navbar.Collapse>
     </Navbar>
   );
 };

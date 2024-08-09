@@ -330,7 +330,7 @@ const Routing = () => {
               type: "default",
               height: 35,
               width: 150,
-              position: { x: 250, y: yPosition },
+              position: { x: 280, y: yPosition },
               data: {
                 label: pipelineId,
                 nodeData: pipelines[pipeline],
@@ -377,7 +377,7 @@ const Routing = () => {
               type: "default",
               height: 35,
               width: 150,
-              position: { x: 250 * 2, y: yPosition },
+              position: { x: 280 * 2, y: yPosition },
               data: {
                 label: enrichmentId,
                 nodeData: enrichments[enrichment],
@@ -432,7 +432,7 @@ const Routing = () => {
             type: "output",
             height: 35,
             width: 150,
-            position: { x: 250 * 3, y: yPosition },
+            position: { x: 280 * 3, y: yPosition },
             data: {
               label: destinationId,
               nodeData: destinations[destination],
@@ -559,7 +559,7 @@ const Routing = () => {
     const nodeCount = addedDestinations.length + 1;
 
     const yPosition = 10 + nodeCount * 40;
-    const xPosition = 250 * 3;
+    const xPosition = 280 * 3;
 
     let destData = { ...destination };
     destData.id = nodeData?.name;
@@ -1086,7 +1086,7 @@ const Routing = () => {
     const nodeCount = addedPipelines.length + 1;
 
     const yPosition = 10 + nodeCount * 40;
-    const xPosition = 250 * 1;
+    const xPosition = 280 * 1;
 
     const nodeData = { ...pipeline };
 
@@ -1119,7 +1119,7 @@ const Routing = () => {
     const nodeCount = enrichments.length + 1;
 
     const yPosition = 10 + nodeCount * 40;
-    const xPosition = 250 * 2;
+    const xPosition = 280 * 2;
 
     const nodeData = { ...enrichment };
 
