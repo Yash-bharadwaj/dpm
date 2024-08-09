@@ -102,3 +102,19 @@ export const GET_CONFIG_VALID_VERSIONS = gql`
     }
   }
 `;
+
+export const GET_OLDER_CONFIG_DETAILS = gql`
+  query getOlderConfig($input: deviceinput!) {
+    getConfig(input: $input) {
+      responsestatus
+      responsedata
+      versionid
+      configstatus
+      configtags {
+        tagkey
+        tagvalue
+      }
+      comment
+    }
+  }
+`;

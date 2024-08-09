@@ -4,8 +4,6 @@ import {
   Badge,
   Button,
   Col,
-  Dropdown,
-  DropdownButton,
   Form,
   Modal,
   OverlayTrigger,
@@ -22,9 +20,9 @@ import {
   SAVE_CONFIG,
   GET_CONFIG,
   DEPLOY_CONFIG,
-  GET_CONFIG_VERSION,
   GET_CONFIG_TIMELINE_BY_VERSION,
   GET_CONFIG_VALID_VERSIONS,
+  GET_OLDER_CONFIG_DETAILS,
 } from "../query/query";
 
 import ReactFlow, {
@@ -181,11 +179,259 @@ const Routing = () => {
   };
 
   //get config timeline data
-  const [getConfigTimelineData] = useLazyQuery(GET_CONFIG_TIMELINE_BY_VERSION, {
+  const [getConfigTimelineData, ,] = useLazyQuery(
+    GET_CONFIG_TIMELINE_BY_VERSION,
+    {
+      onCompleted: (response) => {
+        console.log("response", response);
+
+        if (response?.getConfig?.responsestatus) {
+          const savedConfig = atob(response.getConfig.responsedata);
+
+          getConfigTimelineData({
+            variables: {
+              input: {
+                orgcode: orgCode,
+                devicecode: deviceCode,
+                versionid: response.getConfig.versionid,
+                timezone: getCurrentTimezone(),
+              },
+            },
+          });
+
+          if (savedConfig && configYaml === "") {
+            getConfigDetails(savedConfig);
+          }
+        }
+      },
+    }
+  );
+
+  const [
+    getOlderConfigDetails,
+    { loading: oldVersionLoading, data: oldVersionData },
+  ] = useLazyQuery(GET_OLDER_CONFIG_DETAILS, {
     onCompleted: (response) => {
       console.log("response", response);
     },
+    fetchPolicy: "no-cache",
   });
+
+  const getConfigDetails = (savedConfig: any) => {
+    const sample = jsyaml.load(savedConfig);
+
+    console.log("sample", sample);
+
+    let initialAddedSources = [];
+    let initialAddedDestinations = [];
+    let initialAddedPipelines = [];
+    let initialAddedEnrichments = [];
+
+    let existingNodes = [];
+    let existingEdges = [];
+
+    if (!sample.node.sources.disabled) {
+      const sources = sample.node.sources;
+      const destinations = sample.node.destinations;
+      const pipelines = sample.node.pipelines;
+      const enrichments = sample.node.enrichments;
+
+      Object.keys(sources).forEach((source, index) => {
+        if (source !== "disabled") {
+          const sourceId = sources[source].name;
+
+          let originalSource = getSourceFromID(
+            sources[source].uuid,
+            "source",
+            sources[source]
+          );
+
+          let currentOrigin = { ...originalSource };
+
+          currentOrigin.id = sourceId;
+
+          const yPosition = 10 + index * 40;
+
+          const currentSource = {
+            id: sourceId,
+            sourcePosition: Position.Right,
+            type: "input",
+            position: { x: 0, y: yPosition },
+            height: 35,
+            width: 150,
+            data: {
+              label: sourceId,
+              nodeData: sources[source],
+              type: "source",
+            },
+            style: {
+              backgroundColor: "#EBF8FF",
+            },
+          };
+
+          existingNodes.push(currentSource);
+          initialAddedSources.push(currentOrigin);
+
+          if (sources[source].outputs.length !== 0) {
+            sources[source].outputs.forEach((edge: string) => {
+              const edgeId = sourceId + "-" + edge;
+
+              const newEdge = {
+                animated: true,
+                id: edgeId,
+                source: sourceId,
+                target: edge,
+                type: "smoothstep",
+              };
+
+              existingEdges.push(newEdge);
+            });
+          }
+        }
+      });
+
+      if (pipelines) {
+        Object.keys(pipelines).forEach((pipeline, index) => {
+          if (pipeline !== "disabled") {
+            const pipelineId = pipelines[pipeline].name;
+
+            const yPosition = 10 + index * 40;
+
+            const currentPipeline = {
+              id: pipelineId,
+              sourcePosition: "right",
+              targetPosition: "left",
+              type: "default",
+              height: 35,
+              width: 150,
+              position: { x: 250, y: yPosition },
+              data: {
+                label: pipelineId,
+                nodeData: pipelines[pipeline],
+                type: "pipeline",
+              },
+              style: {
+                backgroundColor: "#E6FFFA",
+              },
+            };
+
+            existingNodes.push(currentPipeline);
+            initialAddedPipelines.push(pipelines[pipeline]);
+
+            if (pipelines[pipeline].outputs.length !== 0) {
+              pipelines[pipeline].outputs.forEach((edge: string) => {
+                const edgeId = pipelineId + "-" + edge;
+
+                const newEdge = {
+                  animated: true,
+                  id: edgeId,
+                  source: pipelineId,
+                  target: edge,
+                  type: "smoothstep",
+                };
+
+                existingEdges.push(newEdge);
+              });
+            }
+          }
+        });
+      }
+
+      if (enrichments) {
+        Object.keys(enrichments).forEach((enrichment, index) => {
+          if (enrichment !== "disabled") {
+            const enrichmentId = enrichments[enrichment].name;
+
+            const yPosition = 10 + index * 40;
+
+            const currentEnrichment = {
+              id: enrichmentId,
+              sourcePosition: "right",
+              targetPosition: "left",
+              type: "default",
+              height: 35,
+              width: 150,
+              position: { x: 250 * 2, y: yPosition },
+              data: {
+                label: enrichmentId,
+                nodeData: enrichments[enrichment],
+                type: "enrichment",
+              },
+              style: {
+                backgroundColor: "#F0FFF4",
+              },
+            };
+
+            existingNodes.push(currentEnrichment);
+            initialAddedEnrichments.push(enrichments[enrichment]);
+
+            if (enrichments[enrichment].outputs.length !== 0) {
+              enrichments[enrichment].outputs.forEach((edge: string) => {
+                const edgeId = enrichmentId + "-" + edge;
+
+                const newEdge = {
+                  animated: true,
+                  id: edgeId,
+                  source: enrichmentId,
+                  target: edge,
+                  type: "smoothstep",
+                };
+
+                existingEdges.push(newEdge);
+              });
+            }
+          }
+        });
+      }
+
+      Object.keys(destinations).forEach((destination, index) => {
+        if (destination !== "disabled") {
+          const destinationId = destinations[destination].name;
+
+          const originalSource = getSourceFromID(
+            destinations[destination].uuid,
+            "destination",
+            destinations[destination]
+          );
+
+          let currentOrigin = { ...originalSource };
+
+          currentOrigin.id = destinationId;
+
+          const yPosition = 10 + index * 40;
+
+          const currentDestination = {
+            id: destinationId,
+            targetPosition: Position.Left,
+            type: "output",
+            height: 35,
+            width: 150,
+            position: { x: 250 * 3, y: yPosition },
+            data: {
+              label: destinationId,
+              nodeData: destinations[destination],
+              type: "destination",
+            },
+            style: {
+              backgroundColor: "#FFFAF0",
+            },
+          };
+
+          existingNodes.push(currentDestination);
+          initialAddedDestinations.push(currentOrigin);
+        }
+      });
+    }
+
+    setConfigYaml(savedConfig);
+    setNodes(existingNodes);
+    setEdges(existingEdges);
+    setAddedDestinations(initialAddedDestinations);
+    setAddedSources(initialAddedSources);
+    setEnrichments(initialAddedEnrichments);
+    setPipelines(initialAddedPipelines);
+    setConfigUpdated(false);
+  };
 
   // get config code here
   const { loading, data, refetch } = useQuery(GET_CONFIG, {
@@ -194,6 +440,7 @@ const Routing = () => {
         orgcode: orgCode,
         devicecode: deviceCode,
         timezone: getCurrentTimezone(),
+        versionid: "",
       },
     },
     onCompleted: (response) => {
@@ -212,219 +459,7 @@ const Routing = () => {
         });
 
         if (savedConfig && configYaml === "") {
-          const sample = jsyaml.load(savedConfig);
-
-          console.log("sample", sample);
-
-          let initialAddedSources = [];
-          let initialAddedDestinations = [];
-          let initialAddedPipelines = [];
-          let initialAddedEnrichments = [];
-
-          let existingNodes = [];
-          let existingEdges = [];
-
-          if (!sample.node.sources.disabled) {
-            const sources = sample.node.sources;
-            const destinations = sample.node.destinations;
-            const pipelines = sample.node.pipelines;
-            const enrichments = sample.node.enrichments;
-
-            Object.keys(sources).forEach((source, index) => {
-              if (source !== "disabled") {
-                const sourceId = sources[source].name;
-
-                let originalSource = getSourceFromID(
-                  sources[source].uuid,
-                  "source",
-                  sources[source]
-                );
-
-                let currentOrigin = { ...originalSource };
-
-                currentOrigin.id = sourceId;
-
-                const yPosition = 10 + index * 40;
-
-                const currentSource = {
-                  id: sourceId,
-                  sourcePosition: Position.Right,
-                  type: "input",
-                  position: { x: 0, y: yPosition },
-                  height: 35,
-                  width: 150,
-                  data: {
-                    label: sourceId,
-                    nodeData: sources[source],
-                    type: "source",
-                  },
-                  style: {
-                    backgroundColor: "#EBF8FF",
-                  },
-                };
-
-                existingNodes.push(currentSource);
-                initialAddedSources.push(currentOrigin);
-
-                if (sources[source].outputs.length !== 0) {
-                  sources[source].outputs.forEach((edge: string) => {
-                    const edgeId = sourceId + "-" + edge;
-
-                    const newEdge = {
-                      animated: true,
-                      id: edgeId,
-                      source: sourceId,
-                      target: edge,
-                      type: "smoothstep",
-                    };
-
-                    existingEdges.push(newEdge);
-                  });
-                }
-              }
-            });
-
-            if (pipelines) {
-              Object.keys(pipelines).forEach((pipeline, index) => {
-                if (pipeline !== "disabled") {
-                  const pipelineId = pipelines[pipeline].name;
-
-                  const yPosition = 10 + index * 40;
-
-                  const currentPipeline = {
-                    id: pipelineId,
-                    sourcePosition: "right",
-                    targetPosition: "left",
-                    type: "default",
-                    height: 35,
-                    width: 150,
-                    position: { x: 250, y: yPosition },
-                    data: {
-                      label: pipelineId,
-                      nodeData: pipelines[pipeline],
-                      type: "pipeline",
-                    },
-                    style: {
-                      backgroundColor: "#E6FFFA",
-                    },
-                  };
-
-                  existingNodes.push(currentPipeline);
-                  initialAddedPipelines.push(pipelines[pipeline]);
-
-                  if (pipelines[pipeline].outputs.length !== 0) {
-                    pipelines[pipeline].outputs.forEach((edge: string) => {
-                      const edgeId = pipelineId + "-" + edge;
-
-                      const newEdge = {
-                        animated: true,
-                        id: edgeId,
-                        source: pipelineId,
-                        target: edge,
-                        type: "smoothstep",
-                      };
-
-                      existingEdges.push(newEdge);
-                    });
-                  }
-                }
-              });
-            }
-
-            if (enrichments) {
-              Object.keys(enrichments).forEach((enrichment, index) => {
-                if (enrichment !== "disabled") {
-                  const enrichmentId = enrichments[enrichment].name;
-
-                  const yPosition = 10 + index * 40;
-
-                  const currentEnrichment = {
-                    id: enrichmentId,
-                    sourcePosition: "right",
-                    targetPosition: "left",
-                    type: "default",
-                    height: 35,
-                    width: 150,
-                    position: { x: 250 * 2, y: yPosition },
-                    data: {
-                      label: enrichmentId,
-                      nodeData: enrichments[enrichment],
-                      type: "enrichment",
-                    },
-                    style: {
-                      backgroundColor: "#F0FFF4",
-                    },
-                  };
-
-                  existingNodes.push(currentEnrichment);
-                  initialAddedEnrichments.push(enrichments[enrichment]);
-
-                  if (enrichments[enrichment].outputs.length !== 0) {
-                    enrichments[enrichment].outputs.forEach((edge: string) => {
-                      const edgeId = enrichmentId + "-" + edge;
-
-                      const newEdge = {
-                        animated: true,
-                        id: edgeId,
-                        source: enrichmentId,
-                        target: edge,
-                        type: "smoothstep",
-                      };
-
-                      existingEdges.push(newEdge);
-                    });
-                  }
-                }
-              });
-            }
-
-            Object.keys(destinations).forEach((destination, index) => {
-              if (destination !== "disabled") {
-                const destinationId = destinations[destination].name;
-
-                const originalSource = getSourceFromID(
-                  destinations[destination].uuid,
-                  "destination",
-                  destinations[destination]
-                );
-
-                let currentOrigin = { ...originalSource };
-
-                currentOrigin.id = destinationId;
-
-                const yPosition = 10 + index * 40;
-
-                const currentDestination = {
-                  id: destinationId,
-                  targetPosition: Position.Left,
-                  type: "output",
-                  height: 35,
-                  width: 150,
-                  position: { x: 250 * 3, y: yPosition },
-                  data: {
-                    label: destinationId,
-                    nodeData: destinations[destination],
-                    type: "destination",
-                  },
-                  style: {
-                    backgroundColor: "#FFFAF0",
-                  },
-                };
-
-                existingNodes.push(currentDestination);
-                initialAddedDestinations.push(currentOrigin);
-              }
-            });
-          }
-
-          setConfigYaml(savedConfig);
-          setNodes(existingNodes);
-          setEdges(existingEdges);
-          setAddedDestinations(initialAddedDestinations);
-          setAddedSources(initialAddedSources);
-          setEnrichments(initialAddedEnrichments);
-          setPipelines(initialAddedPipelines);
-          setConfigUpdated(false);
+          getConfigDetails(savedConfig);
         }
       }
     },
@@ -2197,11 +2232,11 @@ const Routing = () => {
 
   const onPaneClick = useCallback(() => setShowMenu(null), [setShowMenu]);
 
-  const getLastModifiedDate = () => {
-    const currentStatus = data?.getConfig.configstatus;
+  const getLastModifiedDate = (configData: any) => {
+    const currentStatus = configData.configstatus;
     let timestamp = "";
 
-    data?.getConfig.configtags.forEach((tag: any) => {
+    configData.configtags.forEach((tag: any) => {
       if (tag.tagkey === "timestamp_" + currentStatus) {
         timestamp = tag.tagvalue;
       }
@@ -2283,11 +2318,24 @@ const Routing = () => {
     });
   };
 
-  const onVersionClick = (version: any) => {
-    console.log("version", version);
+  const onVersionClick = (event: any) => {
+    setSelectedVersion(event.target.value);
 
-    setSelectedVersion(version.versionid);
+    getOlderConfigDetails({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+          timezone: getCurrentTimezone(),
+          versionid: event.target.value,
+        },
+      },
+    });
   };
+
+  const onRevert = () => {};
+
+  const onCancelRevert = () => {};
 
   useEffect(() => {
     handleEdgeChange();
@@ -2322,91 +2370,123 @@ const Routing = () => {
             }}
           >
             <div>
-              {/* <Row className="justify-content-md-center"> */}
               <div className="current-config-data">
-                Current Version : <b>{data?.getConfig?.versionid}</b>
+                Version :{" "}
+                <b>
+                  {selectedVersion !== ""
+                    ? oldVersionData?.getConfig?.versionid
+                    : data?.getConfig?.versionid}
+                </b>
               </div>
 
               <div className="current-config-data" style={{ display: "flex" }}>
-                Timestamp : <b> {data?.getConfig && getLastModifiedDate()}</b>
+                Timestamp :{" "}
+                <b>
+                  {" "}
+                  {selectedVersion !== ""
+                    ? oldVersionData?.getConfig &&
+                      getLastModifiedDate(oldVersionData?.getConfig)
+                    : data?.getConfig && getLastModifiedDate(data?.getConfig)}
+                </b>
                 <div
                   className="current-config-data"
                   style={{ marginLeft: "12px" }}
                 >
                   Status :{" "}
                   <Badge bg="success">
-                    {data?.getConfig?.configstatus.toUpperCase()}
+                    {selectedVersion !== ""
+                      ? oldVersionData?.getConfig?.configstatus.toUpperCase()
+                      : data?.getConfig?.configstatus.toUpperCase()}
                   </Badge>
                 </div>
               </div>
-              {/* </Row> */}
             </div>
 
-            <div className="versions-div">
-              <Form.Label
-                htmlFor={"configVersions"}
-                className="current-config-data"
-                style={{ marginRight: "8px" }}
-              >
-                Versions
-              </Form.Label>
-
-              <Form.Select
-                aria-label="Select"
-                className="mb-3"
-                size="sm"
-                onChange={() => {
-                  onVersionClick(version);
-                }}
-                id={"version"}
-                value={selectedVersion}
-              >
-                <option value="" hidden>
-                  Select Version
-                </option>
-                {versionsData?.getConfigValidVersion.map((version: any) => (
-                  <option value={version.versionid}>
-                    <OverlayTrigger
-                      placement="right"
-                      overlay={
-                        <Tooltip id={version.versionid}>
-                          {version.comment || "No comment"}
-                        </Tooltip>
-                      }
-                    >
-                      <span style={{ display: "flex" }}>
-                        {version.lastmodified} (
-                        <p>{getVersionId(version.versionid)}</p>)
-                      </span>
-                    </OverlayTrigger>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div className="versions-div">
+                <Form.Select
+                  aria-label="Select"
+                  size="sm"
+                  onChange={(event) => {
+                    onVersionClick(event);
+                  }}
+                  id={"version"}
+                  value={selectedVersion}
+                >
+                  <option value="" hidden>
+                    Older Versions
                   </option>
-                ))}
-              </Form.Select>
-            </div>
 
-            <div style={{ display: "flex" }}>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={onSave}
-                style={{
-                  marginLeft: "8px",
-                }}
-              >
-                Save Config
-              </Button>
+                  {versionsData?.getConfigValidVersion.map((version: any) => (
+                    <option value={version.versionid}>
+                      <OverlayTrigger
+                        placement="right"
+                        overlay={
+                          <Tooltip id={version.versionid}>
+                            {version.comment || "No comment"}
+                          </Tooltip>
+                        }
+                      >
+                        <span style={{ display: "flex" }}>
+                          {version.lastmodified} (
+                          <p>{getVersionId(version.versionid)}</p>)
+                        </span>
+                      </OverlayTrigger>
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
 
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={onDeployConfig}
-                style={{
-                  marginLeft: "8px",
-                }}
-                disabled={data?.getConfig?.configstatus !== "draft"}
-              >
-                Deploy Config
-              </Button>
+              {selectedVersion !== "" ? (
+                <>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onCancelRevert}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onRevert}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                  >
+                    Revert
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onSave}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                  >
+                    Save
+                  </Button>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onDeployConfig}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                    disabled={data?.getConfig?.configstatus !== "draft"}
+                  >
+                    Deploy
+                  </Button>
+                </>
+              )}
             </div>
           </Col>
 
@@ -2469,8 +2549,12 @@ const Routing = () => {
               </div>
             </div>
 
-            {(loading || saveLoading || deployLoading) && (
-              <DataLoading open={loading || saveLoading || deployLoading} />
+            {(loading || saveLoading || deployLoading || oldVersionLoading) && (
+              <DataLoading
+                open={
+                  loading || saveLoading || deployLoading || oldVersionLoading
+                }
+              />
             )}
 
             <div style={{ height: "100vh" }}>
