@@ -94,6 +94,7 @@ const Routing = () => {
   const [comment, setComment] = useState("");
   const [selectedVersion, setSelectedVersion] = useState("");
   const [viewError, setViewError] = useState(false);
+  const [confirmOldSave, setConfirmOldSave] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
 
@@ -323,6 +324,9 @@ const Routing = () => {
 
             const yPosition = 10 + index * 40;
 
+            const colWidth = document.getElementById("source-col")?.clientWidth;
+            const xPosition = (colWidth - 30) * 1;
+
             const currentPipeline = {
               id: pipelineId,
               sourcePosition: "right",
@@ -330,7 +334,7 @@ const Routing = () => {
               type: "default",
               height: 35,
               width: 150,
-              position: { x: 280, y: yPosition },
+              position: { x: xPosition, y: yPosition },
               data: {
                 label: pipelineId,
                 nodeData: pipelines[pipeline],
@@ -369,6 +373,8 @@ const Routing = () => {
             const enrichmentId = enrichments[enrichment].name;
 
             const yPosition = 10 + index * 40;
+            const colWidth = document.getElementById("source-col")?.clientWidth;
+            const xPosition = (colWidth - 30) * 2;
 
             const currentEnrichment = {
               id: enrichmentId,
@@ -377,7 +383,7 @@ const Routing = () => {
               type: "default",
               height: 35,
               width: 150,
-              position: { x: 280 * 2, y: yPosition },
+              position: { x: xPosition, y: yPosition },
               data: {
                 label: enrichmentId,
                 nodeData: enrichments[enrichment],
@@ -425,6 +431,8 @@ const Routing = () => {
           currentOrigin.id = destinationId;
 
           const yPosition = 10 + index * 40;
+          const colWidth = document.getElementById("source-col")?.clientWidth;
+          const xPosition = (colWidth - 30) * 3;
 
           const currentDestination = {
             id: destinationId,
@@ -432,7 +440,7 @@ const Routing = () => {
             type: "output",
             height: 35,
             width: 150,
-            position: { x: 280 * 3, y: yPosition },
+            position: { x: xPosition, y: yPosition },
             data: {
               label: destinationId,
               nodeData: destinations[destination],
@@ -559,7 +567,8 @@ const Routing = () => {
     const nodeCount = addedDestinations.length + 1;
 
     const yPosition = 10 + nodeCount * 40;
-    const xPosition = 280 * 3;
+    const colWidth = document.getElementById("source-col")?.clientWidth;
+    const xPosition = (colWidth - 30) * 3;
 
     let destData = { ...destination };
     destData.id = nodeData?.name;
@@ -1086,7 +1095,8 @@ const Routing = () => {
     const nodeCount = addedPipelines.length + 1;
 
     const yPosition = 10 + nodeCount * 40;
-    const xPosition = 280 * 1;
+    const colWidth = document.getElementById("source-col")?.clientWidth;
+    const xPosition = (colWidth - 30) * 1;
 
     const nodeData = { ...pipeline };
 
@@ -1119,7 +1129,8 @@ const Routing = () => {
     const nodeCount = enrichments.length + 1;
 
     const yPosition = 10 + nodeCount * 40;
-    const xPosition = 280 * 2;
+    const colWidth = document.getElementById("source-col")?.clientWidth;
+    const xPosition = (colWidth - 30) * 2;
 
     const nodeData = { ...enrichment };
 
@@ -1151,6 +1162,8 @@ const Routing = () => {
 
   const onSave = (type: string) => {
     if (type === "revert") {
+      setConfirmOldSave(false);
+
       toast("Reverting to selected version.", {
         position: "top-right",
         zIndex: 9999,
@@ -2408,7 +2421,7 @@ const Routing = () => {
   };
 
   const onRevert = () => {
-    onSave("revert");
+    setConfirmOldSave(true);
   };
 
   const onCancelRevert = () => {
@@ -2615,7 +2628,21 @@ const Routing = () => {
                       marginLeft: "8px",
                     }}
                   >
-                    Revert
+                    Save
+                  </Button>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onDeployConfig}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                    disabled={
+                      oldVersionData?.getConfig?.configstatus !== "draft"
+                    }
+                  >
+                    Deploy
                   </Button>
                 </>
               ) : (
@@ -2652,7 +2679,7 @@ const Routing = () => {
           <Col xl={12} lg={12} md={12} sm={12}>
             <div className="source-dest-div">
               <div style={{ width: "23%" }}>
-                <div className="source-dest-sub-div">
+                <div className="source-dest-sub-div" id="source-col">
                   <div>Sources</div>
 
                   <Button
@@ -2850,6 +2877,43 @@ const Routing = () => {
               >
                 Deploy
               </Button>
+            </Modal.Body>
+          </Modal>
+        )}
+
+        {confirmOldSave && (
+          <Modal show={confirmOldSave} onHide={handleClose}>
+            <Modal.Body>
+              <h6>Do you want to proceed using this configuration?</h6>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setConfirmOldSave(false);
+                  }}
+                  size="sm"
+                  style={{ marginRight: "8px" }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    onSave("revert");
+                  }}
+                  size="sm"
+                >
+                  Yes
+                </Button>
+              </div>
             </Modal.Body>
           </Modal>
         )}
