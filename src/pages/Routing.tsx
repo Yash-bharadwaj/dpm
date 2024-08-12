@@ -1151,10 +1151,10 @@ const Routing = () => {
 
   const onSave = (type: string) => {
     if (type === "revert") {
-      toast("Switching to selected version", {
+      toast("Reverting to selected version.", {
         position: "top-right",
         zIndex: 9999,
-        theme: "info",
+        theme: "success",
       });
     }
 
@@ -2811,8 +2811,8 @@ const Routing = () => {
           <Modal show={confirmDeploy} onHide={handleClose}>
             <Modal.Body>
               <h6>
-                Deploying a new configuration requires restarting of DPM
-                service, process can take sometime
+                Deploying the new configuration requires a DPM service restart.
+                This process may take a few moments to complete.
               </h6>
 
               <Form.Control
