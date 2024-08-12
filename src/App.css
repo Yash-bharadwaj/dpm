@@ -1,5 +1,5 @@
 #root {
-  max-width: 1280px;
+  /* max-width: 1280px; */
   margin: 0 auto;
 }
 
@@ -202,11 +202,23 @@
   margin-bottom: 4px;
 }
 
-.versions-div .dropdown-item {
+.versions-div {
+  display: flex;
+  align-items: baseline;
+}
+
+.versions-div .form-select,
+.versions-div .form-select span {
   font-size: 14px;
-  max-width: 200px;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+}
+
+.versions-div .form-select p {
+  font-size: 13px;
+  max-width: 70px;
   overflow-x: hidden;
+  margin-bottom: 0;
 }
 
 @keyframes logo-spin {

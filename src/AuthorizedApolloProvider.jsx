@@ -28,6 +28,7 @@ export default function AuthorizedApolloProvider(props) {
   const { token } = useParams();
 
   const [authToken, setAuthToken] = useState(token);
+  const [refreshTokenExpiresAt, setRefreshTokenExpiresAt] = useState(null);
 
   const url = import.meta.env.VITE_REACT_APP_AWS_APPSYNC_GRAPHQLENDPOINT;
   const region = import.meta.env.VITE_REACT_APP_AWS_APPSYNC_REGION;
@@ -71,7 +72,6 @@ export default function AuthorizedApolloProvider(props) {
           .init({
             onLoad: "login-required",
             checkLoginIframe: false,
-            promiseType: "native",
           })
           .then(
             (auth) => {
@@ -80,9 +80,34 @@ export default function AuthorizedApolloProvider(props) {
               } else {
                 setAuthToken(keycloak.token);
 
+                const refreshToken = keycloak.refreshTokenParsed;
+                if (refreshToken && refreshToken.exp) {
+                  setRefreshTokenExpiresAt(refreshToken.exp * 1000);
+                }
+
                 keycloak.onTokenExpired = () => {
-                  window.alert("Session expired. Please refresh the page.");
+                  keycloak.updateToken(30).catch(() => {
+                    window.alert("Session expired. Please refresh the page.");
+                    keycloak.logout();
+                  });
                 };
+
+                const refreshTokenInterval = setInterval(() => {
+                  keycloak
+                    .updateToken(30)
+                    .then((refreshed) => {
+                      if (refreshed) {
+                        setAuthToken(keycloak.token);
+                      }
+                    })
+                    .catch(() => {
+                      clearInterval(refreshTokenInterval);
+                      window.alert("Session expired. Please refresh the page.");
+                      keycloak.logout();
+                    });
+                }, 60000); // Check every 60 seconds
+
+                return () => clearInterval(refreshTokenInterval);
               }
             },
             () => {
@@ -92,6 +117,18 @@ export default function AuthorizedApolloProvider(props) {
       }
     }
   }, [authToken]);
+
+  useEffect(() => {
+    if (refreshTokenExpiresAt) {
+      const refreshTokenTimeout = refreshTokenExpiresAt - new Date().getTime();
+      const timeoutId = setTimeout(() => {
+        window.alert("Your session has expired. Please log in again.");
+        keycloak.logout();
+      }, refreshTokenTimeout);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [refreshTokenExpiresAt]);
 
   if (authToken !== null && authToken !== undefined) {
     // if (import.meta.env.VITE_REACT_APP_ENV === "development") {

@@ -83,3 +83,9 @@ export const getSourceFromID = (uuid, type, currentSource) => {
 
   return mainSource;
 };
+
+export const getVersionId = (versionid) => {
+  let versionId = versionid.substring(0, 8);
+
+  return versionId;
+};
