@@ -1,6 +1,14 @@
 import { Nav, Navbar } from "react-bootstrap";
 
+import { MdHelpOutline } from "react-icons/md";
+
+const url = import.meta.env.VITE_REACT_APP_DOCS;
+
 const MainNavbar = () => {
+  const onDocsClick = () => {
+    window.open(url, "_blank");
+  };
+
   return (
     <Navbar
       className="bg-body-tertiary small-navbar main-navbar"
@@ -17,6 +25,12 @@ const MainNavbar = () => {
           <Nav.Link href="/">Home</Nav.Link>
         </Nav>
       </Navbar.Collapse>
+
+      <Nav.Link onClick={onDocsClick} style={{ marginRight: "12px" }}>
+        <MdHelpOutline
+          style={{ height: "20px", width: "20px", fill: "#fff" }}
+        />
+      </Nav.Link>
     </Navbar>
   );
 };

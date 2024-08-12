@@ -2656,6 +2656,10 @@ const Routing = () => {
                     style={{
                       marginLeft: "8px",
                     }}
+                    disabled={
+                      data?.getConfig?.configstatus !== "draft" &&
+                      !configUpdated
+                    }
                   >
                     Save
                   </Button>
