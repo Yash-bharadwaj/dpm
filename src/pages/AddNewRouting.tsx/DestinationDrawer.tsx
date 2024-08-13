@@ -83,6 +83,7 @@ const DestinationDrawer = ({
                             <img
                               src={getImageSource(destination.image)}
                               alt={destination.name}
+                              style={{ width: "60px" }}
                             />
                           </div>
                           {destination?.name}

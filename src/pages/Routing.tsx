@@ -2484,15 +2484,6 @@ const Routing = () => {
         selectedVersion === ""
       ) {
         refetch();
-        // getOlderConfigDetails({
-        //   variables: {
-        //     input: {
-        //       orgcode: orgCode,
-        //       devicecode: deviceCode,
-        //       timezone: getCurrentTimezone(),
-        //     },
-        //   },
-        // });
       }
     }, 1000 * 60); // in milliseconds
     return () => clearInterval(intervalId);

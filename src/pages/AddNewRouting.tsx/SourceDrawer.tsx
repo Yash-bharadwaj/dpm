@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {
-  Button,
-  Card,
-  Col,
-  Form,
-  InputGroup,
-  Offcanvas,
-  Row,
-} from "react-bootstrap";
+import { Button, Card, Col, Offcanvas, Row } from "react-bootstrap";
 
 import sources from "../../data/sources.json";
 import { useState } from "react";
@@ -72,8 +64,14 @@ const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
               {sources.sources.map((source) => (
                 <Col xl={4} lg={4}>
                   <Card className="mb-2 pointer select-card">
-                    <Card.Body className="main-card-div" style={{ boxShadow: "rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px, rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(42, 51, 70, 0.04) 0px 6px 6px -3px, rgba(14, 63, 126, 0.04) 0px 12px 12px -6px, rgba(14, 63, 126, 0.04) 0px 24px 24px -12px"}}>
-                      <div style={{ width: "100%" ,}}>
+                    <Card.Body
+                      className="main-card-div"
+                      style={{
+                        boxShadow:
+                          "rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px, rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(42, 51, 70, 0.04) 0px 6px 6px -3px, rgba(14, 63, 126, 0.04) 0px 12px 12px -6px, rgba(14, 63, 126, 0.04) 0px 24px 24px -12px",
+                      }}
+                    >
+                      <div style={{ width: "100%" }}>
                         <Card.Text className="card-text">
                           <div>
                             <img
