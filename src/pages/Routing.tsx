@@ -2481,6 +2481,7 @@ const Routing = () => {
         data?.getConfig.configstatus !== "draft" &&
         data?.getConfig.configstatus !== undefined &&
         data?.getConfig.configstatus !== "invalid" &&
+        data?.getConfig.configstatus !== "not-deployed" &&
         selectedVersion === ""
       ) {
         refetch();
@@ -2538,7 +2539,7 @@ const Routing = () => {
                   </Badge>
                   {(data?.getConfig.configstatus === "failed" ||
                     data?.getConfig.configstatus === "invalid" ||
-                    data?.getConfig.configstatus === "notdeployed") && (
+                    data?.getConfig.configstatus === "not-deployed") && (
                     <MdReportGmailerrorred
                       style={{
                         height: "25px",
