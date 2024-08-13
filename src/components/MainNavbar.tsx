@@ -36,14 +36,11 @@ const MainNavbar = () => {
         <Nav className="me-auto">
           <Nav.Link href="/">Home</Nav.Link>
         </Nav>
-      </Navbar.Collapse>
 
-      <Nav.Link onClick={onDocsClick} style={{ marginRight: "12px" }}>
-        <MdHelpOutline
-          style={{ height: "20px", width: "20px", fill: "#fff" }}
-        />
-      </Nav.Link>
-      <Navbar.Collapse id="basic-navbar-nav"></Navbar.Collapse>
+        <Nav.Link onClick={onDocsClick} style={{ marginRight: "12px" }}>
+          <MdHelpOutline style={{ height: "20px", width: "20px" }} />
+        </Nav.Link>
+      </Navbar.Collapse>
     </Navbar>
   );
 };
