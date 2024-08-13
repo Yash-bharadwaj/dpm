@@ -2515,7 +2515,7 @@ const Routing = () => {
             }}
           >
             <div>
-              <div style={{display:'flex' , gap:'1.2rem'}}>
+              <div style={{display:'flex', gap:'1rem'}}>
             <div className="current-config-data">
                 Device :{" "}
                 <b>
@@ -2523,7 +2523,7 @@ const Routing = () => {
                 </b>
               </div>
             <div className="current-config-data">
-                HeartBeat :{" "}
+                HeartBeat Status :{" "}
                 <b>
                   {deviceCode}
                 </b>

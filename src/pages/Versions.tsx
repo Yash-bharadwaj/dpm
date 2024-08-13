@@ -22,55 +22,72 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
-
 // @ts-ignore
 import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
 import loadingAnimation from "../utils/Loading.json";
-import { WiMoonAltNew } from "react-icons/wi";
-import { RiDraftFill, RiProgress6Fill } from "react-icons/ri";
-import { CiCirclePlus, CiCircleCheck } from "react-icons/ci";
-import { TfiReload } from "react-icons/tfi";
-import { MdVerified } from "react-icons/md";
+import { FaRegCheckCircle } from "react-icons/fa";
 import { RxCrossCircled } from "react-icons/rx";
-import { FaRegArrowAltCircleDown } from "react-icons/fa";
-import { GrInProgress } from "react-icons/gr";
+import { TbAlertTriangleFilled } from "react-icons/tb";
 
-// Define status colors and icons
-const statusColors: Record<string, string> = {
-  draft: "#1063ff",
-  new: "#156cb3",
-  converted: "#f4a460",
-  deployed: "#75ee1b",
-  valid: "#1c36bf",
-  invalid: "#d51a22",
-  received: "#00c853",
-  inprogress: "#eb6c19",
-};
-
+// Define status colors and icons for table chips
 const statusIcons: Record<string, JSX.Element> = {
-  draft: <RiDraftFill />,
-  new: <WiMoonAltNew />,
-  converted: <TfiReload />,
-  deployed: <MdVerified />,
-  valid: <CiCircleCheck />,
-  invalid: <RxCrossCircled />,
-  received: <FaRegArrowAltCircleDown />,
-  inprogress: <GrInProgress />,
+  invalid: <TbAlertTriangleFilled style={{ color: '#a70000' }} />,
+  notvalid: <TbAlertTriangleFilled style={{ color: '#a70000' }} />,
+  notdeployed: <RxCrossCircled style={{ color: '#d51a22' }} />,
+  failed: <TbAlertTriangleFilled style={{ color: '#d51a22' }} />,
+  draft: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  new: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  converted: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  deployed: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  valid: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  received: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  inprogress: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
 };
+
+const statusColors: Record<string, string> = {
+  invalid: "#ffbaba",
+  notvalid: "#d51a22",
+  notdeployed: "#d51a22",
+  failed: "#d51a22",
+  draft: "#DDF1EA",
+  new: "#4BB543",
+  converted: "#4BB543",
+  deployed: "#DDF1EA",
+  valid: "#4BB543",
+  received: "#4BB543",
+  inprogress: "#007867",
+};
+
+
+const timelineColors: Record<string, { iconColor: string; textColor: string }> = {
+  invalid: { iconColor: 'black', textColor: 'yellow' },
+  notdeployed: { iconColor: '#d51a22', textColor: 'red' },
+  failed: { iconColor: '#d51a22', textColor: 'red' },
+  draft: { iconColor: '#007867', textColor: 'black' },
+  new: { iconColor: '#007867', textColor: 'black' },
+  converted: { iconColor: '#007867', textColor: 'black' },
+  deployed: { iconColor: '#007867', textColor: 'black' },
+  valid: { iconColor: '#4BB543', textColor: 'black' },
+  received: { iconColor: '#4BB543', textColor: 'black' },
+  inprogress: { iconColor: '#4BB543', textColor: 'black' },
+};
+
 
 interface Version {
   id: string;
   lastUpdated: string;
-  status: keyof typeof statusColors;
+  status: keyof typeof statusIcons;
 }
 
 interface TimelineEventData {
-  status: keyof typeof statusColors;
+  status: keyof typeof statusIcons;
   timestamp: string;
 }
 
 const Versions: React.FC = () => {
+  
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const [versionsData, setVersionsData] = useState<Version[]>([]);
   const [timelineData, setTimelineData] = useState<Record<string, TimelineEventData[]>>({});
   const [openRowId, setOpenRowId] = useState<string | null>(null);
@@ -115,163 +132,163 @@ const Versions: React.FC = () => {
     }
   }, [versionsDataResponse]);
 
-const fetchTimelineData = async (versionid: string) => {
-  try {
-    const { data } = await fetchTimeline({
-      variables: {
-        input: {
-          orgcode: "d3b6842d",
-          devicecode: "DM_HY_D01",
-          versionid: versionid,
-          timezone: getCurrentTimezone(),
+  const fetchTimelineData = async (versionid: string) => {
+    try {
+      const { data } = await fetchTimeline({
+        variables: {
+          input: {
+            orgcode: "d3b6842d",
+            devicecode: "DM_HY_D01",
+            versionid: versionid,
+            timezone: getCurrentTimezone(),
+          },
         },
-      },
-    });
+      });
 
-    const timeline = data?.getConfigTimeline || [];
-    setTimelineData((prevData) => ({
-      ...prevData,
-      [versionid]: timeline,
-    }));
-  } catch (error) {
-    console.error(`Error fetching timeline for version ${versionid}:`, error);
+      const timeline = data?.getConfigTimeline || [];
+      setTimelineData((prevData) => ({
+        ...prevData,
+        [versionid]: timeline,
+      }));
+    } catch (error) {
+      console.error(`Error fetching timeline for version ${versionid}:`, error);
+    }
+  };
+
+  if (versionsLoading || timelineLoading) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Lottie
+          options={{
+            loop: true,
+            autoplay: true,
+            animationData: loadingAnimation,
+            rendererSettings: {
+              preserveAspectRatio: "xMidYMid slice"
+            }
+          }}
+          height={200}
+          width={200}
+        />
+      </div>
+    );
   }
-};
+  if (versionsError) return <p>Error: {versionsError.message}</p>;
+  if (timelineError) return <p>Error: {timelineError.message}</p>;
 
-if (versionsLoading || timelineLoading) {
+  const handleRowClick = (id: string) => {
+    setOpenRowId((prevId) => (prevId === id ? null : id));
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-      <Lottie
-        options={{
-          loop: true,
-          autoplay: true,
-          animationData: loadingAnimation,
-          rendererSettings: {
-            preserveAspectRatio: "xMidYMid slice"
-          }
-        }}
-        height={200}
-        width={200}
-      />
-    </div>
-  );
-}
-if (versionsError) return <p>Error: {versionsError.message}</p>;
-if (timelineError) return <p>Error: {timelineError.message}</p>;
-
-const handleRowClick = (id: string) => {
-  setOpenRowId((prevId) => (prevId === id ? null : id));
-};
-
-const handleChangePage = (event: unknown, newPage: number) => {
-  setPage(newPage);
-};
-
-const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-  setRowsPerPage(parseInt(event.target.value, 10));
-  setPage(0);
-};
-
-return (
-  <TableContainer style={{ marginTop: "7rem", width: '70%', marginInline: '7rem' }} component={Paper}>
-    <Table>
-      <TableHead>
-        <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>
-          <TableCell style={{ width: "20px" }} />
-          <TableCell style={{ fontWeight: "600", width:'10rem' }}>Version ID</TableCell>
-          <TableCell style={{ fontWeight: "600", width: '20rem' }}>
-            Last Updated
-            <span style={{ fontSize: '13px' }}>({getCurrentTimezoneOffset()})</span>
-          </TableCell>
-          <TableCell style={{ fontWeight: "600", width: '10rem' }}>Status</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {versionsData
-          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          .map((version: Version) => (
-            <React.Fragment key={version.id}>
-              <TableRow>
-                <TableCell>
-                  <IconButton
-                    aria-label="expand row"
-                    size="small"
-                    onClick={() => handleRowClick(version.id)}
-                  >
-                    {openRowId === version.id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                  </IconButton>
-                </TableCell>
-                <TableCell>{version.id}</TableCell>
-                <TableCell>{version.lastUpdated}</TableCell>
-                <TableCell>
-                  <Chip
-                    icon={statusIcons[version.status]} // Add the icon
-                    label={version.status}
-                    style={{
-                      backgroundColor: statusColors[version.status],
-                      color: "white",
-                      fontWeight: "600",
-                      borderRadius: "7px",
-                      height: "26px"
-                    }}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                  <Collapse in={openRowId === version.id} timeout="auto" unmountOnExit>
-                    <Box margin={1}>
-                      <Typography variant="h6" gutterBottom component="div">
-                        Timeline
-                      </Typography>
-                      {timelineData[version.id]?.length > 0 ? (
-                        <Stepper orientation="horizontal">
-                          {timelineData[version.id].map((event: TimelineEventData, index: number) => (
-                            <Step key={index} active={true}>
-                              <StepLabel
-                                StepIconComponent={() => (
-                                  <div style={{ textAlign: 'center' }}>
-                                    <Typography variant="caption" style={{ color: 'grey' }}>
-                                      {event.timestamp}
-                                    </Typography>
-                                    <div style={{ fontSize: 24, color: statusColors[event.status] || 'grey' }}>
-                                      {statusIcons[event.status]}
+    <TableContainer style={{ marginTop: "0rem", width: '70%', marginInline: '5rem' }} component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>
+            <TableCell style={{ width: "20px" }} />
+            <TableCell style={{ fontWeight: "600", width: '10rem' }}>Version ID</TableCell>
+            <TableCell style={{ fontWeight: "600", width: '20rem' }}>
+              Last Updated
+              <span style={{ fontSize: '13px' }}>({getCurrentTimezoneOffset()})</span>
+            </TableCell>
+            <TableCell style={{ fontWeight: "600", width: '10rem' }}>Status</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {versionsData
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((version: Version) => (
+              <React.Fragment key={version.id}>
+                <TableRow>
+                  <TableCell>
+                    <IconButton
+                      aria-label="expand row"
+                      size="small"
+                      onClick={() => handleRowClick(version.id)}
+                    >
+                      {openRowId === version.id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                    </IconButton>
+                  </TableCell>
+                  <TableCell>{version.id}</TableCell>
+                  <TableCell>{version.lastUpdated}</TableCell>
+                  <TableCell>
+                    <Chip
+                      icon={statusIcons[version.status]} // Add the icon
+                      label={version.status}
+                      style={{
+                        backgroundColor: statusColors[version.status],
+                        color: "#007867",
+                        fontWeight: "600",
+                        borderRadius: "7px",
+                        height: "26px"
+                      }}
+                    />
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
+                    <Collapse in={openRowId === version.id} timeout="auto" unmountOnExit>
+                      <Box margin={1}>
+                        <Typography variant="h6" gutterBottom component="div">
+                          Timeline
+                        </Typography>
+                        {timelineData[version.id]?.length > 0 ? (
+                          <Stepper orientation="horizontal">
+                            {timelineData[version.id].map((event: TimelineEventData, index: number) => (
+                              <Step key={index} active={true}>
+                                <StepLabel
+                                  StepIconComponent={() => (
+                                    <div style={{ textAlign: 'center' }}>
+                                      <Typography variant="caption" style={{ color: timelineColors[event.status]?.textColor || 'grey' }}>
+                                        {event.timestamp}
+                                      </Typography>
+                                      <div style={{ fontSize: 24, color: timelineColors[event.status]?.iconColor || 'grey' }}>
+                                        {statusIcons[event.status]}
+                                      </div>
+                                      <Typography variant="body2" style={{ color: timelineColors[event.status]?.textColor || 'grey' }}>
+                                        {event.status}
+                                      </Typography>
                                     </div>
-                                    <Typography variant="body2" style={{ color: statusColors[event.status] || 'grey' }}>
-                                      {event.status}
-                                    </Typography>
-                                  </div>
-                                )}
-                              >
-                                {/* Additional content can be placed here if needed */}
-                              </StepLabel>
-                            </Step>
-                          ))}
-                        </Stepper>
-                      ) : (
-                        <Typography variant="body1">No timeline events available.</Typography>
-                      )}
-                    </Box>
-                  </Collapse>
-                </TableCell>
-              </TableRow>
-            </React.Fragment>
-          ))}
-
-</TableBody>
-  </Table>
-  <TablePagination
-    rowsPerPageOptions={[5, 10, 25]}
-    component="div"
-    count={versionsData.length}
-    rowsPerPage={rowsPerPage}
-    page={page}
-    onPageChange={handleChangePage}
-    onRowsPerPageChange={handleChangeRowsPerPage}
-  />
-</TableContainer>
-
-);
+                                  )}
+                                >
+                                  {/* Additional content can be placed here if needed */}
+                                </StepLabel>
+                              </Step>
+                            ))}
+                          </Stepper>
+                        ) : (
+                          <Typography variant="body1">No timeline events available.</Typography>
+                        )}
+                      </Box>
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+              </React.Fragment>
+            ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={versionsData.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </TableContainer>
+  );
 };
 
 export default Versions;
+
+
