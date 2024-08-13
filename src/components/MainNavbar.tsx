@@ -1,12 +1,23 @@
+// MainNavbar.tsx
+import React, { useContext } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Navbar, Nav } from 'react-bootstrap';
 import Logo from '../assets/images/logoBlusapphire.png';
-import { FaBell } from 'react-icons/fa'; // Import the FaBell icon
+import { FaBell } from 'react-icons/fa';
+import { DeviceContext } from '../utils/DeviceContext';// import context
 
 const MainNavbar = () => {
   const location = useLocation();
+  const deviceContext = useContext(DeviceContext); // get the context
   const isHomePage = location.pathname === '/';
   const isVersionsPage = location.pathname === '/versions';
+
+  // If the context is not available, handle it gracefully
+  if (!deviceContext) {
+    return null; // or return some fallback UI
+  }
+
+  const { selectedDevice } = deviceContext;
 
   return (
     <Navbar
@@ -28,12 +39,13 @@ const MainNavbar = () => {
         </Navbar.Brand>
       </div>
 
-      {/* Conditionally render the Nav component based on the route */}
+      
+
       {!isHomePage && (
         <Nav className="me-auto" style={{ display: 'flex', alignItems: 'center' }}>
           <Nav.Link
             as={Link}
-            to="/" // Adjust path if necessary
+            to="/"
             style={{
               borderBottom: isHomePage ? '2px solid #11a1cd' : 'none',
               color: isHomePage ? '#11a1cd' : 'inherit',
@@ -56,9 +68,16 @@ const MainNavbar = () => {
           </Nav.Link>
         </Nav>
       )}
-
-      {/* Add the FaBell icon with a notification badge */}
-      <div style={{ position: 'relative', marginRight: '3rem' }}>
+<div>
+  <div style={{display:'flex' , gap:'1rem'}}>
+  {selectedDevice && (
+        <div style={{   fontSize: '14px' }}>
+          Selected Device: <span style={{fontWeight: '600', }} > {selectedDevice}</span>
+        </div>
+      )}
+  
+      <div style={{ position: 'relative', marginRight: '3rem' , display:'flex'}}>
+      
         <FaBell style={{ fontSize: '1.3rem', color: 'black' }} />
         <div
           style={{
@@ -79,8 +98,10 @@ const MainNavbar = () => {
         >
           3
         </div>
+      
       </div>
-
+      </div>
+      </div>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
     </Navbar>
   );

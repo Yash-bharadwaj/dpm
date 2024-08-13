@@ -1,15 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useQuery } from "@apollo/client";
-import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-} from "@mui/material";
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import { GET_DEVICES_LIST } from "../query/query";
 import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
@@ -21,6 +12,7 @@ import { ImLocation2 } from "react-icons/im";
 import Lottie from 'react-lottie';
 import loadingAnimation from '../utils/Loading.json';
 import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
+import { DeviceContext } from "../utils/DeviceContext";
 
 interface Device {
   deviceid: string;
@@ -35,10 +27,17 @@ interface Device {
 const Home: React.FC = () => {
   const orgCode = "d3b6842d";
   const [deviceCode, setDeviceCode] = useState<string>("DM_HY_D01");
-  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
+  const deviceContext = useContext(DeviceContext); // Get the context
   const navigate = useNavigate();
+
+  // If the context is not available, handle it gracefully
+  if (!deviceContext) {
+    return <p>Error: DeviceContext is not available.</p>;
+  }
+
+  const { setSelectedDevice } = deviceContext;
 
   const {
     loading: devicesLoading,
@@ -51,17 +50,17 @@ const Home: React.FC = () => {
   const heartbeatStatus = useHeartbeatStatus(devicesData?.getLcdeviceList || []);
 
   const handleDeviceCodeClick = (device: Device) => {
+    setSelectedDevice(device.devicecode); // Update context
     navigate(`/config/${device.orgcode}/${device.devicecode}`);
   };
 
   const handleViewDetailsClick = (device: Device) => {
-    setSelectedDevice(device);
+    setSelectedDevice(device.devicecode);
     setSidebarOpen(true);
   };
 
   const handleCloseSidebar = () => {
     setSidebarOpen(false);
-    setSelectedDevice(null);
   };
 
   const defaultOptions = {
@@ -205,9 +204,7 @@ const Home: React.FC = () => {
       </TableContainer>
       <DeviceDetailsSidebar
         open={sidebarOpen}
-        onClose={handleCloseSidebar}
-        device={selectedDevice}
-      />
+        onClose={handleCloseSidebar} device={null}      />
     </div>
   );
 };
