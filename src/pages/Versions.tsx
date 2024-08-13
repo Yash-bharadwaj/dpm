@@ -12,123 +12,69 @@ import {
   Chip,
   Typography,
   IconButton,
+  Stepper,
+  Step,
+  StepLabel,
+  TablePagination,
 } from "@mui/material";
 import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
+// @ts-ignore
 import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
 import loadingAnimation from "../utils/Loading.json";
-import { Display } from "react-bootstrap-icons";
+import { WiMoonAltNew } from "react-icons/wi";
+import { RiDraftFill, RiProgress6Fill } from "react-icons/ri";
+import { CiCirclePlus, CiCircleCheck } from "react-icons/ci";
+import { TfiReload } from "react-icons/tfi";
+import { MdVerified } from "react-icons/md";
+import { RxCrossCircled } from "react-icons/rx";
+import { FaRegArrowAltCircleDown } from "react-icons/fa";
+import { GrInProgress } from "react-icons/gr";
+
+// Define status colors and icons
+const statusColors: Record<string, string> = {
+  draft: "#1063ff",
+  new: "#156cb3",
+  converted: "#f4a460",
+  deployed: "#75ee1b",
+  valid: "#1c36bf",
+  invalid: "#d51a22",
+  received: "#00c853",
+  inprogress: "#eb6c19",
+};
+
+const statusIcons: Record<string, JSX.Element> = {
+  draft: <RiDraftFill />,
+  new: <WiMoonAltNew />,
+  converted: <TfiReload />,
+  deployed: <MdVerified />,
+  valid: <CiCircleCheck />,
+  invalid: <RxCrossCircled />,
+  received: <FaRegArrowAltCircleDown />,
+  inprogress: <GrInProgress />,
+};
 
 interface Version {
   id: string;
   lastUpdated: string;
-  status: "deployed" | "in progress" | "saved" | "new" | "valid" | "not deployed" | "draft";
+  status: keyof typeof statusColors;
 }
 
-const statusColors: Record<string, string> = {
-  deployed: "green",
-  "in progress": "#FFAF00",
-  saved: "#399918",
-  new: "blue",
-  valid: "purple",
-  "not deployed": "red",
-  draft: "orange",
-};
-
-const Timeline: React.FC<{ timeline: { status: string; timestamp: string }[] }> = ({ timeline }) => {
-  return (
-    <Box style={{ position: 'relative', overflowX: 'auto', whiteSpace: 'nowrap', padding: '10px', display: 'flex', alignItems: 'center', gap:'6rem' }}>
-      {timeline.map((event, index) => (
-        <Box
-          key={index}
-          style={{
-            display: 'inline-block',
-            textAlign: 'center',
-            position: 'relative',
-            marginRight: index < timeline.length - 1 ? '40px' : '0', // Increased space for the line
-          }}
-        >
-          {/* Line connecting statuses */}
-          {index > 0 && (
-            <Box
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '-20px', // Position the line to the left of the current circle
-                width: '20px',
-                height: '2px',
-                backgroundColor: statusColors[timeline[index - 1].status], // Match the color with the previous status
-                zIndex: -1,
-                transform: 'translateY(-50%)',
-              }}
-            />
-          )}
-          <Typography variant="caption" style={{ fontWeight: 'bold' }}>
-            {event.timestamp}
-          </Typography>
-          <Box
-            style={{
-              border: `2px solid ${statusColors[event.status]}`,
-              borderRadius: '50%',
-              width: '20px',
-              height: '20px',
-              margin: '0 auto',
-              backgroundColor: statusColors[event.status],
-              position: 'relative',
-              zIndex: 1,
-            }}
-          />
-          <Typography variant="caption" style={{ fontSize: '16px' }}>{event.status}</Typography>
-        </Box>
-      ))}
-    </Box>
-  );
-};
-
-
-// const Timeline: React.FC<{ timeline: { status: string; timestamp: string }[] }> = ({ timeline }) => {
-//   return (
-//     <Box style={{ overflowX: 'auto', whiteSpace: 'nowrap', padding: '10px' , display:'flex', gap:'8rem'}}>
-//       {timeline.map((event, index) => (
-//         <Box
-//           key={index}
-//           style={{
-//             display: 'inline-block',
-//             marginRight: '20px',
-//             textAlign: 'center',
-//           }}
-//         >
-//           <Typography variant="caption" style={{ fontWeight: 'bold' }}>
-//             {event.timestamp}
-//           </Typography>
-//           <Box
-//             style={{
-//               border: `2px solid ${statusColors[event.status]}`,
-//               borderRadius: '40%',
-//               width: '20px',
-//               height: '20px',
-//               margin: '0 auto',
-//               backgroundColor: statusColors[event.status],
-//             }}
-//           />
-//           <Typography variant="caption" style={{fontSize:'16px'}}>{event.status}</Typography>
-//         </Box>
-//       ))}
-//     </Box>
-//   );
-// };
-
-
-
+interface TimelineEventData {
+  status: keyof typeof statusColors;
+  timestamp: string;
+}
 
 const Versions: React.FC = () => {
   const [versionsData, setVersionsData] = useState<Version[]>([]);
-  const [timelineData, setTimelineData] = useState<Record<string, { status: string; timestamp: string }[]>>({});
-  const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
+  const [timelineData, setTimelineData] = useState<Record<string, TimelineEventData[]>>({});
+  const [openRowId, setOpenRowId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const getCurrentTimezone = () => {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -168,70 +114,81 @@ const Versions: React.FC = () => {
     }
   }, [versionsDataResponse]);
 
-  const fetchTimelineData = async (versionid: string) => {
-    try {
-      const { data } = await fetchTimeline({
-        variables: {
-          input: {
-            orgcode: "d3b6842d",
-            devicecode: "DM_HY_D01",
-            versionid: versionid,
-            timezone: getCurrentTimezone(),
-          },
+const fetchTimelineData = async (versionid: string) => {
+  try {
+    const { data } = await fetchTimeline({
+      variables: {
+        input: {
+          orgcode: "d3b6842d",
+          devicecode: "DM_HY_D01",
+          versionid: versionid,
+          timezone: getCurrentTimezone(),
         },
-      });
+      },
+    });
 
-      const timeline = data?.getConfigTimeline || [];
-      setTimelineData((prevData) => ({
-        ...prevData,
-        [versionid]: timeline,
-      }));
-    } catch (error) {
-      console.error(`Error fetching timeline for version ${versionid}:`, error);
-    }
-  };
-
-  if (versionsLoading || timelineLoading) {
-    return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <Lottie 
-          options={{
-            loop: true,
-            autoplay: true,
-            animationData: loadingAnimation,
-            rendererSettings: {
-              preserveAspectRatio: "xMidYMid slice"
-            }
-          }}
-          height={400}
-          width={400}
-        />
-      </div>
-    );
+    const timeline = data?.getConfigTimeline || [];
+    setTimelineData((prevData) => ({
+      ...prevData,
+      [versionid]: timeline,
+    }));
+  } catch (error) {
+    console.error(`Error fetching timeline for version ${versionid}:`, error);
   }
-  if (versionsError) return <p>Error: {versionsError.message}</p>;
-  if (timelineError) return <p>Error: {timelineError.message}</p>;
+};
 
-  const handleRowClick = (id: string) => {
-    const isCurrentlyOpen = openRows[id];
-    setOpenRows((prev) => ({ ...prev, [id]: !isCurrentlyOpen }));
-  };
-
+if (versionsLoading || timelineLoading) {
   return (
-    <TableContainer style={{ marginTop: "5rem" }} component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>
-            <TableCell style={{ width: "30px" }} />
-            <TableCell style={{ fontWeight: "600" }}>Version ID</TableCell>
-            <TableCell style={{ fontWeight: "600" }}>
-              Last Updated <span style={{ fontSize: '13px' }}>({getCurrentTimezoneOffset()})</span>
-            </TableCell>
-            <TableCell style={{ fontWeight: "600" }}>Status</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {versionsData.map((version: Version) => (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <Lottie
+        options={{
+          loop: true,
+          autoplay: true,
+          animationData: loadingAnimation,
+          rendererSettings: {
+            preserveAspectRatio: "xMidYMid slice"
+          }
+        }}
+        height={200}
+        width={200}
+      />
+    </div>
+  );
+}
+if (versionsError) return <p>Error: {versionsError.message}</p>;
+if (timelineError) return <p>Error: {timelineError.message}</p>;
+
+const handleRowClick = (id: string) => {
+  setOpenRowId((prevId) => (prevId === id ? null : id));
+};
+
+const handleChangePage = (event: unknown, newPage: number) => {
+  setPage(newPage);
+};
+
+const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setRowsPerPage(parseInt(event.target.value, 10));
+  setPage(0);
+};
+
+return (
+  <TableContainer style={{ marginTop: "7rem", width: '70%', marginInline: '7rem' }} component={Paper}>
+    <Table>
+      <TableHead>
+        <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>
+          <TableCell style={{ width: "20px" }} />
+          <TableCell style={{ fontWeight: "600", width:'10rem' }}>Version ID</TableCell>
+          <TableCell style={{ fontWeight: "600", width: '20rem' }}>
+            Last Updated
+            <span style={{ fontSize: '13px' }}>({getCurrentTimezoneOffset()})</span>
+          </TableCell>
+          <TableCell style={{ fontWeight: "600", width: '10rem' }}>Status</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {versionsData
+          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+          .map((version: Version) => (
             <React.Fragment key={version.id}>
               <TableRow>
                 <TableCell>
@@ -240,13 +197,14 @@ const Versions: React.FC = () => {
                     size="small"
                     onClick={() => handleRowClick(version.id)}
                   >
-                    {openRows[version.id] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                    {openRowId === version.id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                   </IconButton>
                 </TableCell>
                 <TableCell>{version.id}</TableCell>
                 <TableCell>{version.lastUpdated}</TableCell>
                 <TableCell>
                   <Chip
+                    icon={statusIcons[version.status]} // Add the icon
                     label={version.status}
                     style={{
                       backgroundColor: statusColors[version.status],
@@ -260,15 +218,37 @@ const Versions: React.FC = () => {
               </TableRow>
               <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                  <Collapse in={openRows[version.id]} timeout="auto" unmountOnExit>
+                  <Collapse in={openRowId === version.id} timeout="auto" unmountOnExit>
                     <Box margin={1}>
                       <Typography variant="h6" gutterBottom component="div">
                         Timeline
                       </Typography>
                       {timelineData[version.id]?.length > 0 ? (
-                        <Timeline timeline={timelineData[version.id]} />
+                        <Stepper orientation="horizontal">
+                          {timelineData[version.id].map((event: TimelineEventData, index: number) => (
+                            <Step key={index} active={true}>
+                              <StepLabel
+                                StepIconComponent={() => (
+                                  <div style={{ textAlign: 'center' }}>
+                                    <Typography variant="caption" style={{ color: 'grey' }}>
+                                      {event.timestamp}
+                                    </Typography>
+                                    <div style={{ fontSize: 24, color: statusColors[event.status] || 'grey' }}>
+                                      {statusIcons[event.status]}
+                                    </div>
+                                    <Typography variant="body2" style={{ color: statusColors[event.status] || 'grey' }}>
+                                      {event.status}
+                                    </Typography>
+                                  </div>
+                                )}
+                              >
+                                {/* Additional content can be placed here if needed */}
+                              </StepLabel>
+                            </Step>
+                          ))}
+                        </Stepper>
                       ) : (
-                        <Typography>No timeline data available.</Typography>
+                        <Typography variant="body1">No timeline events available.</Typography>
                       )}
                     </Box>
                   </Collapse>
@@ -276,10 +256,21 @@ const Versions: React.FC = () => {
               </TableRow>
             </React.Fragment>
           ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+
+</TableBody>
+  </Table>
+  <TablePagination
+    rowsPerPageOptions={[5, 10, 25]}
+    component="div"
+    count={versionsData.length}
+    rowsPerPage={rowsPerPage}
+    page={page}
+    onPageChange={handleChangePage}
+    onRowsPerPageChange={handleChangeRowsPerPage}
+  />
+</TableContainer>
+
+);
 };
 
 export default Versions;

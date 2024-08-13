@@ -249,13 +249,13 @@ const Routing = () => {
 
     console.log("sample", sample);
 
-    let initialAddedSources = [];
-    let initialAddedDestinations = [];
-    let initialAddedPipelines = [];
-    let initialAddedEnrichments = [];
+    let initialAddedSources:any = [];
+    let initialAddedDestinations:any = [];
+    let initialAddedPipelines:any = [];
+    let initialAddedEnrichments:any = [];
 
-    let existingNodes = [];
-    let existingEdges = [];
+    let existingNodes:any = [];
+    let existingEdges:any = [];
 
     if (!sample.node.sources.disabled) {
       const sources = sample.node.sources;

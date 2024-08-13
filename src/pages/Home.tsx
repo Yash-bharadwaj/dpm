@@ -16,7 +16,8 @@ import "../index.css";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
-import { MdLocationPin } from "react-icons/md";
+import { ImLocation2  } from "react-icons/im";
+// @ts-ignore
 import Lottie from 'react-lottie';
 import loadingAnimation from '../utils/Loading.json';
 
@@ -119,7 +120,7 @@ const Home: React.FC = () => {
   if (devicesLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Lottie options={defaultOptions} height={400} width={400} />
+        <Lottie options={defaultOptions} height={200} width={200} />
       </div>
     );
   }
@@ -129,20 +130,21 @@ const Home: React.FC = () => {
   return (
     <div
       style={{
-        marginTop: "4rem",
+        marginTop: "4.5rem",
         display: "flex",
         flexDirection: "column",
         alignItems: "start",
         gap: "1.3rem",
-        width: "100%",
+        width: "90%",
+        marginInline:'3rem',
         height: "100vh",
       }}
     >
-      <h3 style={{ alignSelf: "self-start" }}>
-        DPM Devices{" "}
-        <span style={{ fontSize: "13px", marginBottom: "13px" }}>
+      <h3 style={{ alignSelf: "self-start", color:'#5a5a5a' }}>
+         Pipeline Managers{" "} 
+        {/* <span style={{ fontSize: "13px", marginBottom: "13px" }}>
           (click on device code to navigate)
-        </span>
+        </span> */}
       </h3>
       <TableContainer
         component={Paper}
@@ -210,16 +212,16 @@ const Home: React.FC = () => {
                   {heartbeatStatus[device.devicecode]?.serviceStatus === "active" ? (
                     <Button
                       variant="contained"
-                      color="success"
-                      style={{ height: "25px", fontWeight: "600" }}
+                    
+                      style={{ height: "25px", fontWeight: "600", backgroundColor:'#DDF1EA', color:'#007867', boxShadow:'none' }}
                     >
                       ACTIVE
                     </Button>
                   ) : heartbeatStatus[device.devicecode]?.serviceStatus === "in-active" ? (
                     <Button
                       variant="contained"
-                      color="error"
-                      style={{ height: "25px", fontWeight:'600' }}
+                      
+                      style={{ height: "25px", fontWeight:'600', backgroundColor:'#FFE6E2', color:'#B71C18' , boxShadow:'none'}}
                     >
                       INACTIVE
                     </Button>
@@ -230,8 +232,12 @@ const Home: React.FC = () => {
                 <TableCell>
                   {heartbeatStatus[device.devicecode]?.lastSeen || "N/A"}
                 </TableCell>
-                <TableCell>
-                  <MdLocationPin /> {device.devicelocation || "N/A"}
+                <TableCell >
+                  <div style={{  height:'1.4rem', width:'7rem', display:'flex', gap:'5px', alignItems:'center',}}>
+
+                  <ImLocation2 style={{color:'#ff0000' , fontSize:'14px' , marginLeft:'.5rem' }}/> {device.devicelocation || "N/A"}
+                  </div>
+                 
                 </TableCell>
                 <TableCell style={{ display: "flex", justifyContent: "center" }}>
                   <VisibilityIcon

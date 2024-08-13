@@ -3,6 +3,7 @@ import { Drawer, Typography, Box, Table, TableBody, TableCell, TableContainer, T
 import LaunchIcon from '@mui/icons-material/Launch';
 import { useNavigate } from 'react-router-dom';
 
+
 interface DeviceDetailsSidebarProps {
   open: boolean;
   onClose: () => void;
@@ -29,8 +30,8 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
   };
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box p={2.5} width="500px" role="presentation">
+    <Drawer anchor="right" open={open} onClose={onClose} >
+      <Box p={2.5} width="500px" role="presentation" style={{borderTop:'10px solid #11a1cd'}}>
         <Typography variant="h6" style={{ fontWeight: '600' }} gutterBottom>
           Device Details:
         </Typography>
@@ -39,7 +40,7 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
             <Table style={{ boxShadow: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px' }}>
               <TableBody>
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                  <TableCell><strong>Device ID:</strong></TableCell>
+                  <TableCell><strong> ID:</strong></TableCell>
                   <TableCell>{device.deviceid}</TableCell>
                 </TableRow>
                 <TableRow>
@@ -47,7 +48,7 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableCell>{device.orgcode}</TableCell>
                 </TableRow>
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                  <TableCell><strong>Device Code:</strong></TableCell>
+                  <TableCell><strong> Code:</strong></TableCell>
                   <TableCell
                     onClick={handleDeviceCodeClick}
                     style={{ cursor: 'pointer', fontWeight: 'normal' }}
@@ -64,19 +65,19 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   </TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell><strong>Device Type:</strong></TableCell>
+                  <TableCell><strong> Type:</strong></TableCell>
                   <TableCell>{device.devicetype}</TableCell>
                 </TableRow>
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                  <TableCell><strong>Device Name:</strong></TableCell>
+                  <TableCell><strong> Name:</strong></TableCell>
                   <TableCell>{device.devicename}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell><strong>Device Location:</strong></TableCell>
+                  <TableCell><strong> Location:</strong></TableCell>
                   <TableCell>{device.devicelocation}</TableCell>
                 </TableRow>
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                  <TableCell><strong>Device IP:</strong></TableCell>
+                  <TableCell><strong> IP:</strong></TableCell>
                   <TableCell>{device.deviceip}</TableCell>
                 </TableRow>
                 </TableBody>
