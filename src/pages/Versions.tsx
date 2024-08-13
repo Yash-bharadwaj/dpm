@@ -22,6 +22,7 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
+
 // @ts-ignore
 import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
