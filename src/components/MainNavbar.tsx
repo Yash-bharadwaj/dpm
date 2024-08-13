@@ -6,11 +6,14 @@ import Logo from "../assets/images/logoBlusapphire.png";
 import { FaBell } from "react-icons/fa";
 import { DeviceContext } from "../utils/DeviceContext"; // import context
 
+import { MdHelpOutline } from "react-icons/md";
+
 const MainNavbar = () => {
   const location = useLocation();
   const deviceContext = useContext(DeviceContext); // get the context
   const isHomePage = location.pathname === "/";
   const isVersionsPage = location.pathname === "/versions";
+  const url = import.meta.env.VITE_REACT_APP_DOCS;
 
   // If the context is not available, handle it gracefully
   if (!deviceContext) {
@@ -18,6 +21,10 @@ const MainNavbar = () => {
   }
 
   const { selectedDevice } = deviceContext;
+
+  const onDocsClick = () => {
+    window.open(url, "_blank");
+  };
 
   return (
     <Navbar
@@ -77,7 +84,7 @@ const MainNavbar = () => {
         </Nav>
       )}
       <div>
-        <div style={{ display: "flex", gap: "1rem" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           {selectedDevice && (
             <div style={{ fontSize: "14px" }}>
               Selected Device:{" "}
@@ -88,7 +95,7 @@ const MainNavbar = () => {
           <div
             style={{
               position: "relative",
-              marginRight: "3rem",
+              marginRight: "1rem",
               display: "flex",
             }}
           >
@@ -113,6 +120,10 @@ const MainNavbar = () => {
               3
             </div>
           </div>
+
+          <Nav.Link onClick={onDocsClick} style={{ marginRight: "12px" }}>
+            <MdHelpOutline style={{ height: "20px", width: "20px" }} />
+          </Nav.Link>
         </div>
       </div>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
