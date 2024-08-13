@@ -1,25 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@apollo/client";
-import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-} from "@mui/material";
-import { GET_DEVICES_LIST, GET_HEARTBEAT_STATUS } from "../query/query";
+import React, { useState, useContext } from "react";
+import { useQuery } from "@apollo/client";
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { GET_DEVICES_LIST } from "../query/query";
 import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
-import { ImLocation2  } from "react-icons/im";
-// @ts-ignore
+import { ImLocation2 } from "react-icons/im";
+//@ts-ignore
 import Lottie from 'react-lottie';
 import loadingAnimation from '../utils/Loading.json';
+import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
+import { DeviceContext } from "../utils/DeviceContext";
 
 interface Device {
   deviceid: string;
@@ -34,21 +27,17 @@ interface Device {
 const Home: React.FC = () => {
   const orgCode = "d3b6842d";
   const [deviceCode, setDeviceCode] = useState<string>("DM_HY_D01");
-  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [heartbeatStatus, setHeartbeatStatus] = useState<{
-    [key: string]: {
-      status: string | null;
-      lastSeen: string | null;
-      serviceStatus: string | null;
-    };
-  }>({});
 
+  const deviceContext = useContext(DeviceContext); // Get the context
   const navigate = useNavigate();
 
-  const getCurrentTimezone = () => {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  };
+  // If the context is not available, handle it gracefully
+  if (!deviceContext) {
+    return <p>Error: DeviceContext is not available.</p>;
+  }
+
+  const { setSelectedDevice } = deviceContext;
 
   const {
     loading: devicesLoading,
@@ -58,54 +47,20 @@ const Home: React.FC = () => {
     variables: { input: { orgcode: orgCode, devicecode: deviceCode } },
   });
 
-  const [getHeartbeatStatus] = useMutation(GET_HEARTBEAT_STATUS);
-
-  useEffect(() => {
-    if (devicesData) {
-      devicesData.getLcdeviceList.forEach((device: Device) => {
-        getHeartbeatStatus({
-          variables: {
-            input: {
-              orgcode: device.orgcode,
-              devicecode: device.devicecode,
-              timezone: getCurrentTimezone(),
-            },
-          },
-        })
-          .then(({ data }) => {
-            if (data.getHeartbeat && data.getHeartbeat.responsestatus) {
-              const responseData = JSON.parse(
-                data.getHeartbeat.responsedata
-              );
-              setHeartbeatStatus((prev) => ({
-                ...prev,
-                [device.devicecode]: {
-                  status: data.getHeartbeat.responsestatus ? "true" : "false",
-                  lastSeen: responseData.last_seen || "N/A",
-                  serviceStatus: responseData.service_status || "N/A",
-                },
-              }));
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching heartbeat status:", error);
-          });
-      });
-    }
-  }, [devicesData, getHeartbeatStatus]);
+  const heartbeatStatus = useHeartbeatStatus(devicesData?.getLcdeviceList || []);
 
   const handleDeviceCodeClick = (device: Device) => {
+    setSelectedDevice(device.devicecode); // Update context
     navigate(`/config/${device.orgcode}/${device.devicecode}`);
   };
 
   const handleViewDetailsClick = (device: Device) => {
-    setSelectedDevice(device);
+    setSelectedDevice(device.devicecode);
     setSidebarOpen(true);
   };
 
   const handleCloseSidebar = () => {
     setSidebarOpen(false);
-    setSelectedDevice(null);
   };
 
   const defaultOptions = {
@@ -130,32 +85,30 @@ const Home: React.FC = () => {
   return (
     <div
       style={{
-        marginTop: "4.5rem",
+        marginTop: '4.5rem',
         display: "flex",
         flexDirection: "column",
         alignItems: "start",
         gap: "1.3rem",
         width: "90%",
-        marginInline:'3rem',
+        marginInline: '3rem',
         height: "100vh",
       }}
     >
-      <h3 style={{ alignSelf: "self-start", color:'#5a5a5a' }}>
-         Pipeline Managers{" "} 
-        {/* <span style={{ fontSize: "13px", marginBottom: "13px" }}>
-          (click on device code to navigate)
-        </span> */}
+      <h3 style={{ alignSelf: "self-start", color: '#5a5a5a', fontSize: '1.6rem' }}>
+        Pipeline Managers
       </h3>
       <TableContainer
         component={Paper}
         style={{
+          marginTop: '0rem',
           width: "100%",
           marginInline: "auto",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <Table >
+        <Table>
           <TableHead>
             <TableRow style={{ backgroundColor: "#EEEEEE", color: "black" }}>
               <TableCell style={{ color: "black", flex: 1 }}>
@@ -212,16 +165,14 @@ const Home: React.FC = () => {
                   {heartbeatStatus[device.devicecode]?.serviceStatus === "active" ? (
                     <Button
                       variant="contained"
-                    
-                      style={{ height: "25px", fontWeight: "600", backgroundColor:'#DDF1EA', color:'#007867', boxShadow:'none' }}
+                      style={{ height: "25px", fontWeight: "600", backgroundColor: '#DDF1EA', color: '#007867', boxShadow: 'none' }}
                     >
                       ACTIVE
                     </Button>
                   ) : heartbeatStatus[device.devicecode]?.serviceStatus === "in-active" ? (
                     <Button
                       variant="contained"
-                      
-                      style={{ height: "25px", fontWeight:'600', backgroundColor:'#FFE6E2', color:'#B71C18' , boxShadow:'none'}}
+                      style={{ height: "25px", fontWeight: '600', backgroundColor: '#FFE6E2', color: '#B71C18', boxShadow: 'none' }}
                     >
                       INACTIVE
                     </Button>
@@ -232,18 +183,16 @@ const Home: React.FC = () => {
                 <TableCell>
                   {heartbeatStatus[device.devicecode]?.lastSeen || "N/A"}
                 </TableCell>
-                <TableCell >
-                  <div style={{  height:'1.4rem', width:'7rem', display:'flex', gap:'5px', alignItems:'center',}}>
-
-                  <ImLocation2 style={{color:'#ff0000' , fontSize:'14px' , marginLeft:'.5rem' }}/> {device.devicelocation || "N/A"}
+                <TableCell>
+                  <div style={{ height: '1.4rem', width: '7rem', display: 'flex', gap: '5px', alignItems: 'center', }}>
+                    <ImLocation2 style={{ color: '#ff0000', fontSize: '14px', marginLeft: '.5rem' }} /> {device.devicelocation || "N/A"}
                   </div>
-                 
                 </TableCell>
                 <TableCell style={{ display: "flex", justifyContent: "center" }}>
                   <VisibilityIcon
                     style={{ color: "#222222" }}
                     onClick={(e) => {
-                      e.stopPropagation(); 
+                      e.stopPropagation();
                       handleViewDetailsClick(device);
                     }}
                   />
@@ -255,9 +204,7 @@ const Home: React.FC = () => {
       </TableContainer>
       <DeviceDetailsSidebar
         open={sidebarOpen}
-        onClose={handleCloseSidebar}
-        device={selectedDevice}
-      />
+        onClose={handleCloseSidebar} device={null}      />
     </div>
   );
 };

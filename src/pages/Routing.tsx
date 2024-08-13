@@ -2492,7 +2492,7 @@ const Routing = () => {
 
   return (
     <>
-      <RoutingNavbar />
+      
 
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
@@ -2509,6 +2509,20 @@ const Routing = () => {
             }}
           >
             <div>
+              <div style={{display:'flex', gap:'1rem'}}>
+            <div className="current-config-data">
+                Device :{" "}
+                <b>
+                  {deviceCode}
+                </b>
+              </div>
+            <div className="current-config-data">
+                HeartBeat Status :{" "}
+                <b>
+                  {deviceCode}
+                </b>
+              </div>
+              </div>
               <div className="current-config-data">
                 Version :{" "}
                 <b>
