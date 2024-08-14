@@ -224,6 +224,19 @@ const EditDestinationData = ({
     }
   }
 
+  if (selectedDestination["processing-settings"]) {
+    selectedDestination["processing-settings"].forEach((setting: any) => {
+      destInitialValues[setting.name] =
+        selectedNode?.data.nodeData[setting.name] || setting.default || [];
+
+      if (setting.mandatory) {
+        mandatoryFields.push(setting.name);
+      }
+    });
+  }
+
+  console.log("selectedDestination", selectedDestination);
+
   const [checkMandatoryFields, setMandatoryFields] = useState(mandatoryFields);
 
   const validateForm = async (values: any) => {
@@ -631,6 +644,8 @@ const EditDestinationData = ({
     setConfirmDelete(false);
   };
 
+  console.log("formik", formik.values);
+
   return (
     <Offcanvas
       show={show}
@@ -688,16 +703,18 @@ const EditDestinationData = ({
               </div>
             )}
 
-            {/* <div
-              className={`settings-menu pointer ${
-                selectedTab === "fields" && `settings-selected-menu`
-              }`}
-              onClick={() => {
-                onTabSelect("fields");
-              }}
-            >
-              Fields
-            </div> */}
+            {selectedDestination["processing-settings"] && (
+              <div
+                className={`settings-menu pointer ${
+                  selectedTab === "processing" && `settings-selected-menu`
+                }`}
+                onClick={() => {
+                  onTabSelect("processing");
+                }}
+              >
+                Processing Settings
+              </div>
+            )}
           </Col>
 
           <Col lg={8}>
@@ -806,6 +823,169 @@ const EditDestinationData = ({
                     ))}
                 </>
               ))
+            ) : selectedTab === "processing" ? (
+              selectedDestination["processing-settings"]?.map(
+                (setting: any) => (
+                  <>
+                    {setting.name !== "inputs" &&
+                      setting.datatype !== "boolean" && (
+                        <Form.Label htmlFor="inputID">
+                          {setting.label}{" "}
+                          {setting.tooltip && (
+                            <OverlayTrigger
+                              placement="left"
+                              overlay={
+                                <Tooltip id="button-tooltip-2">
+                                  {setting.tooltip}
+                                </Tooltip>
+                              }
+                            >
+                              <QuestionCircle size={14} />
+                            </OverlayTrigger>
+                          )}
+                        </Form.Label>
+                      )}
+
+                    {setting.name !== "inputs" &&
+                      (setting.options ? (
+                        setting.datatype === "boolean" ? (
+                          <div
+                            style={{ display: "flex", alignItems: "center" }}
+                          >
+                            <Form.Label htmlFor="inputID">
+                              {setting.label}{" "}
+                              {setting.tooltip && (
+                                <OverlayTrigger
+                                  placement="left"
+                                  overlay={
+                                    <Tooltip id="button-tooltip-2">
+                                      {setting.tooltip}
+                                    </Tooltip>
+                                  }
+                                >
+                                  <QuestionCircle size={14} />
+                                </OverlayTrigger>
+                              )}
+                            </Form.Label>
+
+                            <Form.Check // prettier-ignore
+                              type="switch"
+                              id={setting.name}
+                              checked={formik.values[setting.name]}
+                              defaultChecked={setting.default}
+                              onChange={formik.handleChange}
+                              style={{ marginLeft: "8px" }}
+                            />
+                          </div>
+                        ) : setting.options ? (
+                          setting.options.map((option: any) =>
+                            option.fields ? (
+                              <Form.Select
+                                aria-label="Select"
+                                className="mb-3"
+                                size="sm"
+                                onChange={formik.handleChange}
+                                id={option.name}
+                                value={formik.values[setting.name][option.name]}
+                              >
+                                <option value="" hidden>
+                                  Select {option.label}
+                                </option>
+                                {option.fields.map((field: any) => (
+                                  <option value={field.name}>
+                                    {field.name}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            ) : (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Form.Label htmlFor={option.name}>
+                                  {option.label}{" "}
+                                  {option.tooltip && (
+                                    <OverlayTrigger
+                                      placement="right"
+                                      overlay={
+                                        <Tooltip id={option.name}>
+                                          {option.tooltip}
+                                        </Tooltip>
+                                      }
+                                    >
+                                      <QuestionCircle size={14} />
+                                    </OverlayTrigger>
+                                  )}
+                                </Form.Label>
+
+                                <Form.Check // prettier-ignore
+                                  type="switch"
+                                  id={option.label}
+                                  defaultChecked={option.default}
+                                  onChange={formik.handleChange}
+                                  style={{ marginLeft: "8px" }}
+                                  checked={formik.values[option.label]}
+                                />
+                              </div>
+                            )
+                          )
+                        ) : (
+                          <Form.Control
+                            placeholder={`Enter ${setting.label}`}
+                            aria-label={setting.name}
+                            aria-describedby={setting.name}
+                            className="mb-3"
+                            size="sm"
+                            id={setting.name}
+                            onChange={formik.handleChange}
+                            value={formik.values[setting.name]}
+                            maxLength={setting.maxChar || 20}
+                            type={
+                              setting.datatype === "integer" ? "number" : "text"
+                            }
+                            isInvalid={invalidCheck(setting)}
+                          />
+                        )
+                      ) : setting.name === "region" ? (
+                        <Form.Select
+                          aria-label="Select"
+                          className="mb-3"
+                          size="sm"
+                          id={setting.name}
+                          onChange={formik.handleChange}
+                          value={formik.values[setting.name]}
+                        >
+                          <option value="" hidden>
+                            Select {setting.name}
+                          </option>
+                          {regions?.regions?.map((option: any) => (
+                            <option value={option.value}>
+                              {option.name} ({option.value})
+                            </option>
+                          ))}
+                        </Form.Select>
+                      ) : (
+                        <Form.Control
+                          placeholder={`Enter ${setting.label}`}
+                          aria-label={setting.name}
+                          aria-describedby={setting.name}
+                          className="mb-3"
+                          size="sm"
+                          id={setting.name}
+                          onChange={formik.handleChange}
+                          value={formik.values[setting.name]}
+                          maxLength={setting.maxChar || 20}
+                          type={
+                            setting.datatype === "integer" ? "number" : "text"
+                          }
+                          isInvalid={invalidCheck(setting)}
+                        />
+                      ))}
+                  </>
+                )
+              )
             ) : selectedTab === "advanced" ? (
               selectedDestination.advanced?.map((setting: any) => (
                 <>
@@ -924,6 +1104,37 @@ const EditDestinationData = ({
                           })}
                       </>
                     )
+                  ) : setting.fields ? (
+                    setting.fields.map((option: any) => {
+                      return (
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <Form.Label htmlFor={option.name}>
+                            {option.label}{" "}
+                            {option.tooltip && (
+                              <OverlayTrigger
+                                placement="right"
+                                overlay={
+                                  <Tooltip id={option.name}>
+                                    {option.tooltip}
+                                  </Tooltip>
+                                }
+                              >
+                                <QuestionCircle size={14} />
+                              </OverlayTrigger>
+                            )}
+                          </Form.Label>
+
+                          <Form.Check // prettier-ignore
+                            type="switch"
+                            id={option.label}
+                            defaultChecked={option.default}
+                            onChange={formik.handleChange}
+                            style={{ marginLeft: "8px" }}
+                            checked={formik.values[option.label]}
+                          />
+                        </div>
+                      );
+                    })
                   ) : (
                     <Form.Control
                       placeholder={`Enter ${setting.label}`}

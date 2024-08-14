@@ -1469,6 +1469,7 @@
         },
         {
           "name": "encoding",
+          "label": "Encoding",
           "tooltip": "Configures how events are encoded into raw bytes",
           "fields": [
             {
@@ -1632,6 +1633,7 @@
         },
         {
           "name": "healthcheck",
+          "label": "Health Check",
           "tooltip": "Perform destination health on startup.",
           "fields": [
             {
@@ -1648,13 +1650,14 @@
       "processing-settings": [
         {
           "name": "framing",
+          "label": "Framing",
           "tooltip": "Configure how the event data is framed while processed and sent.",
-          "fields": [
+          "options": [
             {
               "name": "method",
               "label": "Event Framing Method",
               "tooltip": "Configure how the event data is framed while processed and sent.",
-              "options": [
+              "fields": [
                 {
                   "name": "newline_delimited",
                   "label": "Delimited by a newline (LF) character.",
@@ -1895,6 +1898,7 @@
         },
         {
           "name": "healthcheck",
+          "label": "Health Check",
           "tooltip": "Perform destination health on startup.",
           "fields": [
             {
@@ -1911,13 +1915,14 @@
       "processing-settings": [
         {
           "name": "framing",
+          "label": "Framing",
           "tooltip": "Configure how the event data is framed while processed and sent.",
-          "fields": [
+          "options": [
             {
               "name": "method",
               "label": "Event Framing Method",
               "tooltip": "Configure how the event data is framed while processed and sent.",
-              "options": [
+              "fields": [
                 {
                   "name": "newline_delimited",
                   "label": "Delimited by a newline (LF) character.",
@@ -2248,6 +2253,7 @@
         },
         {
           "name": "healthcheck",
+          "label": "Health Check",
           "tooltip": "Configures how events are encoded into raw bytes",
           "fields": [
             {
