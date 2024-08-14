@@ -2536,7 +2536,7 @@ const Routing = () => {
                   Device : <b>{deviceCode}</b>
                 </div>
                 <div className="current-config-data">
-                  HeartBeat Status :{" "}
+                  Status :{" "}
                   <b>{heartbeatData?.getHeartbeat ? getDeviceStatus() : "-"}</b>
                 </div>
               </div>

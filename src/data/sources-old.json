@@ -5,6 +5,9 @@
       "type": "logstash",
       "uuid": "winlogbeat",
       "image": "windows-logo.svg",
+      "tooltip": "Collect Windows Event logs sent using Winlogbeat agent",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -12,7 +15,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -38,7 +41,7 @@
         {
           "name": "permit_origin",
           "label": "Permit Origin",
-          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
         }
@@ -47,9 +50,12 @@
     {
       "name": "Windows Events - Nxlog",
       "type": "socket",
+      "mode": "tcp",
       "uuid": "nxlog",
       "image": "nxlog.svg",
-      "mode": "tcp",
+      "tooltip": "Collect Windows Event logs sent using NxLog agent",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -57,7 +63,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -83,7 +89,7 @@
         {
           "name": "permit_origin",
           "label": "Permit Origin",
-          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
         }
@@ -94,6 +100,9 @@
       "type": "logstash",
       "uuid": "officefilebeat",
       "image": "office-360.svg",
+      "tooltip": "Collect Office-365 logs sent using Filebeat agent",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -101,7 +110,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -127,9 +136,111 @@
         {
           "name": "permit_origin",
           "label": "Permit Origin",
-          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
+        }
+      ]
+    },
+    {
+      "name": "Azure Event Hub",
+      "type": "kafka",
+      "uuid": "azuresource",
+      "image": "azure-event-hub.svg",
+      "tooltip": "Collect logs from Azure Event Hub",
+      "disabled": false,
+      "status": "beta",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name)*",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "bootstrap_servers",
+          "label": "Brokers *",
+          "tooltip": "Azure Event Hub to use, e.g., <namespace-name>.servicebus.windows.net:9093",
+          "datatype": "cs-hostport",
+          "mandatory": true,
+          "maxChar": 300
+        },
+        {
+          "name": "topics",
+          "label": "Topics *",
+          "placeholder": "Event Hub topic names",
+          "tooltip": "Azure Event Hub topic names to read events from, e.g., insights-operational-logs, insights-logs-auditlogs",
+          "mandatory": true
+        },
+        {
+          "name": "group_id",
+          "label": "Consumer Group *",
+          "tooltip": "Consumer group name to be used to consume events from Azure Event Hub. If empty, default group ($$Default) is used, with the $ used for environment variables being escaped.",
+          "placeholder": "Event Hub consumer group name",
+          "datatype": "text",
+          "default": "$$Default",
+          "mandatory": true,
+          "maxChar": 20
+        }
+      ],
+      "authentication": {
+        "name": "sasl",
+        "tooltip": "Configure SASL authentication when interacting with Kafka.",
+        "fields": [
+          {
+            "name": "enabled",
+            "label": "SASL Enabled *",
+            "tooltip": "Enables SASL authentication.",
+            "options": ["true", "false"],
+            "default": "true",
+            "datatype": "boolean",
+            "mandatory": true
+          },
+          {
+            "name": "mechanism",
+            "label": "SASL Mechanism",
+            "options": ["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
+            "default": "PLAIN",
+            "tooltip": "Select an SASL mechanism to use."
+          },
+          {
+            "name": "username",
+            "label": "Username",
+            "placeholder": "Event Hub Username",
+            "tooltip": "Use \"$$ConnectionString\" as username for event hub, with the $ used for environment variables being escaped.",
+            "default": "$$ConnectionString",
+            "datatype": "text"
+          },
+          {
+            "name": "password",
+            "label": "Password",
+            "placeholder": "Event Hub Connection String",
+            "tooltip": "Event Hub Connection String, e.g., Endpoint=sb://<NamespaceName>.servicebus.windows.net/;SharedAccessKeyName=<KeyName>;SharedAccessKey=<KeyValue>",
+            "datatype": "password",
+            "maxChar": 180
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "options": ["true", "false"],
+          "default": "true",
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
+          "datatype": "boolean"
+        },
+        {
+          "name": "codec",
+          "label": "Decoding",
+          "options": ["json", "syslog"],
+          "tooltip": "Codec to use for decoding events",
+          "default": "json"
         }
       ]
     },
@@ -138,6 +249,9 @@
       "type": "logstash",
       "uuid": "azurefilebeat",
       "image": "azure-event-hub.svg",
+      "tooltip": "Collect Azure Event Hub logs sent using Filebeat agent",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -145,7 +259,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -171,7 +285,7 @@
         {
           "name": "permit_origin",
           "label": "Permit Origin",
-          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
         }
@@ -182,6 +296,9 @@
       "type": "logstash",
       "uuid": "awsfilebeat",
       "image": "beats.png",
+      "tooltip": "Collect AWS logs sent using Filebeat agent",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -189,7 +306,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -215,7 +332,7 @@
         {
           "name": "permit_origin",
           "label": "Permit Origin",
-          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
         }
@@ -224,9 +341,12 @@
     {
       "name": "Syslog-tcp",
       "type": "syslog",
+      "mode": "tcp",
       "uuid": "syslogtcp",
       "image": "syslog.svg",
-      "mode": "tcp",
+      "tooltip": "Collect logs sent using Syslog over TCP Connection",
+      "disabled": false,
+      "status": "beta",
       "log.format": "syslog",
       "log.schema": "raw",
       "settings": [
@@ -234,7 +354,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -260,14 +380,14 @@
         {
           "name": "permit_origin",
           "label": "Allowed Origin List",
-          "tooltip": "List of allowed origin IP networks. IP addresses must be in CIDR notation.",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
         },
         {
           "name": "connection_limit",
           "label": "Connection Limit",
-          "tooltip": "Max number of TCP connections allowed at any given time.",
+          "tooltip": "Maximum number of simultaneous TCP connections permitted.",
           "datatype": "integer"
         }
       ]
@@ -275,9 +395,12 @@
     {
       "name": "Syslog-udp",
       "type": "syslog",
+      "mode": "udp",
       "uuid": "syslogudp",
       "image": "syslog.svg",
-      "mode": "udp",
+      "tooltip": "Collect logs sent via Syslog over UDP Connection",
+      "disabled": false,
+      "status": "beta",
       "log.format": "syslog",
       "log.schema": "raw",
       "settings": [
@@ -285,7 +408,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -309,19 +432,185 @@
       ]
     },
     {
+      "name": "Socket-TCP",
+      "type": "socket",
+      "mode": "tcp",
+      "uuid": "sockettcpsource",
+      "image": "socket_tcp.svg",
+      "tooltip": "Collect data over TCP Socket",
+      "disabled": false,
+      "status": "beta",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name) *",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "9000",
+          "datatype": "integer",
+          "mandatory": true
+        },
+        {
+          "name": "keepalive",
+          "tooltip": "Settings to keep socket connections active.",
+          "fields": [
+            {
+              "name": "time_secs",
+              "label": "Keep-Alive (seconds)",
+              "tooltip": "Time (in seconds) to wait before sending TCP keepalive probes on an idle connection.",
+              "datatype": "integer",
+              "mandatory": false
+            }
+          ]
+        },
+        {
+          "name": "connection_limit",
+          "label": "Max Connection Limit",
+          "tooltip": "Maximum number of simultaneous TCP connections permitted.",
+          "datatype": "integer",
+          "mandatory": false
+        },
+        {
+          "name": "max_connection_duration_secs",
+          "label": "Max Connection Duration (seconds)",
+          "tooltip": "Maximum duration (in seconds) to keep each connection open. Connections that exceed this time will be closed.",
+          "datatype": "integer",
+          "mandatory": false
+        },
+        {
+          "name": "receive_buffer_bytes",
+          "label": "Receive Buffer (Bytes)",
+          "tooltip": "Specifies the size of the receive buffer allocated for each connection.",
+          "datatype": "integer",
+          "mandatory": false
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Permit Origin",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
+          "datatype": "ipcidr",
+          "maxChar": 180
+        },
+        {
+          "name": "decoding",
+          "tooltip": "Codec to use for decoding events.",
+          "fields": [
+            {
+              "name": "codec",
+              "label": "Decoding",
+              "tooltip": "Codec to use for decoding events",
+              "options": ["bytes", "json", "syslog"],
+              "default": "bytes",
+              "datatype": "text",
+              "mandatory": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Socket-UDP",
+      "type": "socket",
+      "mode": "udp",
+      "uuid": "socketudpsource",
+      "image": "socket_udp.svg",
+      "tooltip": "Collect data over UDP Socket",
+      "disabled": false,
+      "status": "beta",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name) *",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "9000",
+          "datatype": "integer",
+          "mandatory": true
+        },
+        {
+          "name": "max_length",
+          "label": "Max Length (bytes)",
+          "tooltip": "Maximum allowed size for incoming messages. Messages exceeding this limit will be truncated.",
+          "default": "102400",
+          "datatype": "integer",
+          "mandatory": false
+        },
+        {
+          "name": "receive_buffer_bytes",
+          "label": "Receive Buffer (Bytes)",
+          "tooltip": "Specifies the size of the receive buffer allocated for each connection.",
+          "datatype": "integer",
+          "mandatory": false
+        }
+      ],
+      "advanced": [
+        {
+          "name": "decoding",
+          "tooltip": "Codec to use for decoding events.",
+          "fields": [
+            {
+              "name": "codec",
+              "label": "Decoding",
+              "tooltip": "Codec to use for decoding events",
+              "options": ["bytes", "json", "syslog"],
+              "default": "bytes",
+              "datatype": "text",
+              "mandatory": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Amazon S3",
       "type": "aws_s3",
       "uuid": "amazons3",
-      "image": "amazon-s3.svg",
+      "image": "amazon_s3.svg",
+      "tooltip": "Collect logs from Amazon S3",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
-      "tooltip": "Source - Amazon S3",
       "settings": [
         {
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -403,7 +692,10 @@
       "name": "Amazon SQS",
       "type": "aws_sqs",
       "uuid": "amazonsqs",
-      "image": "amazon-sqs.svg",
+      "image": "amazon_sqs.svg",
+      "tooltip": "Collect logs from Amazon SQS",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -411,7 +703,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -504,7 +796,10 @@
       "name": "Kafka",
       "type": "kafka",
       "uuid": "kafkasource",
-      "image": "apache-kafka.svg",
+      "image": "apache_kafka.svg",
+      "tooltip": "Collect logs from Kafka Topic",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -512,7 +807,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -580,12 +875,12 @@
           "name": "tls",
           "label": "Enable TLS",
           "options": ["true", "false"],
-          "tooltip": "TLS for outgoing connections",
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
           "datatype": "boolean"
         },
         {
           "name": "codec",
-          "label": "Codec",
+          "label": "Decoding",
           "options": ["json", "syslog"],
           "tooltip": "Codec to use for decoding events",
           "default": "json"
@@ -597,6 +892,9 @@
       "type": "vector",
       "uuid": "vectorsource",
       "image": "vector.svg",
+      "tooltip": "Collect logs sent using Vector agent",
+      "disabled": false,
+      "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -604,7 +902,7 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
@@ -628,10 +926,121 @@
       ]
     },
     {
-      "name": "Azure Event Hub",
-      "type": "kafka",
-      "uuid": "azuresource",
-      "image": "azure-event-hub.svg",
+      "name": "HTTP Server",
+      "type": "http_server",
+      "uuid": "httpserversource",
+      "image": "http_server.svg",
+      "tooltip": "Collect data from an HTTP client request",
+      "disabled": true,
+      "status": "alpha",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name) *",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "8000",
+          "datatype": "integer",
+          "mandatory": true
+        },
+        {
+          "name": "path",
+          "label": "Path",
+          "tooltip": "Specify the URL path where log events are sent via POST requests.",
+          "default": "/",
+          "datatype": "url",
+          "mandatory": false
+        },
+        {
+          "name": "headers",
+          "label": "Headers",
+          "tooltip": "Specify which HTTP headers to include in the log event. Use the wildcard (*) to match multiple headers. For example, using \"*\" includes all headers in the log event.",
+          "datatype": "list",
+          "mandatory": false
+        },
+        {
+          "name": "encoding",
+          "label": "Encoding",
+          "tooltip": "Expected format for the incoming data.",
+          "options": ["json", "ndjson", "binary", "text"],
+          "datatype": "text",
+          "mandatory": false
+        },
+        {
+          "name": "decoding",
+          "tooltip": "Codec to use for decoding events.",
+          "fields": [
+            {
+              "name": "codec",
+              "label": "Decoding",
+              "tooltip": "Codec to use for decoding events",
+              "options": ["bytes", "json", "syslog"],
+              "datatype": "text",
+              "mandatory": false
+            }
+          ]
+        }
+      ],
+      "authentication": {
+        "name": "auth",
+        "tooltip": "Configure http authentication.",
+        "fields": [
+          {
+            "name": "username",
+            "label": "Username *",
+            "placeholder": "username",
+            "tooltip": "Username for basic authentication.",
+            "datatype": "text",
+            "mandatory": true
+          },
+          {
+            "name": "password",
+            "label": "Password *",
+            "placeholder": "password",
+            "tooltip": "Password for basic authentication.",
+            "datatype": "password",
+            "maxChar": 180,
+            "mandatory": true
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
+          "default": "false",
+          "options": ["true", "false"],
+          "datatype": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "Splunk HEC",
+      "type": "splunk_hec",
+      "uuid": "splunkhecsource",
+      "image": "splunk_hec.png",
+      "tooltip": "Collect logs from Splunk HTTP Event Collector (HEC)",
+      "disabled": true,
+      "status": "alpha",
       "log.format": "json",
       "log.schema": "raw",
       "settings": [
@@ -639,72 +1048,45 @@
           "name": "name",
           "label": "Input-ID (App Name)*",
           "prefix": "input_",
-          "tooltip": "Unique Input-ID (App Name) for this source, used internally to identify the source application",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
           "datatype": "text",
           "mandatory": true,
           "maxChar": 30
         },
         {
-          "name": "bootstrap_servers",
-          "label": "Brokers *",
-          "tooltip": "Azure Event Hub to use, e.g., <namespace-name>.servicebus.windows.net:9093",
-          "datatype": "cs-hostport",
-          "mandatory": true,
-          "maxChar": 300
-        },
-        {
-          "name": "topics",
-          "label": "Topics *",
-          "placeholder": "Event Hub topic names",
-          "tooltip": "Azure Event Hub topic names to read events from, e.g., insights-operational-logs, insights-logs-auditlogs",
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
           "mandatory": true
         },
         {
-          "name": "group_id",
-          "label": "Consumer Group *",
-          "tooltip": "Consumer group name to be used to consume events from Azure Event Hub. If empty, default group ($$Default) is used, with the $ used for environment variables being escaped.",
-          "placeholder": "Event Hub consumer group name",
-          "datatype": "text",
-          "default": "$$Default",
-          "mandatory": true,
-          "maxChar": 20
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "8088",
+          "datatype": "integer",
+          "mandatory": true
+        },
+        {
+          "name": "store_hec_token",
+          "label": "Save HEC Token",
+          "tooltip": "If enabled, the Splunk HEC token from incoming requests is saved in the event metadata and used for Splunk HEC destinations.",
+          "default": "false",
+          "options": ["true", "false"],
+          "datatype": "boolean",
+          "mandatory": false
         }
       ],
       "authentication": {
-        "name": "sasl",
-        "tooltip": "Configure SASL authentication when interacting with Kafka.",
+        "tooltip": "Configure list of valid authorization tokens.",
         "fields": [
           {
-            "name": "enabled",
-            "label": "SASL Enabled",
-            "tooltip": "Enables SASL authentication.",
-            "options": ["true", "false"],
-            "default": "true",
-            "datatype": "boolean",
-            "mandatory": true
-          },
-          {
-            "name": "mechanism",
-            "label": "SASL Mechanism",
-            "options": ["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
-            "default": "PLAIN",
-            "tooltip": "Select an SASL mechanism to use."
-          },
-          {
-            "name": "username",
-            "label": "Username",
-            "placeholder": "Event Hub Username",
-            "tooltip": "Use \"$$ConnectionString\" as username for event hub, with the $ used for environment variables being escaped.",
-            "default": "$$ConnectionString",
-            "datatype": "text"
-          },
-          {
-            "name": "password",
-            "label": "Password",
-            "placeholder": "Event Hub Connection String",
-            "tooltip": "Event Hub Connection String, e.g., Endpoint=sb://<NamespaceName>.servicebus.windows.net/;SharedAccessKeyName=<KeyName>;SharedAccessKey=<KeyValue>",
-            "datatype": "password",
-            "maxChar": 180
+            "name": "valid_tokens",
+            "label": "Authorization Token",
+            "tooltip": "If provided, incoming requests must include one of these tokens in the Authorization header, just like when communicating directly with the Splunk HEC endpoint.",
+            "mandatory": false
           }
         ]
       },
@@ -713,16 +1095,301 @@
           "name": "tls",
           "label": "Enable TLS",
           "options": ["true", "false"],
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
+          "datatype": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "Datadog Agent",
+      "type": "datadog_agent",
+      "uuid": "datadogagentsource",
+      "image": "datadog.svg",
+      "tooltip": "Collect logs from a Datadog agent",
+      "disabled": true,
+      "status": "alpha",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name) *",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "80",
+          "datatype": "integer",
+          "mandatory": true
+        },
+        {
+          "name": "store_api_key",
+          "label": "Store API Key *",
+          "tooltip": "If true, incoming events with a Datadog API key will store it in the event metadata and use it when sending to a Datadog destination.",
           "default": "true",
-          "tooltip": "TLS for incoming or outgoing connections",
+          "options": ["true", "false"],
+          "datatype": "boolean",
+          "mandatory": false
+        }
+      ],
+      "advanced": [
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "options": ["true", "false"],
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
           "datatype": "boolean"
         },
         {
           "name": "codec",
-          "label": "Codec",
-          "options": ["json", "syslog"],
-          "tooltip": "Codec to use for decoding events",
-          "default": "json"
+          "label": "Decoding",
+          "tooltip": "Configure how events are decoded from raw bytes",
+          "default": "json",
+          "options": ["json", "syslog"]
+        },
+        {
+          "name": "disable_logs",
+          "label": "Disable Logs",
+          "options": ["true", "false"],
+          "tooltip": "If this is set to true, logs are not accepted by the component.",
+          "datatype": "boolean"
+        },
+        {
+          "name": "disable_metrics",
+          "label": "Disable Logs",
+          "options": ["true", "false"],
+          "tooltip": "If this is set to true, metrics (beta) are not accepted by the component.",
+          "datatype": "boolean"
+        },
+        {
+          "name": "disable_traces",
+          "label": "Disable Logs",
+          "options": ["true", "false"],
+          "tooltip": "If this is set to true, traces (alpha) are not accepted by the component.",
+          "datatype": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "Fluent Agent",
+      "type": "fluent",
+      "uuid": "fluentagentsource",
+      "image": "fluentd.svg",
+      "tooltip": "Collect logs from a Fluentd or Fluent Bit agent",
+      "disabled": true,
+      "status": "alpha",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name) *",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "address",
+          "label": "Address *",
+          "tooltip": "Address to bind on. Defaults to 0.0.0.0 (all addresses).",
+          "default": "0.0.0.0",
+          "datatype": "ipaddress",
+          "mandatory": true
+        },
+        {
+          "name": "port",
+          "label": "Port *",
+          "tooltip": "Port to listen on.",
+          "default": "9000",
+          "datatype": "integer",
+          "mandatory": true
+        }
+      ],
+      "advanced": [
+        {
+          "name": "permit_origin",
+          "label": "Permit Origin",
+          "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
+          "datatype": "ipcidr",
+          "maxChar": 180
+        },
+        {
+          "name": "connection_limit",
+          "label": "Connection Limit",
+          "tooltip": "Maximum number of simultaneous TCP connections permitted.",
+          "datatype": "integer"
+        },
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
+          "default": "false",
+          "options": ["true", "false"],
+          "datatype": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "GCP PubSub",
+      "type": "gcp_pubsub",
+      "uuid": "gcppubsubsource",
+      "image": "gcp_pubsub.svg",
+      "tooltip": "Collect logs from GCP’s PubSub messaging system, requires a Pub/Sub subscription.",
+      "disabled": true,
+      "status": "alpha",
+      "log.format": "json",
+      "log.schema": "raw",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name) *",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "endpoint",
+          "label": "Endpoint *",
+          "tooltip": "Endpoint from which to pull data.",
+          "datatype": "url",
+          "maxChar": 180,
+          "mandatory": true
+        },
+        {
+          "name": "project",
+          "label": "Project *",
+          "tooltip": "Project name from which to pull logs.",
+          "datatype": "text",
+          "maxChar": 100,
+          "mandatory": true
+        },
+        {
+          "name": "subscription",
+          "label": "Subscription *",
+          "tooltip": "Subscription within the configured project to pull logs.",
+          "datatype": "text",
+          "maxChar": 100,
+          "mandatory": true
+        },
+        {
+          "name": "full_response_size",
+          "label": "Full Response Size",
+          "tooltip": "Number of messages needed to mark a stream as 'busy'. This helps decide if additional streams are needed.",
+          "default": "100",
+          "datatype": "integer"
+        },
+        {
+          "name": "max_concurrency",
+          "label": "Max Concurrency",
+          "tooltip": "Maximum number of stream connections that can be open simultaneously.",
+          "default": "10",
+          "datatype": "integer"
+        },
+        {
+          "name": "poll_time_seconds",
+          "label": "Poll Time (seconds)",
+          "tooltip": "Set how frequently to check if active streams are busy and if need to open a new one.",
+          "default": "10",
+          "datatype": "integer"
+        },
+        {
+          "name": "retry_delay_secs",
+          "label": "Retry Delay (seconds)",
+          "tooltip": "Time to wait between each retry attempt after an error, in seconds.",
+          "default": "60",
+          "datatype": "integer"
+        },
+        {
+          "name": "keepalive_secs",
+          "label": "Keep-Alive (seconds)",
+          "tooltip": "Time (in seconds) of inactivity before sending a keepalive request. Setting this to more than 60 seconds may result in occasional server errors.",
+          "default": "60",
+          "datatype": "integer"
+        }
+      ],
+      "advanced": [
+        {
+          "name": "tls",
+          "label": "Enable TLS",
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
+          "default": "false",
+          "options": ["true", "false"],
+          "datatype": "boolean"
+        },
+        {
+          "name": "codec",
+          "label": "Decoding",
+          "tooltip": "Configure how events are decoded from raw bytes",
+          "default": "json",
+          "options": ["json", "syslog"]
+        }
+      ]
+    },
+    {
+      "name": "Demo Logs",
+      "type": "demo_logs",
+      "uuid": "demologsource",
+      "image": "demo_logs.svg",
+      "tooltip": "Generates fake events useful for testing and demos",
+      "disabled": true,
+      "status": "alpha",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Input-ID (App Name) *",
+          "prefix": "input_",
+          "tooltip": "Unique Input-ID (App Name) for this source, used internally by the application to identify and manage the source.",
+          "datatype": "text",
+          "mandatory": true,
+          "maxChar": 30
+        },
+        {
+          "name": "format",
+          "label": "Event type *",
+          "tooltip": "Select the type of event to generate",
+          "default": "apache_common",
+          "options": [
+            "apache_common",
+            "apache_error",
+            "syslog",
+            "bsd_syslog",
+            "json"
+          ],
+          "mandatory": true
+        },
+        {
+          "name": "count",
+          "label": "Event count *",
+          "tooltip": "Specify the number of events to generate.",
+          "default": "50",
+          "datatype": "integer",
+          "mandatory": true
+        },
+        {
+          "name": "interval",
+          "label": "Event Interval *",
+          "tooltip": "Specify the delay (in seconds) between the generation of each event.",
+          "default": "1",
+          "datatype": "integer",
+          "mandatory": true
         }
       ]
     }
@@ -754,8 +1421,10 @@
       "name": "Amazon S3",
       "type": "aws_s3",
       "uuid": "amazons3destination",
-      "image": "amazon-s3.svg",
-      "tooltip": "Source - Amazon S3",
+      "image": "amazon_s3.svg",
+      "tooltip": "Send events to Amazon S3 Bucket",
+      "disabled": false,
+      "status": "beta",
       "settings": [
         {
           "name": "name",
@@ -776,13 +1445,14 @@
           "tooltip": "Name of destination S3 bucket, E.g. my-bucket",
           "datatype": "text",
           "mandatory": true,
-          "maxChar": 30
+          "maxChar": 50
         },
         {
           "name": "key_prefix",
-          "label": "Key Prefix",
+          "label": "Key Prefix *",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
           "datatype": "text-special",
+          "mandatory": true,
           "maxChar": 200
         },
         {
@@ -797,11 +1467,19 @@
           "tooltip": "Region where the S3 bucket is located."
         },
         {
-          "name": "codec",
+          "name": "encoding",
           "label": "Encoding",
-          "options": ["json", "raw_message"],
-          "tooltip": "Configure how events are encoded while storing",
-          "default": "json"
+          "tooltip": "Configures how events are encoded into raw bytes",
+          "fields": [
+            {
+              "name": "codec",
+              "label": "Encoding *",
+              "tooltip": "Sets the method for converting events into raw data using a specific encoding format.",
+              "options": ["json", "logfmt", "raw_message"],
+              "datatype": "json",
+              "mandatory": true
+            }
+          ]
         }
       ],
       "authentication": {
@@ -951,15 +1629,67 @@
               }
             }
           ]
+        },
+        {
+          "name": "healthcheck",
+          "label": "Health Check",
+          "tooltip": "Perform destination health on startup.",
+          "fields": [
+            {
+              "name": "enabled",
+              "label": "Enable Healthcheck",
+              "tooltip": "Check destination health on startup.",
+              "options": ["true", "false"],
+              "default": "false",
+              "datatype": "boolean"
+            }
+          ]
+        }
+      ],
+      "processing-settings": [
+        {
+          "name": "framing",
+          "label": "Framing",
+          "tooltip": "Configure how the event data is framed while processed and sent.",
+          "options": [
+            {
+              "name": "method",
+              "label": "Event Framing Method",
+              "tooltip": "Configure how the event data is framed while processed and sent.",
+              "fields": [
+                {
+                  "name": "newline_delimited",
+                  "label": "Delimited by a newline (LF) character.",
+                  "tooltip": "Delimited by a newline (LF) character."
+                },
+                {
+                  "name": "bytes",
+                  "label": "Data is not delimited.",
+                  "tooltip": "Data is not delimited."
+                }
+              ],
+              "default": "newline_delimited",
+              "datatype": "text"
+            }
+          ]
+        },
+        {
+          "name": "filename_extension",
+          "label": "Filename Extension",
+          "tooltip": "filename extension to use in the object key. (e.g .json.gz )",
+          "datatype": "text",
+          "maxChar": 200
         }
       ]
     },
     {
-      "name": "BluSapphire SDL",
+      "name": "BluSapphire Secure Data Lake",
       "type": "aws_s3",
       "uuid": "blusapphiresdl",
-      "tooltip": "Source - BluSapphire SDL",
+      "tooltip": "Send events to BluSapphire Secure Data Lake (SDL)",
       "image": "blusapphire_sdl.svg",
+      "disabled": false,
+      "status": "beta",
       "settings": [
         {
           "name": "name",
@@ -979,30 +1709,29 @@
           "label": "BluSapphire SDL Bucket Name *",
           "tooltip": "Name of BluSapphire SDL destination S3 bucket, E.g. sdl-bucket",
           "datatype": "text",
+          "default": "blusapphire-prod-logs",
           "mandatory": true,
-          "maxChar": 40,
-          "default": "blusapphire-prod-logs"
+          "maxChar": 30
         },
         {
           "name": "key_prefix",
-          "label": "Key Prefix",
+          "label": "Key Prefix *",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
+          "datatype": "text-special",
+          "maxChar": 200,
+          "default": "logs/{{ .organization.id }}/{{ .sensor.id }}/",
           "options": [
             "logs/{{ .organization.id }}/{{ .sensor.id }}/",
-            "logs/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/"
+            "logs/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/",
+            "staging/{{ .organization.id }}/{{ .sensor.id }}/"
           ],
-          "default": "logs/{{ .organization.id }}/{{ .sensor.id }}/"
-        },
-        {
-          "name": "compression",
-          "label": "Compression",
-          "options": ["none", "gzip"],
-          "default": "gzip"
+          "mandatory": true
         },
         {
           "name": "region",
-          "label": "Region",
-          "tooltip": "Region where the S3 bucket is located."
+          "label": "Region *",
+          "tooltip": "Region where the S3 bucket is located.",
+          "mandatory": true
         },
         {
           "name": "codec",
@@ -1010,6 +1739,12 @@
           "options": ["json", "raw_message"],
           "tooltip": "Configure how events are encoded while storing",
           "default": "json"
+        },
+        {
+          "name": "compression",
+          "label": "Compression",
+          "options": ["none", "gzip"],
+          "default": "gzip"
         }
       ],
       "authentication": {
@@ -1159,6 +1894,56 @@
               }
             }
           ]
+        },
+        {
+          "name": "healthcheck",
+          "label": "Health Check",
+          "tooltip": "Perform destination health on startup.",
+          "fields": [
+            {
+              "name": "enabled",
+              "label": "Enable Healthcheck",
+              "tooltip": "Check destination health on startup.",
+              "options": ["true", "false"],
+              "default": "false",
+              "datatype": "boolean"
+            }
+          ]
+        }
+      ],
+      "processing-settings": [
+        {
+          "name": "framing",
+          "label": "Framing",
+          "tooltip": "Configure how the event data is framed while processed and sent.",
+          "options": [
+            {
+              "name": "method",
+              "label": "Event Framing Method",
+              "tooltip": "Configure how the event data is framed while processed and sent.",
+              "fields": [
+                {
+                  "name": "newline_delimited",
+                  "label": "Delimited by a newline (LF) character.",
+                  "tooltip": "Delimited by a newline (LF) character."
+                },
+                {
+                  "name": "bytes",
+                  "label": "Data is not delimited.",
+                  "tooltip": "Data is not delimited."
+                }
+              ],
+              "default": "newline_delimited",
+              "datatype": "text"
+            }
+          ]
+        },
+        {
+          "name": "filename_extension",
+          "label": "Filename Extension",
+          "tooltip": "filename extension to use in the object key. (e.g .json.gz )",
+          "datatype": "text",
+          "maxChar": 200
         }
       ]
     },
@@ -1167,6 +1952,9 @@
       "type": "vector",
       "uuid": "vectordestination",
       "image": "vector.svg",
+      "tooltip": "Send events to Vector Agent",
+      "disabled": false,
+      "status": "beta",
       "settings": [
         {
           "name": "name",
@@ -1213,8 +2001,10 @@
       "name": "Kafka",
       "type": "kafka",
       "uuid": "kafkadestination",
-      "image": "apache-kafka.svg",
-      "tooltip": "Destination - Kafka",
+      "image": "apache_kafka.svg",
+      "tooltip": "Send events to Kafka",
+      "disabled": true,
+      "status": "alpha",
       "settings": [
         {
           "name": "name",
@@ -1281,7 +2071,7 @@
           "name": "tls",
           "label": "Enable TLS",
           "options": ["true", "false"],
-          "tooltip": "TLS for outgoing connections",
+          "tooltip": "Enable TLS for incoming or outgoing connections.",
           "datatype": "boolean"
         },
         {
@@ -1296,6 +2086,185 @@
           "options": ["json", "logfmt", "raw_message"],
           "tooltip": "Configure how events are encoded while storing",
           "default": "json"
+        }
+      ]
+    },
+    {
+      "name": "Amazon SQS",
+      "type": "aws_sqs",
+      "uuid": "amazonsqsdestination",
+      "image": "amazon_sqs.svg",
+      "tooltip": "Send events to Simple Queue Service topics",
+      "disabled": true,
+      "status": "alpha",
+      "settings": [
+        {
+          "name": "name",
+          "label": "Output-ID *",
+          "prefix": "output_",
+          "tooltip": "Unique ID for this destination",
+          "datatype": "text",
+          "mandatory": true
+        },
+        {
+          "name": "inputs",
+          "label": "Inputs",
+          "tooltip": "List of inputs for this destination"
+        },
+        {
+          "name": "queue_url",
+          "label": "Queue URL *",
+          "placeholder": "SQS queue URL",
+          "tooltip": "URL of the Amazon SQS queue to which messages are sent.",
+          "datatype": "url",
+          "mandatory": true,
+          "maxChar": 120
+        },
+        {
+          "name": "region",
+          "label": "Region",
+          "tooltip": "Region where the S3 bucket is located."
+        },
+        {
+          "name": "message_deduplication_id",
+          "label": "Message Deduplication ID",
+          "tooltip": "Specify unique value to help AWS identify and handle duplicate messages. For more details, check the AWS documentation on SQS message deduplication.",
+          "datatype": "text-special"
+        },
+        {
+          "name": "message_group_id",
+          "label": "Message Group ID",
+          "tooltip": "Tag to assign a message to a specific group. Only for FIFO queues.",
+          "datatype": "text-special"
+        },
+        {
+          "name": "encoding",
+          "tooltip": "Configures how events are encoded into raw bytes",
+          "fields": [
+            {
+              "name": "codec",
+              "label": "Encoding *",
+              "tooltip": "Sets the method for converting events into raw data using a specific encoding format.",
+              "options": ["json", "logfmt", "raw_message"],
+              "datatype": "json",
+              "mandatory": true
+            },
+            {
+              "name": "timestamp_format",
+              "label": "Timestamp Format *",
+              "tooltip": "Specifies the format applied to timestamp fields.",
+              "options": [
+                {
+                  "name": "rfc3339",
+                  "label": "RFC 3339 format",
+                  "tooltip": "Display the timestamp in RFC 3339 format."
+                },
+                {
+                  "name": "unix",
+                  "label": "Unix timestamp format",
+                  "tooltip": "Display the timestamp in Unix timestamp format."
+                },
+                {
+                  "name": "unix_float",
+                  "label": "Unix timestamp in floating point",
+                  "tooltip": "Display the timestamp as a Unix timestamp in floating point format."
+                },
+                {
+                  "name": "unix_ms",
+                  "label": "Unix timestamp in milliseconds",
+                  "tooltip": "Display the timestamp as a Unix timestamp in milliseconds."
+                },
+                {
+                  "name": "unix_ns",
+                  "label": "Unix timestamp in nanoseconds",
+                  "tooltip": "Display the timestamp as a Unix timestamp in nanoseconds."
+                },
+                {
+                  "name": "unix_us",
+                  "label": "Unix timestamp in microseconds.",
+                  "tooltip": "Display the timestamp as a Unix timestamp in microseconds."
+                }
+              ],
+              "datatype": "json",
+              "mandatory": true
+            }
+          ]
+        }
+      ],
+      "authentication": {
+        "name": "auth",
+        "tooltip": "Configure authentication for interacting with AWS S3 service.",
+        "dropdownOptions": [
+          {
+            "label": "Access Key",
+            "tooltip": "Configure AWS access secret for authenticating with S3",
+            "fieldsToShow": [
+              {
+                "name": "access_key_id",
+                "label": "Access Key *",
+                "placeholder": "AWS access key.",
+                "tooltip": "Access Key",
+                "datatype": "alphanumeric",
+                "mandatory": true,
+                "maxChar": 20
+              },
+              {
+                "name": "secret_access_key",
+                "label": "Secret Key *",
+                "placeholder": "AWS secret key.",
+                "tooltip": "Secret Key",
+                "datatype": "alphanumericSpecial",
+                "mandatory": true,
+                "maxChar": 40
+              },
+              {
+                "name": "auth_region",
+                "label": "Region",
+                "placeholder": "select one",
+                "tooltip": "AWS region to send Security Token Service (STS) requests to."
+              }
+            ]
+          },
+          {
+            "label": "Assume Role",
+            "tooltip": "Configure ARN of an IAM role to assume. Helpful in cross account access",
+            "fieldsToShow": [
+              {
+                "name": "assume_role",
+                "label": "Assume Role *",
+                "tooltip": "ARN of an IAM role to assume.",
+                "placeholder": "ARN",
+                "datatype": "arn",
+                "mandatory": true,
+                "maxChar": 150
+              }
+            ]
+          }
+        ]
+      },
+      "advanced": [
+        {
+          "name": "endpoint",
+          "label": "Endpoint",
+          "tooltip": "Custom endpoint for AWS-compatible services.",
+          "datatype": "url",
+          "maxChar": 80
+        },
+        {
+          "name": "healthcheck",
+          "label": "Health Check",
+          "tooltip": "Configures how events are encoded into raw bytes",
+          "fields": [
+            {
+              "name": "enabled",
+              "label": "Enable Healthcheck",
+              "tooltip": "Check destination health on DPM service startup.",
+              "options": ["true", "false"],
+              "default": false,
+              "datatype": "boolean",
+              "mandatory": false
+            }
+          ]
         }
       ]
     }

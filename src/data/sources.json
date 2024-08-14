@@ -194,7 +194,7 @@
         "fields": [
           {
             "name": "enabled",
-            "label": "SASL Enabled",
+            "label": "SASL Enabled *",
             "tooltip": "Enables SASL authentication.",
             "options": ["true", "false"],
             "default": "true",
@@ -605,7 +605,6 @@
       "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
-      "tooltip": "Source - Amazon S3",
       "settings": [
         {
           "name": "name",
@@ -1006,7 +1005,7 @@
         "fields": [
           {
             "name": "username",
-            "label": "Username",
+            "label": "Username *",
             "placeholder": "username",
             "tooltip": "Username for basic authentication.",
             "datatype": "text",
@@ -1014,7 +1013,7 @@
           },
           {
             "name": "password",
-            "label": "Password",
+            "label": "Password *",
             "placeholder": "password",
             "tooltip": "Password for basic authentication.",
             "datatype": "password",
@@ -1450,7 +1449,7 @@
         },
         {
           "name": "key_prefix",
-          "label": "Key Prefix",
+          "label": "Key Prefix *",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
           "datatype": "text-special",
           "mandatory": true,
@@ -1634,17 +1633,11 @@
         {
           "name": "healthcheck",
           "label": "Health Check",
-          "tooltip": "Perform destination health on startup.",
-          "fields": [
-            {
-              "name": "enabled",
-              "label": "Enable Healthcheck",
-              "tooltip": "Check destination health on startup.",
-              "options": ["true", "false"],
-              "default": "false",
-              "datatype": "boolean"
-            }
-          ]
+          "tooltip": "Configures how events are encoded into raw bytes",
+          "options": ["true", "false"],
+          "default": false,
+          "datatype": "boolean",
+          "mandatory": false
         }
       ],
       "processing-settings": [
@@ -1716,7 +1709,7 @@
         },
         {
           "name": "key_prefix",
-          "label": "Key Prefix",
+          "label": "Key Prefix *",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
           "datatype": "text-special",
           "maxChar": 200,
@@ -1730,7 +1723,7 @@
         },
         {
           "name": "region",
-          "label": "Region",
+          "label": "Region *",
           "tooltip": "Region where the S3 bucket is located.",
           "mandatory": true
         },
@@ -1899,17 +1892,11 @@
         {
           "name": "healthcheck",
           "label": "Health Check",
-          "tooltip": "Perform destination health on startup.",
-          "fields": [
-            {
-              "name": "enabled",
-              "label": "Enable Healthcheck",
-              "tooltip": "Check destination health on startup.",
-              "options": ["true", "false"],
-              "default": "false",
-              "datatype": "boolean"
-            }
-          ]
+          "tooltip": "Configures how events are encoded into raw bytes",
+          "options": ["true", "false"],
+          "default": false,
+          "datatype": "boolean",
+          "mandatory": false
         }
       ],
       "processing-settings": [
@@ -2152,7 +2139,7 @@
             },
             {
               "name": "timestamp_format",
-              "label": "Timestamp Format",
+              "label": "Timestamp Format *",
               "tooltip": "Specifies the format applied to timestamp fields.",
               "options": [
                 {
@@ -2255,17 +2242,10 @@
           "name": "healthcheck",
           "label": "Health Check",
           "tooltip": "Configures how events are encoded into raw bytes",
-          "fields": [
-            {
-              "name": "enabled",
-              "label": "Enable Healthcheck",
-              "tooltip": "Check destination health on DPM service startup.",
-              "options": ["true", "false"],
-              "default": "false",
-              "datatype": "boolean",
-              "mandatory": false
-            }
-          ]
+          "options": ["true", "false"],
+          "default": false,
+          "datatype": "boolean",
+          "mandatory": false
         }
       ]
     }

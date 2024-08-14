@@ -227,15 +227,13 @@ const EditDestinationData = ({
   if (selectedDestination["processing-settings"]) {
     selectedDestination["processing-settings"].forEach((setting: any) => {
       destInitialValues[setting.name] =
-        selectedNode?.data.nodeData[setting.name] || setting.default || [];
+        selectedNode?.data.nodeData[setting.name] || setting.default || "";
 
       if (setting.mandatory) {
         mandatoryFields.push(setting.name);
       }
     });
   }
-
-  console.log("selectedDestination", selectedDestination);
 
   const [checkMandatoryFields, setMandatoryFields] = useState(mandatoryFields);
 
@@ -304,20 +302,30 @@ const EditDestinationData = ({
       } else if (selectedDestination.advanced) {
         setSelectedTab("advanced");
       } else {
-        setSelectedTab("fields");
+        setSelectedTab("processing");
       }
     }
 
     if (selectedTab === "advanced") {
-      saveSettings();
+      if (selectedDestination["processing-settings"]) {
+        setSelectedTab("processing");
+      } else {
+        saveSettings();
+      }
     }
 
     if (selectedTab === "auth") {
       if (selectedDestination.advanced) {
         setSelectedTab("advanced");
+      } else if (selectedDestination["processing-settings"]) {
+        setSelectedTab("processing");
       } else {
         saveSettings();
       }
+    }
+
+    if (selectedTab === "processing") {
+      saveSettings();
     }
   };
 
@@ -389,6 +397,16 @@ const EditDestinationData = ({
               }
             } else {
               sourceValues["compression"] = formik.values["compression"];
+            }
+          } else if (item === "healthcheck") {
+            sourceValues.healthcheck = {
+              enabled: formik.values["healthcheck"],
+            };
+          } else if (item === "framing" || item === "method") {
+            if (formik.values["method"]) {
+              sourceValues.framing = {
+                method: formik.values["method"] || "",
+              };
             }
           } else {
             if (authIndex) {
@@ -643,8 +661,6 @@ const EditDestinationData = ({
   const handleClose = () => {
     setConfirmDelete(false);
   };
-
-  console.log("formik", formik.values);
 
   return (
     <Offcanvas
@@ -1409,13 +1425,17 @@ const EditDestinationData = ({
                 onClick={onNextClick}
                 disabled={
                   selectedTab === "setting" ||
-                  (selectedTab === "auth" && selectedDestination.advanced)
+                  selectedTab === "auth" ||
+                  (selectedTab === "advanced" &&
+                    selectedDestination["processing-settings"])
                     ? checkTabValues("")
                     : checkFormValid(formik.values) || checkTabValues("all")
                 }
               >
                 {selectedTab === "setting" ||
-                (selectedTab === "auth" && selectedDestination.advanced)
+                selectedTab === "auth" ||
+                (selectedTab === "advanced" &&
+                  selectedDestination["processing-settings"])
                   ? "Next"
                   : selectedNode !== undefined
                   ? "Update"
