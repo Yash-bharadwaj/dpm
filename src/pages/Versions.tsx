@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -22,13 +22,15 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
-// @ts-ignore
+//@ts-ignore
 import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
 import loadingAnimation from "../utils/Loading.json";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { RxCrossCircled } from "react-icons/rx";
 import { TbAlertTriangleFilled } from "react-icons/tb";
+import { useParams } from "react-router-dom";
+import { DeviceContext } from "../utils/DeviceContext";
 
 // Define status colors and icons for table chips
 const statusIcons: Record<string, JSX.Element> = {
@@ -59,7 +61,6 @@ const statusColors: Record<string, string> = {
   inprogress: "#007867",
 };
 
-
 const timelineColors: Record<string, { iconColor: string; textColor: string }> = {
   invalid: { iconColor: 'black', textColor: 'black' },
   notdeployed: { iconColor: '#d51a22', textColor: 'red' },
@@ -73,7 +74,6 @@ const timelineColors: Record<string, { iconColor: string; textColor: string }> =
   inprogress: { iconColor: '#4BB543', textColor: 'black' },
 };
 
-
 interface Version {
   id: string;
   lastUpdated: string;
@@ -86,8 +86,19 @@ interface TimelineEventData {
 }
 
 const Versions: React.FC = () => {
-  
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const { devicecode } = useParams();
+  const context = useContext(DeviceContext);
+
+  // Ensure context is defined
+  if (context === undefined) {
+    throw new Error("DeviceContext must be used within a DeviceProvider");
+  }
+
+  const { selectedDevice } = context;
+  const deviceCodeFromContext = selectedDevice || devicecode;
+
+  const orgCode = "d3b6842d"; 
+
   const [versionsData, setVersionsData] = useState<Version[]>([]);
   const [timelineData, setTimelineData] = useState<Record<string, TimelineEventData[]>>({});
   const [openRowId, setOpenRowId] = useState<string | null>(null);
@@ -108,8 +119,8 @@ const Versions: React.FC = () => {
 
   const { loading: versionsLoading, error: versionsError, data: versionsDataResponse } = useQuery(GET_CONFIG_VERSION, {
     variables: {
-      orgcode: "d3b6842d",
-      devicecode: "DM_HY_D01",
+      orgcode: orgCode,
+      devicecode: deviceCodeFromContext,
       timezone: getCurrentTimezone(),
     },
   });
@@ -137,8 +148,8 @@ const Versions: React.FC = () => {
       const { data } = await fetchTimeline({
         variables: {
           input: {
-            orgcode: "d3b6842d",
-            devicecode: "DM_HY_D01",
+            orgcode: orgCode,
+            devicecode: deviceCodeFromContext,
             versionid: versionid,
             timezone: getCurrentTimezone(),
           },
@@ -190,7 +201,7 @@ const Versions: React.FC = () => {
   };
 
   return (
-    <TableContainer style={{ marginTop: "0rem", width: '70%', marginInline: '5rem' }} component={Paper}>
+    <TableContainer style={{ marginTop: "0rem", width: '80%', marginInline: '5rem' }} component={Paper}>
       <Table>
         <TableHead>
           <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>

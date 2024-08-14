@@ -1,21 +1,20 @@
-import { useContext } from "react";
-import { useLocation, Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Navbar, Nav } from "react-bootstrap";
 import Logo from "../assets/images/logoBlusapphire.png";
 import { FaBell } from "react-icons/fa";
-import { DeviceContext } from "../utils/DeviceContext"; // import context
+import { DeviceContext } from "../utils/DeviceContext";
 import { MdHelpOutline } from "react-icons/md";
 
-const MainNavbar = () => {
+const MainNavbar: React.FC = () => {
   const location = useLocation();
-  const deviceContext = useContext(DeviceContext); // get the context
+  const deviceContext = useContext(DeviceContext);
   const isHomePage = location.pathname === "/";
-  const isVersionsPage = location.pathname === "/versions";
+  const isVersionsPage = location.pathname.startsWith("/versions");
   const url = import.meta.env.VITE_REACT_APP_DOCS;
 
-  // If the context is not available, handle it gracefully
   if (!deviceContext) {
-    return null; // or return some fallback UI
+    return null; 
   }
 
   const { selectedDevice } = deviceContext;
@@ -61,22 +60,24 @@ const MainNavbar = () => {
           >
             Devices
           </Nav.Link>
-          <Nav.Link
-            as={Link}
-            to="/versions"
-            style={{
-              borderBottom: isVersionsPage ? "2px solid #11a1cd" : "none",
-              color: isVersionsPage ? "#11a1cd" : "inherit",
-              fontWeight: isVersionsPage ? "600" : "normal",
-            }}
-          >
-            Versions
-          </Nav.Link>
+          {selectedDevice && (
+            <Nav.Link
+              as={Link}
+              to={`/versions/${selectedDevice}`}
+              style={{
+                borderBottom: isVersionsPage ? "2px solid #11a1cd" : "none",
+                color: isVersionsPage ? "#11a1cd" : "inherit",
+                fontWeight: isVersionsPage ? "600" : "normal",
+              }}
+            >
+              Versions
+            </Nav.Link>
+          )}
         </Nav>
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginRight: '1rem' }}>
-        {selectedDevice && (
+        {!isHomePage && selectedDevice && (
           <div style={{ fontSize: "14px" }}>
             Device: <span style={{ fontWeight: "600" }}>{selectedDevice}</span>
           </div>
