@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
 import { ImLocation2 } from "react-icons/im";
+//@ts-ignore
 import Lottie from 'react-lottie';
 import loadingAnimation from '../utils/Loading.json';
 import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
