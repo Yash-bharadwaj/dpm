@@ -61,7 +61,7 @@ const statusColors: Record<string, string> = {
 
 
 const timelineColors: Record<string, { iconColor: string; textColor: string }> = {
-  invalid: { iconColor: 'black', textColor: 'yellow' },
+  invalid: { iconColor: 'black', textColor: 'black' },
   notdeployed: { iconColor: '#d51a22', textColor: 'red' },
   failed: { iconColor: '#d51a22', textColor: 'red' },
   draft: { iconColor: '#007867', textColor: 'black' },

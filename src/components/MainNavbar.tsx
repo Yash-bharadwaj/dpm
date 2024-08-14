@@ -2,10 +2,9 @@
 import React, { useContext } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Navbar, Nav } from 'react-bootstrap';
-import Logo from '../assets/images/logoBlusapphire.png';
 import { FaBell } from 'react-icons/fa';
 import { DeviceContext } from '../utils/DeviceContext';// import context
-import { Nav, Navbar } from "react-bootstrap";
+
 import Logo from "../assets/images/logoBlusapphire.png";
 
 import { MdHelpOutline } from "react-icons/md";
