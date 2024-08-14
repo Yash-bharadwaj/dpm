@@ -124,15 +124,21 @@ const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
                         </Card.Text>
 
                         <div className="overlay-div">
-                          <Button
-                            variant="light"
-                            size="sm"
-                            onClick={() => {
-                              onSourceSelect(source);
-                            }}
-                          >
-                            Add New
-                          </Button>
+                          {source.disabled ? (
+                            <Button variant="light" size="sm" disabled>
+                              Coming Soon
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="light"
+                              size="sm"
+                              onClick={() => {
+                                onSourceSelect(source);
+                              }}
+                            >
+                              Add New
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card.Body>

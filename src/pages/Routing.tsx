@@ -23,6 +23,7 @@ import {
   GET_CONFIG_VALID_VERSIONS,
   GET_OLDER_CONFIG_DETAILS,
   GET_ERROR_LOGS,
+  GET_HEARTBEAT_STATUS,
 } from "../query/query";
 
 import ReactFlow, {
@@ -211,9 +212,11 @@ const Routing = () => {
     },
   });
 
+  //get error logs
   const [getErrorLogs, { loading: errorLoading, data: errorData }] =
     useLazyQuery(GET_ERROR_LOGS);
 
+  //get selected config details
   const [
     getOlderConfigDetails,
     { loading: oldVersionLoading, data: oldVersionData },
@@ -242,6 +245,10 @@ const Routing = () => {
     },
     fetchPolicy: "no-cache",
   });
+
+  //get heartbeat status
+  const [getHeartbeatStatus, { loading: statusLoading, data: heartbeatData }] =
+    useMutation(GET_HEARTBEAT_STATUS);
 
   const getConfigDetails = (savedConfig: any) => {
     const sample = jsyaml.load(savedConfig);
@@ -481,12 +488,24 @@ const Routing = () => {
       if (response.getConfig.responsestatus) {
         const savedConfig = atob(response.getConfig.responsedata);
 
+        //get timeline data
         getConfigTimelineData({
           variables: {
             input: {
               orgcode: orgCode,
               devicecode: deviceCode,
               versionid: response.getConfig.versionid,
+              timezone: getCurrentTimezone(),
+            },
+          },
+        });
+
+        //get heartbeat status
+        getHeartbeatStatus({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
               timezone: getCurrentTimezone(),
             },
           },
@@ -2466,6 +2485,12 @@ const Routing = () => {
     return errorLogs;
   };
 
+  const getDeviceStatus = () => {
+    const statusData = JSON.parse(heartbeatData.getHeartbeat.responsedata);
+
+    return statusData.service_status.toUpperCase();
+  };
+
   useEffect(() => {
     handleEdgeChange();
   }, [edges]);
@@ -2511,7 +2536,8 @@ const Routing = () => {
                   Device : <b>{deviceCode}</b>
                 </div>
                 <div className="current-config-data">
-                  HeartBeat Status : <b>{deviceCode}</b>
+                  HeartBeat Status :{" "}
+                  <b>{heartbeatData?.getHeartbeat ? getDeviceStatus() : "-"}</b>
                 </div>
               </div>
               <div className="current-config-data">

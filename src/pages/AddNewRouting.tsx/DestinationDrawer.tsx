@@ -124,15 +124,21 @@ const DestinationDrawer = ({
                         </Card.Text>
 
                         <div className="overlay-div">
-                          <Button
-                            variant="light"
-                            size="sm"
-                            onClick={() => {
-                              onDestinationSelect(destination);
-                            }}
-                          >
-                            Add New
-                          </Button>
+                          {destination.disabled ? (
+                            <Button variant="light" size="sm" disabled>
+                              Coming Soon
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="light"
+                              size="sm"
+                              onClick={() => {
+                                onDestinationSelect(destination);
+                              }}
+                            >
+                              Add New
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card.Body>
