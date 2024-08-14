@@ -31,7 +31,7 @@ import {
 import { useQuery, useLazyQuery } from "@apollo/client";
 //@ts-ignore
 import Lottie from "react-lottie";
-import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
+import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE, GET_CONFIG} from "../query/query";
 import loadingAnimation from "../utils/Loading.json";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { RxCrossCircled } from "react-icons/rx";
@@ -102,6 +102,8 @@ interface TimelineEventData {
 const Versions: React.FC = () => {
   const { devicecode } = useParams();
   const context = useContext(DeviceContext);
+  const [commentsData, setCommentsData] = useState<Record<string, string>>({});
+  const [fetchComments, { data: commentsDataResponse, loading: commentsLoading, error: commentsError }] = useLazyQuery(GET_CONFIG);
 
   // Ensure context is defined
   if (context === undefined) {
@@ -153,7 +155,41 @@ const Versions: React.FC = () => {
         status: version.status,
       }));
       setVersionsData(fetchedVersions);
-
+  
+      // Fetch comments for each version
+      fetchedVersions.forEach((version: Version) => {
+        fetchComments({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCodeFromContext,
+              versionid: version.id,
+              timezone: getCurrentTimezone(), // Add timezone here
+            }
+          }
+        })
+        .then(({ data }) => {
+          if (data) {
+            setCommentsData((prevData) => ({
+              ...prevData,
+              [version.id]: data.getConfig?.comment || 'No comment',
+            }));
+          } else {
+            setCommentsData((prevData) => ({
+              ...prevData,
+              [version.id]: 'No comment',
+            }));
+          }
+        })
+        .catch((error) => {
+          console.error(`Error fetching comments for version ${version.id}:`, error);
+          setCommentsData((prevData) => ({
+            ...prevData,
+            [version.id]: 'Error fetching comments',
+          }));
+        });
+      });
+  
       // Fetch timelines for each version
       fetchedVersions.forEach((version: Version) => {
         fetchTimelineData(version.id);
@@ -161,6 +197,8 @@ const Versions: React.FC = () => {
     }
   }, [versionsDataResponse]);
 
+
+  
   const fetchTimelineData = async (versionid: string) => {
     try {
       const { data } = await fetchTimeline({
@@ -261,8 +299,10 @@ const Versions: React.FC = () => {
                 <MdOutlineFilterList />
                 </IconButton>
                 Status</TableCell>
+                <TableCell style={{ fontWeight: "600", width: '20rem' }}>Comments</TableCell>
             
             </TableRow>
+            
           </TableHead>
           <TableBody>
             {filteredVersionsData
@@ -294,6 +334,10 @@ const Versions: React.FC = () => {
                         }}
                       />
                     </TableCell>
+                    <TableCell>
+  {commentsLoading ? 'Loading comments...' : commentsData[version.id] || 'No comment'}
+</TableCell>
+
                   </TableRow>
                   <TableRow>
                     <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>

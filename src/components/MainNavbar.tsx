@@ -76,7 +76,7 @@ const MainNavbar: React.FC = () => {
         </Nav>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginRight: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '1rem' }}>
         {!isHomePage && selectedDevice && (
           <div style={{ fontSize: "14px" }}>
             Device: <span style={{ fontWeight: "600" }}>{selectedDevice}</span>
@@ -107,7 +107,7 @@ const MainNavbar: React.FC = () => {
         </div>
 
         <Nav.Link onClick={onDocsClick} style={{ marginRight: "12px" }}>
-          <MdHelpOutline style={{ height: "20px", width: "20px" }} />
+          <MdHelpOutline style={{ fontSize:'24px' }} />
         </Nav.Link>
       </div>
       
