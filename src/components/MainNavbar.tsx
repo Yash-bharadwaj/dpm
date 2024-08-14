@@ -5,6 +5,12 @@ import { Navbar, Nav } from 'react-bootstrap';
 import Logo from '../assets/images/logoBlusapphire.png';
 import { FaBell } from 'react-icons/fa';
 import { DeviceContext } from '../utils/DeviceContext';// import context
+import { Nav, Navbar } from "react-bootstrap";
+import Logo from "../assets/images/logoBlusapphire.png";
+
+import { MdHelpOutline } from "react-icons/md";
+
+const url = import.meta.env.VITE_REACT_APP_DOCS;
 
 const MainNavbar = () => {
   const location = useLocation();
@@ -72,7 +78,7 @@ const MainNavbar = () => {
   <div style={{display:'flex' , gap:'1rem'}}>
   {selectedDevice && (
         <div style={{   fontSize: '14px' }}>
-          Selected Device: <span style={{fontWeight: '600', }} > {selectedDevice}</span>
+          Device: <span style={{fontWeight: '600', }} > {selectedDevice}</span>
         </div>
       )}
   

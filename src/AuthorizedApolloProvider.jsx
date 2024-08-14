@@ -121,6 +121,7 @@ export default function AuthorizedApolloProvider(props) {
   useEffect(() => {
     if (refreshTokenExpiresAt) {
       const refreshTokenTimeout = refreshTokenExpiresAt - new Date().getTime();
+
       const timeoutId = setTimeout(() => {
         window.alert("Your session has expired. Please log in again.");
         keycloak.logout();

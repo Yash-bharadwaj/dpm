@@ -249,13 +249,13 @@ const Routing = () => {
 
     console.log("sample", sample);
 
-    let initialAddedSources:any = [];
-    let initialAddedDestinations:any = [];
-    let initialAddedPipelines:any = [];
-    let initialAddedEnrichments:any = [];
+    let initialAddedSources: any = [];
+    let initialAddedDestinations: any = [];
+    let initialAddedPipelines: any = [];
+    let initialAddedEnrichments: any = [];
 
-    let existingNodes:any = [];
-    let existingEdges:any = [];
+    let existingNodes: any = [];
+    let existingEdges: any = [];
 
     if (!sample.node.sources.disabled) {
       const sources = sample.node.sources;
@@ -595,9 +595,10 @@ const Routing = () => {
       setEnableDelete(true);
     } else {
       setEnableDelete(false);
+      setConfigUpdated(true);
     }
+
     setEdges((eds) => applyEdgeChanges(changes, eds));
-    setConfigUpdated(true);
   }, []);
 
   const onConnect = useCallback(
@@ -2480,17 +2481,10 @@ const Routing = () => {
         data?.getConfig.configstatus !== "draft" &&
         data?.getConfig.configstatus !== undefined &&
         data?.getConfig.configstatus !== "invalid" &&
+        data?.getConfig.configstatus !== "not-deployed" &&
         selectedVersion === ""
       ) {
-        getOlderConfigDetails({
-          variables: {
-            input: {
-              orgcode: orgCode,
-              devicecode: deviceCode,
-              timezone: getCurrentTimezone(),
-            },
-          },
-        });
+        refetch();
       }
     }, 1000 * 60); // in milliseconds
     return () => clearInterval(intervalId);
@@ -2559,7 +2553,7 @@ const Routing = () => {
                   </Badge>
                   {(data?.getConfig.configstatus === "failed" ||
                     data?.getConfig.configstatus === "invalid" ||
-                    data?.getConfig.configstatus === "notdeployed") && (
+                    data?.getConfig.configstatus === "not-deployed") && (
                     <MdReportGmailerrorred
                       style={{
                         height: "25px",
@@ -2753,21 +2747,23 @@ const Routing = () => {
               </div>
             </div>
 
-            {(loading ||
-              saveLoading ||
-              deployLoading ||
-              errorLoading ||
-              (oldVersionLoading && selectedVersion !== "")) && (
-              <DataLoading
-                open={
-                  loading ||
-                  saveLoading ||
-                  deployLoading ||
-                  errorLoading ||
-                  (oldVersionLoading && selectedVersion !== "")
-                }
-              />
-            )}
+            {
+              //loading ||
+              (saveLoading ||
+                deployLoading ||
+                errorLoading ||
+                (oldVersionLoading && selectedVersion !== "")) && (
+                <DataLoading
+                  open={
+                    //loading ||
+                    saveLoading ||
+                    deployLoading ||
+                    errorLoading ||
+                    (oldVersionLoading && selectedVersion !== "")
+                  }
+                />
+              )
+            }
 
             <div style={{ height: "100vh" }}>
               <ReactFlow

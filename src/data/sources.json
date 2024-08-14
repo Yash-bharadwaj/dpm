@@ -783,7 +783,7 @@
           "label": "Key Prefix",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
           "datatype": "text-special",
-          "maxChar": 60
+          "maxChar": 200
         },
         {
           "name": "compression",
@@ -980,14 +980,18 @@
           "tooltip": "Name of BluSapphire SDL destination S3 bucket, E.g. sdl-bucket",
           "datatype": "text",
           "mandatory": true,
-          "maxChar": 30
+          "maxChar": 40,
+          "default": "blusapphire-prod-logs"
         },
         {
           "name": "key_prefix",
           "label": "Key Prefix",
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
-          "datatype": "text-special",
-          "maxChar": 60
+          "options": [
+            "logs/{{ .organization.id }}/{{ .sensor.id }}/",
+            "logs/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/"
+          ],
+          "default": "logs/{{ .organization.id }}/{{ .sensor.id }}/"
         },
         {
           "name": "compression",
