@@ -11,7 +11,6 @@ import {
   Tooltip,
 } from "react-bootstrap";
 
-import RoutingNavbar from "../components/RoutingNavbar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
@@ -2492,8 +2491,6 @@ const Routing = () => {
 
   return (
     <>
-      
-
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col
@@ -2509,19 +2506,13 @@ const Routing = () => {
             }}
           >
             <div>
-              <div style={{display:'flex', gap:'1rem'}}>
-            <div className="current-config-data">
-                Device :{" "}
-                <b>
-                  {deviceCode}
-                </b>
-              </div>
-            <div className="current-config-data">
-                HeartBeat Status :{" "}
-                <b>
-                  {deviceCode}
-                </b>
-              </div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <div className="current-config-data">
+                  Device : <b>{deviceCode}</b>
+                </div>
+                <div className="current-config-data">
+                  HeartBeat Status : <b>{deviceCode}</b>
+                </div>
               </div>
               <div className="current-config-data">
                 Version :{" "}
