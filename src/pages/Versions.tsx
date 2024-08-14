@@ -45,6 +45,10 @@ const statusIcons: Record<string, JSX.Element> = {
   valid: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
   received: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
   inprogress: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  "in-progress": <FaRegCheckCircle style={{ color: '#4BB543' }}/>,
+  "not-deployed": <RxCrossCircled style={{ color: '#d51a22' }} />,
+
+ 
 };
 
 const statusColors: Record<string, string> = {
@@ -72,6 +76,8 @@ const timelineColors: Record<string, { iconColor: string; textColor: string }> =
   valid: { iconColor: '#4BB543', textColor: 'black' },
   received: { iconColor: '#4BB543', textColor: 'black' },
   inprogress: { iconColor: '#4BB543', textColor: 'black' },
+  "in-progress": { iconColor: '#4BB543', textColor: 'black' },
+  "not-deployed": { iconColor: '#d51a22', textColor: 'black' },
 };
 
 interface Version {

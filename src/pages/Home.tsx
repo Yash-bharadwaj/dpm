@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
 import { ImLocation2 } from "react-icons/im";
-//@ts-ignore
 import Lottie from 'react-lottie';
 import loadingAnimation from '../utils/Loading.json';
 import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
@@ -28,16 +27,16 @@ const Home: React.FC = () => {
   const orgCode = "d3b6842d";
   const [deviceCode, setDeviceCode] = useState<string>("DM_HY_D01");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
 
-  const deviceContext = useContext(DeviceContext); // Get the context
+  const deviceContext = useContext(DeviceContext);
   const navigate = useNavigate();
 
-  // If the context is not available, handle it gracefully
   if (!deviceContext) {
     return <p>Error: DeviceContext is not available.</p>;
   }
 
-  const { setSelectedDevice } = deviceContext;
+  const { setSelectedDevice: setDeviceInContext } = deviceContext;
 
   const {
     loading: devicesLoading,
@@ -50,17 +49,18 @@ const Home: React.FC = () => {
   const heartbeatStatus = useHeartbeatStatus(devicesData?.getLcdeviceList || []);
 
   const handleDeviceCodeClick = (device: Device) => {
-    setSelectedDevice(device.devicecode); // Update context
+    setDeviceInContext(device.devicecode); 
     navigate(`/config/${device.orgcode}/${device.devicecode}`);
   };
 
   const handleViewDetailsClick = (device: Device) => {
-    setSelectedDevice(device.devicecode);
+    setSelectedDevice(device);
     setSidebarOpen(true);
   };
 
   const handleCloseSidebar = () => {
     setSidebarOpen(false);
+    setSelectedDevice(null);
   };
 
   const defaultOptions = {
@@ -204,7 +204,9 @@ const Home: React.FC = () => {
       </TableContainer>
       <DeviceDetailsSidebar
         open={sidebarOpen}
-        onClose={handleCloseSidebar} device={null}      />
+        onClose={handleCloseSidebar}
+        device={selectedDevice}
+      />
     </div>
   );
 };
