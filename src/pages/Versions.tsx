@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -22,13 +22,15 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
-// @ts-ignore
+//@ts-ignore
 import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
 import loadingAnimation from "../utils/Loading.json";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { RxCrossCircled } from "react-icons/rx";
 import { TbAlertTriangleFilled } from "react-icons/tb";
+import { useParams } from "react-router-dom";
+import { DeviceContext } from "../utils/DeviceContext";
 
 // Define status colors and icons for table chips
 const statusIcons: Record<string, JSX.Element> = {
@@ -43,6 +45,10 @@ const statusIcons: Record<string, JSX.Element> = {
   valid: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
   received: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
   inprogress: <FaRegCheckCircle style={{ color: '#4BB543' }} />,
+  "in-progress": <FaRegCheckCircle style={{ color: '#4BB543' }}/>,
+  "not-deployed": <RxCrossCircled style={{ color: '#d51a22' }} />,
+
+ 
 };
 
 const statusColors: Record<string, string> = {
@@ -59,9 +65,8 @@ const statusColors: Record<string, string> = {
   inprogress: "#007867",
 };
 
-
 const timelineColors: Record<string, { iconColor: string; textColor: string }> = {
-  invalid: { iconColor: 'black', textColor: 'yellow' },
+  invalid: { iconColor: 'black', textColor: 'black' },
   notdeployed: { iconColor: '#d51a22', textColor: 'red' },
   failed: { iconColor: '#d51a22', textColor: 'red' },
   draft: { iconColor: '#007867', textColor: 'black' },
@@ -71,8 +76,9 @@ const timelineColors: Record<string, { iconColor: string; textColor: string }> =
   valid: { iconColor: '#4BB543', textColor: 'black' },
   received: { iconColor: '#4BB543', textColor: 'black' },
   inprogress: { iconColor: '#4BB543', textColor: 'black' },
+  "in-progress": { iconColor: '#4BB543', textColor: 'black' },
+  "not-deployed": { iconColor: '#d51a22', textColor: 'black' },
 };
-
 
 interface Version {
   id: string;
@@ -86,8 +92,19 @@ interface TimelineEventData {
 }
 
 const Versions: React.FC = () => {
-  
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const { devicecode } = useParams();
+  const context = useContext(DeviceContext);
+
+  // Ensure context is defined
+  if (context === undefined) {
+    throw new Error("DeviceContext must be used within a DeviceProvider");
+  }
+
+  const { selectedDevice } = context;
+  const deviceCodeFromContext = selectedDevice || devicecode;
+
+  const orgCode = "d3b6842d"; 
+
   const [versionsData, setVersionsData] = useState<Version[]>([]);
   const [timelineData, setTimelineData] = useState<Record<string, TimelineEventData[]>>({});
   const [openRowId, setOpenRowId] = useState<string | null>(null);
@@ -108,8 +125,8 @@ const Versions: React.FC = () => {
 
   const { loading: versionsLoading, error: versionsError, data: versionsDataResponse } = useQuery(GET_CONFIG_VERSION, {
     variables: {
-      orgcode: "d3b6842d",
-      devicecode: "DM_HY_D01",
+      orgcode: orgCode,
+      devicecode: deviceCodeFromContext,
       timezone: getCurrentTimezone(),
     },
   });
@@ -137,8 +154,8 @@ const Versions: React.FC = () => {
       const { data } = await fetchTimeline({
         variables: {
           input: {
-            orgcode: "d3b6842d",
-            devicecode: "DM_HY_D01",
+            orgcode: orgCode,
+            devicecode: deviceCodeFromContext,
             versionid: versionid,
             timezone: getCurrentTimezone(),
           },
@@ -190,7 +207,7 @@ const Versions: React.FC = () => {
   };
 
   return (
-    <TableContainer style={{ marginTop: "0rem", width: '70%', marginInline: '5rem' }} component={Paper}>
+    <TableContainer style={{ marginTop: "0rem", width: '80%', marginInline: '5rem' }} component={Paper}>
       <Table>
         <TableHead>
           <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>

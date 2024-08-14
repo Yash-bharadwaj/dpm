@@ -24,7 +24,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/config/:orgcode/:devicecode" element={<Routing />} />
-          <Route path="/versions" element={<Versions />} /> 
+          <Route path="/versions/:devicecode" element={<Versions />} />
         </Routes>
 
       </Router>
