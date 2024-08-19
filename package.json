@@ -19,7 +19,6 @@
     "@mui/icons-material": "^5.16.4",
     "@mui/lab": "^5.0.0-alpha.173",
     "@mui/material": "^5.16.4",
-    "@mui/styles": "^5.16.6",
     "@mui/x-data-grid": "^7.11.0",
     "auth0-js": "^9.26.1",
     "aws-appsync-auth-link": "^3.0.7",
