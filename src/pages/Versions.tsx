@@ -282,117 +282,117 @@ const Versions: React.FC = () => {
 
   return (
     <>
-      <TableContainer style={{ marginTop: "2.2rem", width: '80%', marginInline: '5rem' }} component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>
-              <TableCell style={{ width: "20px" }}>
-               
-              </TableCell>
-              <TableCell style={{ fontWeight: "600", width: '10rem' }}>Version ID</TableCell>
-              <TableCell style={{ fontWeight: "600", width: '20rem' }}>
-                Last Updated
-                <span style={{ fontSize: '13px' }}>({getCurrentTimezoneOffset()})</span>
-              </TableCell>
-              <TableCell style={{ fontWeight: "600", width: '10rem' }}>
-              <IconButton onClick={handleFilterDialogOpen}>
-                <MdOutlineFilterList />
+     
+
+      <TableContainer style={{ marginTop: "1.3rem", width: '95%', marginInline: '2rem' }} component={Paper}>
+  <Table>
+    <TableHead sx={{}} >
+      <TableRow style={{ backgroundColor: "#EEEEEE", fontWeight: "600" }}>
+        <TableCell style={{ width: "20px" }}></TableCell>
+        <TableCell style={{ fontWeight: "600", width: '10rem' }}>Version ID</TableCell>
+        <TableCell style={{ fontWeight: "600", width: '20rem' }}>
+          Last Updated
+          <span style={{ fontSize: '13px' }}>({getCurrentTimezoneOffset()})</span>
+        </TableCell>
+        <TableCell style={{ fontWeight: "600", width: '10rem' }}>
+          <IconButton onClick={handleFilterDialogOpen}>
+            <MdOutlineFilterList />
+          </IconButton>
+          Status
+        </TableCell>
+        <TableCell style={{ fontWeight: "600", width: '10rem' }}>Comments</TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {filteredVersionsData
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .map((version: Version) => (
+          <React.Fragment key={version.id}>
+            <TableRow>
+              <TableCell>
+                <IconButton
+                  aria-label="expand row"
+                  size="small"
+                  onClick={() => handleRowClick(version.id)}
+                >
+                  {openRowId === version.id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                 </IconButton>
-                Status</TableCell>
-                <TableCell style={{ fontWeight: "600", width: '20rem' }}>Comments</TableCell>
-            
+              </TableCell>
+              <TableCell>{version.id}</TableCell>
+              <TableCell>{version.lastUpdated}</TableCell>
+              <TableCell>
+                <Chip
+                  icon={statusIcons[version.status]} // Add the icon
+                  label={version.status}
+                  style={{
+                    backgroundColor: statusColors[version.status],
+                    color: "#007867",
+                    fontWeight: "600",
+                    borderRadius: "7px",
+                    height: "26px"
+                  }}
+                />
+              </TableCell>
+              <TableCell>
+                {commentsLoading ? 'Loading comments...' : (
+                  <>
+                    {commentsData[version.id] || 'No comment'}
+                   
+                  </>
+                )}
+              </TableCell>
             </TableRow>
-            
-          </TableHead>
-          <TableBody>
-            {filteredVersionsData
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((version: Version) => (
-                <React.Fragment key={version.id}>
-                  <TableRow>
-                    <TableCell>
-                      <IconButton
-                        aria-label="expand row"
-                        size="small"
-                        onClick={() => handleRowClick(version.id)}
-                      >
-                        {openRowId === version.id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                      </IconButton>
-                    </TableCell>
-                    <TableCell>{version.id}</TableCell>
-                    <TableCell>{version.lastUpdated}</TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={statusIcons[version.status]} // Add the icon
-                        label={version.status}
-                        style={{
-                          backgroundColor: statusColors[version.status],
-                          color: "#007867",
-                          fontWeight: "600",
-                          borderRadius: "7px",
-                          height: "26px"
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-  {commentsLoading ? 'Loading comments...' : commentsData[version.id] || 'No comment'}
-</TableCell>
+            <TableRow>
+              <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+                <Collapse in={openRowId === version.id} timeout="auto" unmountOnExit>
+                  <Box margin={1}>
+                    <Typography variant="h6" gutterBottom component="div">
+                      Timeline
+                    </Typography>
+                    {timelineData[version.id]?.length > 0 ? (
+                      <Stepper orientation="horizontal">
+                        {timelineData[version.id].map((event: TimelineEventData, index: number) => (
+                          <Step key={index} active={true}>
+                            <StepLabel
+                              StepIconComponent={() => (
+                                <div style={{ textAlign: 'center' }}>
+                                  <Typography variant="caption" style={{ color: timelineColors[event.status]?.textColor || 'grey' }}>
+                                    {event.timestamp}
+                                  </Typography>
+                                  <div style={{ fontSize: 24, color: timelineColors[event.status]?.iconColor || 'grey' }}>
+                                    {statusIcons[event.status]}
+                                  </div>
+                                  <Typography variant="body2" style={{ color: timelineColors[event.status]?.textColor || 'grey' }}>
+                                    {event.status}
+                                  </Typography>
+                                </div>
+                              )}
+                            />
+                          </Step>
+                        ))}
+                      </Stepper>
+                    ) : (
+                      <Typography variant="body1">No timeline events available.</Typography>
+                    )}
+                  </Box>
+                </Collapse>
+              </TableCell>
+            </TableRow>
+          </React.Fragment>
+        ))}
+    </TableBody>
+  </Table>
+  <TablePagination
+    rowsPerPageOptions={[5, 10, 25]}
+    component="div"
+    count={filteredVersionsData.length}
+    rowsPerPage={rowsPerPage}
+    page={page}
+    onPageChange={handleChangePage}
+    onRowsPerPageChange={handleChangeRowsPerPage}
+  />
+</TableContainer>
 
-                  </TableRow>
-                  <TableRow>
-                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                      <Collapse in={openRowId === version.id} timeout="auto" unmountOnExit>
-                        <Box margin={1}>
-                          <Typography variant="h6" gutterBottom component="div">
-                            Timeline
-                          </Typography>
-                          {timelineData[version.id]?.length > 0
-
- ? (
-                            <Stepper orientation="horizontal">
-                              {timelineData[version.id].map((event: TimelineEventData, index: number) => (
-                                <Step key={index} active={true}>
-                                  <StepLabel
-                                    StepIconComponent={() => (
-                                      <div style={{ textAlign: 'center' }}>
-                                        <Typography variant="caption" style={{ color: timelineColors[event.status]?.textColor || 'grey' }}>
-                                          {event.timestamp}
-                                        </Typography>
-                                        <div style={{ fontSize: 24, color: timelineColors[event.status]?.iconColor || 'grey' }}>
-                                          {statusIcons[event.status]}
-                                        </div>
-                                        <Typography variant="body2" style={{ color: timelineColors[event.status]?.textColor || 'grey' }}>
-                                          {event.status}
-                                        </Typography>
-                                      </div>
-                                    )}
-                                  >
-                                    {/* Additional content can be placed here if needed */}
-                                  </StepLabel>
-                                </Step>
-                              ))}
-                            </Stepper>
-                          ) : (
-                            <Typography variant="body1">No timeline events available.</Typography>
-                          )}
-                        </Box>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
-                </React.Fragment>
-              ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredVersionsData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </TableContainer>
 
       {/* Filter Dialog */}
       <Dialog open={openFilterDialog} onClose={handleFilterDialogClose}>

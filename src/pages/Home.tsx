@@ -7,12 +7,14 @@ import "../index.css";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
+
 import { ImLocation2 } from "react-icons/im";
 //@ts-ignore
 import Lottie from 'react-lottie';
 import loadingAnimation from '../utils/Loading.json';
 import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
 import { DeviceContext } from "../utils/DeviceContext";
+import { formatDistanceToNow, parseISO } from 'date-fns';  
 
 interface Device {
   deviceid: string;
@@ -82,6 +84,15 @@ const Home: React.FC = () => {
   }
 
   if (devicesError) return <p>Error loading devices: {devicesError.message}</p>;
+
+  // Function to format the last seen time
+  const formatLastSeen = (lastSeen?: string | null) => {
+    if (!lastSeen) return "N/A";
+    
+    const now = new Date();
+    const lastSeenDate = parseISO(lastSeen);
+    return formatDistanceToNow(lastSeenDate, { addSuffix: true });
+  };
 
   return (
     <div
@@ -182,7 +193,7 @@ const Home: React.FC = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  {heartbeatStatus[device.devicecode]?.lastSeen || "N/A"}
+                  {heartbeatStatus[device.devicecode]?.lastSeen ? formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen) : "N/A"}
                 </TableCell>
                 <TableCell>
                   <div style={{ height: '1.4rem', width: '7rem', display: 'flex', gap: '5px', alignItems: 'center', }}>
