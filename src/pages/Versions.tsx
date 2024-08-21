@@ -1,33 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Collapse,
-  Box,
-  Chip,
-  Typography,
-  IconButton,
-  Stepper,
-  Step,
-  StepLabel,
-  TablePagination,
-  Dialog,
-  Button,
-  DialogActions,
-  DialogContent,
-  Checkbox,
-  FormControlLabel,
-  DialogTitle,
-} from "@mui/material";
-import {
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
-} from "@mui/icons-material";
+import {Table,TableBody,TableCell,TableContainer,TableHead,TableRow, Paper, Collapse, Box, Chip, Typography, IconButton, Stepper, Step, StepLabel, TablePagination,  Dialog,Button,DialogActions,DialogContent,Checkbox,FormControlLabel,DialogTitle,} from "@mui/material";
+import {KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon, } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
 //@ts-ignore
 import Lottie from "react-lottie";
@@ -118,7 +91,7 @@ const Versions: React.FC = () => {
   const [timelineData, setTimelineData] = useState<Record<string, TimelineEventData[]>>({});
   const [openRowId, setOpenRowId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [openFilterDialog, setOpenFilterDialog] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<Set<keyof typeof statusIcons>>(
     new Set(Object.keys(statusIcons) as Array<keyof typeof statusIcons>)
@@ -126,6 +99,7 @@ const Versions: React.FC = () => {
 
   const getCurrentTimezone = () => {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
   };
 
   const getCurrentTimezoneOffset = () => {
@@ -207,9 +181,9 @@ const Versions: React.FC = () => {
   const handleRowClick = (id: string) => {
     setOpenRowId((prevId) => {
       if (prevId === id) {
-        return null; // Close the row if it's already open
+        return null; 
       } else {
-        fetchTimelineData(id); // Fetch timeline data only when the row is being opened
+        fetchTimelineData(id); 
         return id;
       }
     });
@@ -248,6 +222,7 @@ const Versions: React.FC = () => {
     selectedStatuses.has(version.status)
   );
 
+  // console.log(getCurrentTimezone())
   return (
     <>
      
@@ -357,7 +332,7 @@ const Versions: React.FC = () => {
 </TableContainer>
 
 
-      {/* Filter Dialog */}
+      
       <Dialog open={openFilterDialog} onClose={handleFilterDialogClose}>
         <DialogTitle>Filter by Status</DialogTitle>
         <DialogContent>
