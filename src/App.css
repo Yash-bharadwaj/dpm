@@ -221,6 +221,12 @@
   margin-bottom: 0;
 }
 
+.error-modal .modal-dialog {
+  max-width: 90%;
+  overflow: auto;
+  max-height: 90%;
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -252,9 +258,7 @@
   padding: 0.75rem 1.25rem;
   margin: 0;
   border-radius: 0.25rem;
-  
 }
-
 
 .breadcrumb-item a {
   color: rgb(113, 110, 110);
@@ -262,10 +266,9 @@
   text-decoration: none;
 }
 
-
 .breadcrumb-item.active {
-  color: #11a1cd; 
-  font-size: 1rem; 
+  color: #11a1cd;
+  font-size: 1rem;
 }
 
 /* Add hover effect for breadcrumb links */
