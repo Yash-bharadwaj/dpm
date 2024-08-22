@@ -63,7 +63,11 @@ import { useParams } from "react-router-dom";
 import ContextMenu from "../components/ContextMenu";
 import DataLoading from "../components/DataLoading";
 
-import { MdOutlineReplyAll, MdReportGmailerrorred } from "react-icons/md";
+import {
+  MdOutlineReplyAll,
+  MdReportGmailerrorred,
+  MdClose,
+} from "react-icons/md";
 
 toastConfig({ theme: "dark" });
 
@@ -2496,6 +2500,7 @@ const Routing = () => {
           devicecode: deviceCode,
         },
       },
+      fetchPolicy: "cache-only",
       onCompleted: () => {
         setViewError(true);
       },
@@ -2996,21 +3001,13 @@ const Routing = () => {
         )}
 
         {viewError && (
-          <Modal show={viewError} onHide={handleClose}>
-            <Modal.Body>
-              {getErrorData()}
-
-              <div>
-                <Button
-                  variant="secondary"
-                  onClick={handleClose}
-                  size="sm"
-                  style={{ marginTop: "12px" }}
-                >
-                  OK
-                </Button>
-              </div>
-            </Modal.Body>
+          <Modal show={viewError} onHide={handleClose} className="error-modal">
+            <Modal.Header style={{ display: "flex", justifyContent: "end" }}>
+              <Button variant="secondary" onClick={handleClose} size="sm">
+                <MdClose />
+              </Button>
+            </Modal.Header>
+            <Modal.Body>{getErrorData()}</Modal.Body>
           </Modal>
         )}
       </div>
