@@ -375,7 +375,7 @@ const Home: React.FC = () => {
       </TableContainer>
 
       <Dialog open={formOpen} onClose={handleCloseForm} >
-        <DialogTitle style={{borderTop:'9px solid #11a1cd'}}>Add New Device</DialogTitle>
+        <DialogTitle style={{borderTop:'7px solid #11a1cd', height:'40px', marginBottom:'0.5rem'}}>Add New Device</DialogTitle>
         <DialogContent  >
 
 
@@ -428,20 +428,20 @@ const Home: React.FC = () => {
               margin="normal"
              
             />
-             <p style={{fontSize:'16px', fontWeight:'600' , fontStyle:'', borderBottom:'1px solid #c6c6c6', padding:'3px'}}>Install Script :</p>
+             <p style={{fontSize:'16px', fontWeight:'600' , fontStyle:'',marginTop:'1rem',marginBottom:'0px'}}>Install Script :</p>
              <div
   style={{
     position: "relative",
     backgroundColor: "#F5F5F5",
     padding: "1rem",
-    marginTop: "1rem",
+    marginTop: "5px",
   }}
 >
   <button
     onClick={copyToClipboard}
     style={{
       position: "absolute",
-      bottom: "9rem",
+      bottom: "9.2rem",
       right: "0px",
       background: "transparent",
       border: "none",
@@ -450,7 +450,7 @@ const Home: React.FC = () => {
     }}
   >
      
-   <p style={{fontSize:'13px'}}> <LuCopy style={{marginRight:'5px'}} />Copy to Clipboard</p>
+   <p style={{fontSize:'13px', margin:'0px' , }}> <LuCopy style={{marginRight:'5px'}} />Copy</p>
   </button>
   <pre id="installScript">
     curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \<br />
@@ -461,7 +461,7 @@ const Home: React.FC = () => {
   </pre>
 </div>
 
-            <p style={{fontSize:'13px', marginTop:'5px'}}> <FaInfoCircle style={{fontSize:'13px'}}/> Copy this script and excute as root on DPM host </p>
+            <p style={{fontSize:'13px', marginTop:'5px', marginBottom:'0px'}}> <FaInfoCircle style={{fontSize:'13px'}}/> Copy this script and excute as root on DPM host </p>
             <DialogActions>
               <Button style={{color:'#11a1cd', }} onClick={handleCloseForm}>Cancel</Button>
               <Button type="submit" variant="contained" color="primary" style={{backgroundColor:'#11a1cd', height:'30px', fontWeight:'600'}}>
