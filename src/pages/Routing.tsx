@@ -2544,7 +2544,7 @@ const Routing = () => {
 
   return (
     <>
-    {/* {console.log('clicked refresh  😍  😍  😍  😍  😍  😍  😍 ')} */}
+   
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col

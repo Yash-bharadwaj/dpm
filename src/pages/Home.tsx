@@ -1,7 +1,6 @@
 import React, { useState, useContext } from "react";
-import { useQuery } from "@apollo/client";
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
-import { GET_DEVICES_LIST } from "../query/query";
+import { useQuery, useMutation } from "@apollo/client";
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
 import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +13,10 @@ import Lottie from 'react-lottie';
 import loadingAnimation from '../utils/Loading.json';
 import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
 import { DeviceContext } from "../utils/DeviceContext";
-import { formatDistanceToNow, parseISO } from 'date-fns';  
+import { formatDistanceToNow, parseISO } from 'date-fns';
+import { GET_DEVICES_LIST, ADD_LC_DEVICE } from '../query/query'
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Device {
   deviceid: string;
@@ -31,6 +33,8 @@ const Home: React.FC = () => {
   const [deviceCode, setDeviceCode] = useState<string>("DM_HY_D01");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [formOpen, setFormOpen] = useState<boolean>(false);
+  const [newDevice, setNewDevice] = useState<{ code: string; location: string }>({ code: '', location: '' });
 
   const deviceContext = useContext(DeviceContext);
   const navigate = useNavigate();
@@ -41,13 +45,12 @@ const Home: React.FC = () => {
 
   const { setSelectedDevice: setDeviceInContext } = deviceContext;
 
-  const {
-    loading: devicesLoading,
-    error: devicesError,
-    data: devicesData,
-  } = useQuery(GET_DEVICES_LIST, {
+  // Add refetch to re-fetch data after mutation
+  const { loading: devicesLoading, error: devicesError, data: devicesData, refetch } = useQuery(GET_DEVICES_LIST, {
     variables: { input: { orgcode: orgCode, devicecode: deviceCode } },
   });
+
+  const [addDevice] = useMutation(ADD_LC_DEVICE);
 
   const heartbeatStatus = useHeartbeatStatus(devicesData?.getLcdeviceList || []);
 
@@ -83,15 +86,60 @@ const Home: React.FC = () => {
     );
   }
 
-  if (devicesError) return <p>Error loading devices: {devicesError.message}</p>;
+  if (devicesError) {
+    return <p>Error loading devices: {devicesError.message}</p>;
+  }
 
-  // Function to format the last seen time
   const formatLastSeen = (lastSeen?: string | null) => {
     if (!lastSeen) return "N/A";
     
     const now = new Date();
     const lastSeenDate = parseISO(lastSeen);
     return formatDistanceToNow(lastSeenDate, { addSuffix: true });
+  };
+
+  const handleAddDeviceClick = () => {
+    setFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setNewDevice({ code: '', location: '' });
+  };
+
+  const generateDeviceCode = (code: string, location: string) => {
+    const codePrefix = code.slice(0, 3).toUpperCase();
+    const locationPrefix = location.slice(0, 3).toUpperCase();
+    const randomNumbers = Math.floor(100 + Math.random() * 900);
+    return `${codePrefix}_${locationPrefix}_${randomNumbers}`;
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const devicecode = generateDeviceCode(newDevice.code, newDevice.location);
+    try {
+      const { data } = await addDevice({
+        variables: { 
+          input: {
+            orgcode: orgCode,
+            devicecode: devicecode,
+            devicename: newDevice.code,  // As per the mutation, we're submitting the device name here
+            devicelocation: newDevice.location
+          }
+        },
+      });
+      toast.success(data.addLcDevice.message);
+      handleCloseForm();
+      // Refresh data after adding a new device
+      refetch();
+    } catch (error) {
+      toast.error("Failed to add device. Please try again.");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewDevice(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -107,13 +155,22 @@ const Home: React.FC = () => {
         height: "100vh",
       }}
     >
-      <h3 style={{ alignSelf: "self-start", color: '#5a5a5a', fontSize: '1.6rem' }}>
-        Pipeline Managers
-      </h3>
+      <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', padding: '2px', alignItems: 'center' }}>
+        <h3 style={{ color: '#5a5a5a', fontSize: '1.6rem' }}>
+          Pipeline Managers
+        </h3>
+        <Button
+          variant="outlined"
+          onClick={handleAddDeviceClick}
+          style={{ marginLeft: 'auto', color: '#11a1cd', fontWeight: '600', border: '1px solid #11a1cd' }}
+        >
+          + Add Device
+        </Button>
+      </div>
+
       <TableContainer
         component={Paper}
         style={{
-          marginTop: '0rem',
           width: "100%",
           marginInline: "auto",
           display: "flex",
@@ -123,28 +180,11 @@ const Home: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow style={{ backgroundColor: "#EEEEEE", color: "black" }}>
-              <TableCell style={{ color: "black", flex: 1 }}>
-                <strong>Device Code</strong>
-              </TableCell>
-              <TableCell style={{ color: "black", flex: 1 }}>
-                <strong>Status</strong>
-              </TableCell>
-              <TableCell style={{ color: "black", flex: 1 }}>
-                <strong>Last Seen</strong>
-              </TableCell>
-              <TableCell style={{ color: "black", flex: 1 }}>
-                <strong>Device Location</strong>
-              </TableCell>
-              <TableCell
-                style={{
-                  color: "black",
-                  flex: 1,
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
-                <strong>Actions</strong>
-              </TableCell>
+              <TableCell><strong>Device Code</strong></TableCell>
+              <TableCell><strong>Status</strong></TableCell>
+              <TableCell><strong>Last Seen</strong></TableCell>
+              <TableCell><strong>Device Location</strong></TableCell>
+              <TableCell style={{ textAlign: "center" }}><strong>Actions</strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -157,14 +197,13 @@ const Home: React.FC = () => {
                 <TableCell
                   component="th"
                   scope="row"
+                  onClick={() => handleDeviceCodeClick(device)}
                   style={{
-                    fontWeight: "normal",
                     color: "#11a1cd",
                     fontSize: "15px",
                     textDecoration: "underline",
                     cursor: "pointer"
                   }}
-                  onClick={() => handleDeviceCodeClick(device)}
                 >
                   <img
                     src={computeranimation}
@@ -196,13 +235,14 @@ const Home: React.FC = () => {
                   {heartbeatStatus[device.devicecode]?.lastSeen ? formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen) : "N/A"}
                 </TableCell>
                 <TableCell>
-                  <div style={{ height: '1.4rem', width: '7rem', display: 'flex', gap: '5px', alignItems: 'center', }}>
-                    <ImLocation2 style={{ color: '#ff0000', fontSize: '14px', marginLeft: '.5rem' }} /> {device.devicelocation || "N/A"}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <ImLocation2 style={{ color: '#ff0000', fontSize: '14px', marginRight: '5px' }} />
+                    {device.devicelocation || "N/A"}
                   </div>
                 </TableCell>
-                <TableCell style={{ display: "flex", justifyContent: "center" }}>
+                <TableCell style={{ textAlign: "center" }}>
                   <VisibilityIcon
-                    style={{ color: "#222222" }}
+                    style={{ color: "#222222", cursor: "pointer" }}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleViewDetailsClick(device);
@@ -214,11 +254,56 @@ const Home: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
       <DeviceDetailsSidebar
         open={sidebarOpen}
         onClose={handleCloseSidebar}
         device={selectedDevice}
       />
+
+      {/* Add Device Form Dialog */}
+      <Dialog open={formOpen} onClose={handleCloseForm} fullWidth maxWidth="sm">
+        <DialogTitle style={{borderTop: '10px solid #11a1cd'}}>Add New Device</DialogTitle>
+        <DialogContent>
+          <form onSubmit={handleFormSubmit} id="add-device-form">
+            <TextField
+              autoFocus
+              margin="dense"
+              id="code"
+              name="code"
+              label="Enter Device Code"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newDevice.code}
+              onChange={handleInputChange}
+              required
+            />
+            <TextField
+              margin="dense"
+              id="location"
+              name="location"
+              label="Device Location"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newDevice.location}
+              onChange={handleInputChange}
+              required
+            />
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseForm} color="primary">
+            Cancel
+          </Button>
+          <Button type="submit" form="add-device-form" color="primary" variant="contained" style={{backgroundColor: '#11a1cd', height: '29px'}}>
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ToastContainer />
     </div>
   );
 };

@@ -14,6 +14,16 @@ export const GET_DEVICES_LIST = gql`
   }
 `;
 
+
+export const ADD_LC_DEVICE = gql`
+  mutation addLcDevice($input: deviceinput!) {
+    addLcDevice(input: $input) {
+      responsestatus
+      message
+    }
+  }
+`;
+
 export const GET_HEARTBEAT_STATUS = gql`
   mutation getHeartbeatStatus($input: deviceinput!) {
     getHeartbeat(input: $input) {

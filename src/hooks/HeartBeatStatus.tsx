@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import { GET_HEARTBEAT_STATUS } from "../query/query";
 
+type Device = {
+  orgcode: string;
+  devicecode: string;
+};
+
 export const useHeartbeatStatus = (devices: Device[]) => {
   const [heartbeatStatus, setHeartbeatStatus] = useState<{
     [key: string]: {
