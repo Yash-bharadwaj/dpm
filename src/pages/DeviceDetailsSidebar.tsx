@@ -63,10 +63,10 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                     {device.devicecode} <LaunchIcon style={{ fontSize: 'large', marginBottom: '2px' }} />
                   </TableCell>
                 </TableRow>
-                <TableRow>
+                {/* <TableRow>
                   <TableCell><strong>Type:</strong></TableCell>
                   <TableCell>{device.devicetype}</TableCell>
-                </TableRow>
+                </TableRow> */}
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Name:</strong></TableCell>
                   <TableCell>{device.devicename}</TableCell>

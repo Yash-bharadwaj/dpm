@@ -89,3 +89,7 @@ button:focus-visible {
 
 
 
+
+.MuiPaper-root-MuiDialog-paper{
+  max-width:700px !important;
+}
