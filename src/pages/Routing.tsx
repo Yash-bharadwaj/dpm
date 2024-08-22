@@ -2573,10 +2573,9 @@ const Routing = () => {
                       ? oldVersionData?.getConfig?.configstatus.toUpperCase()
                       : data?.getConfig?.configstatus.toUpperCase()}
                   </Badge>
-                  {
-                    // data?.getConfig.configstatus === "failed" ||
-                    // data?.getConfig.configstatus === "invalid" ||
-                    // data?.getConfig.configstatus === "not-deployed") && (
+                  {(data?.getConfig.configstatus === "failed" ||
+                    data?.getConfig.configstatus === "invalid" ||
+                    data?.getConfig.configstatus === "not-deployed") && (
                     <MdReportGmailerrorred
                       style={{
                         height: "25px",
@@ -2589,7 +2588,7 @@ const Routing = () => {
                         onGetErrorLogs();
                       }}
                     />
-                  }
+                  )}
                 </div>
               </div>
             </div>
