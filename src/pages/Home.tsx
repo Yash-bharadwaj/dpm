@@ -32,7 +32,8 @@ import { GET_DEVICES_LIST, ADD_LC_DEVICE } from "../query/query";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import '../index.css'
-import { FaInfoCircle } from "react-icons/fa";
+import { FaInfoCircle, } from "react-icons/fa";
+import { LuCopy } from "react-icons/lu";
 
 interface Device {
   deviceid: string;
@@ -187,6 +188,16 @@ const Home: React.FC = () => {
       toast.error("Failed to add device. Please try again.");
     }
   };
+
+  const copyToClipboard = () => {
+    const copyText = document.getElementById("installScript")?.textContent || "";
+    navigator.clipboard.writeText(copyText).then(() => {
+      toast.success("Copied to clipboard");
+    }).catch(() => {
+      toast.error("Failed to copy");
+    });
+  };
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -417,18 +428,39 @@ const Home: React.FC = () => {
               margin="normal"
              
             />
-            
-            <div
-              style={{
-                backgroundColor: "#F5F5F5",
-                padding: "1rem",
-                marginTop: "1rem",
-              }}
-            >
-              <p style={{fontSize:'16px', fontWeight:'600' , fontStyle:'', borderBottom:'1px solid #c6c6c6'}}>Install Script :</p>
-              <pre>curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \ <br />
-                --{`orgcode "${orgCode}"\n--devicecode "${newDevice.generatedCode}"  \n--accesskey "${newDevice.accessKey}"\n--secretkey "${newDevice.secretKey}"`}</pre>
-            </div>
+             <p style={{fontSize:'16px', fontWeight:'600' , fontStyle:'', borderBottom:'1px solid #c6c6c6', padding:'3px'}}>Install Script :</p>
+             <div
+  style={{
+    position: "relative",
+    backgroundColor: "#F5F5F5",
+    padding: "1rem",
+    marginTop: "1rem",
+  }}
+>
+  <button
+    onClick={copyToClipboard}
+    style={{
+      position: "absolute",
+      bottom: "9rem",
+      right: "0px",
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      color:'grey'
+    }}
+  >
+     
+   <p style={{fontSize:'13px'}}> <LuCopy style={{marginRight:'5px'}} />Copy to Clipboard</p>
+  </button>
+  <pre id="installScript">
+    curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \<br />
+    --orgcode "{orgCode}" \<br />
+    --devicecode "{newDevice.generatedCode}" \<br />
+    --accesskey "{newDevice.accessKey}" \<br />
+    --secretkey "{newDevice.secretKey}"
+  </pre>
+</div>
+
             <p style={{fontSize:'13px', marginTop:'5px'}}> <FaInfoCircle style={{fontSize:'13px'}}/> Copy this script and excute as root on DPM host </p>
             <DialogActions>
               <Button style={{color:'#11a1cd', }} onClick={handleCloseForm}>Cancel</Button>
