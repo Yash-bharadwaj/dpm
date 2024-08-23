@@ -17,7 +17,7 @@ const MainNavbar: React.FC = () => {
     return null; 
   }
 
-  const { selectedDevice } = deviceContext;
+  const { selectedDevice, setSelectedDevice } = deviceContext;
 
   const onDocsClick = () => {
     window.open(url, "_blank");
@@ -85,25 +85,6 @@ const MainNavbar: React.FC = () => {
 
         <div style={{ position: "relative", display: "flex" }}>
           <FaBell style={{ fontSize: "1.3rem", color: "black" }} />
-          {/* <div
-            style={{
-              position: "absolute",
-              top: "-10px",
-              right: "-10px",
-              backgroundColor: "red",
-              color: "white",
-              borderRadius: "50%",
-              width: "16px",
-              height: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "12px",
-              fontWeight: "bold",
-            }}
-          >
-            3
-          </div> */}
         </div>
 
         <Nav.Link onClick={onDocsClick} style={{ marginRight: "12px" }}>
