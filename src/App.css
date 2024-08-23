@@ -266,7 +266,7 @@
 }
 
 .breadcrumb-item:not(:last-child)::after {
-/* Breadcrumb separator */
+  /* Breadcrumb separator */
   color: rgb(113, 110, 110); /* Color for separator */
   padding: 0 0.5rem; /* Space around separator */
 }
@@ -282,5 +282,6 @@
 }
 
 .breadcrumb-item.active {
-  color: #11a1cd; 
-  font-size: 1rem; 
+  color: #11a1cd;
+  font-size: 1rem;
+}
