@@ -452,10 +452,10 @@ const Home: React.FC = () => {
                 <p style={{ fontSize: '13px', margin: '0px' }}> <LuCopy style={{ marginRight: '5px' }} />Copy</p>
               </button>
               <pre id="installScript">
-                curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- <br />
-                --orgcode "{orgCode}" <br />
-                --devicecode "{newDevice.generatedCode}" <br />
-                --accesskey "{newDevice.accessKey}" <br />
+                curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \<br />
+                --orgcode "{orgCode}" \<br />
+                --devicecode "{newDevice.generatedCode}" \<br />
+                --accesskey "{newDevice.accessKey}" \ <br />
                 --secretkey "{newDevice.secretKey}"
               </pre>
             </div>
