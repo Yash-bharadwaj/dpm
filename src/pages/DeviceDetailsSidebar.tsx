@@ -3,6 +3,9 @@ import { Drawer, Typography, Box, Table, TableBody, TableCell, TableRow, Paper, 
 import LaunchIcon from '@mui/icons-material/Launch';
 import { useNavigate } from 'react-router-dom';
 
+//@ts-ignore
+import { HeartbeatStatuses } from '../hooks/HeartBeatStatus'; // Adjust the import path
+
 interface Device {
   deviceid: string;
   orgcode: string;
@@ -10,17 +13,19 @@ interface Device {
   devicetype: string;
   devicename: string;
   devicelocation: string;
-  deviceip: string;
+  deviceip: string; 
 }
 
 interface DeviceDetailsSidebarProps {
   open: boolean;
   onClose: () => void;
   device: Device | null;
+  heartbeatStatus: HeartbeatStatuses;
 }
 
-const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClose, device }) => {
+const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClose, device, heartbeatStatus }) => {
   const navigate = useNavigate();
+  const deviceHeartbeat = device ? heartbeatStatus[device.devicecode] : {};
 
   const handleDeviceCodeClick = () => {
     if (device) {
@@ -63,10 +68,6 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                     {device.devicecode} <LaunchIcon style={{ fontSize: 'large', marginBottom: '2px' }} />
                   </TableCell>
                 </TableRow>
-                {/* <TableRow>
-                  <TableCell><strong>Type:</strong></TableCell>
-                  <TableCell>{device.devicetype}</TableCell>
-                </TableRow> */}
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Name:</strong></TableCell>
                   <TableCell>{device.devicename}</TableCell>
@@ -76,8 +77,44 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableCell>{device.devicelocation}</TableCell>
                 </TableRow>
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                  <TableCell><strong>IP:</strong></TableCell>
-                  <TableCell>{device.deviceip}</TableCell>
+                  <TableCell><strong>IP Address:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.systemInfo?.ipAddress || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell><strong>Hostname:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.systemInfo?.hostname || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                  <TableCell><strong>CPU Usage:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuUsage ? `${deviceHeartbeat.hardwareInfo.cpuUsage}%` : 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell><strong>Total Memory:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell><strong>Memory Usage :</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                  <TableCell><strong>Memory Usage:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell><strong>Config Version:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.configVersion?.versionId || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                  <TableCell><strong>Last Modified:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.configVersion?.lastModified || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell><strong>Last Seen:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.lastSeen || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                  <TableCell><strong>Service Status:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.serviceStatus || 'N/A'}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

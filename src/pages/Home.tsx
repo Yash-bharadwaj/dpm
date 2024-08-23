@@ -20,7 +20,6 @@ import "../index.css";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
-
 import { ImLocation2 } from "react-icons/im";
 //@ts-ignore
 import Lottie from "react-lottie";
@@ -31,8 +30,8 @@ import { formatDistanceToNow, isValid, parseISO } from "date-fns";
 import { GET_DEVICES_LIST, ADD_LC_DEVICE } from "../query/query";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import '../index.css'
-import { FaInfoCircle, } from "react-icons/fa";
+import '../index.css';
+import { FaInfoCircle } from "react-icons/fa";
 import { LuCopy } from "react-icons/lu";
 
 interface Device {
@@ -74,7 +73,6 @@ const Home: React.FC = () => {
 
   const { setSelectedDevice: setDeviceInContext } = deviceContext;
 
-  // Add refetch to re-fetch data after mutation
   const {
     loading: devicesLoading,
     error: devicesError,
@@ -138,7 +136,6 @@ const Home: React.FC = () => {
   
     const lastSeenDate = parseISO(lastSeen);
   
-    // Check if the parsed date is valid
     if (!isValid(lastSeenDate)) return 'N/A';
   
     return formatDistanceToNow(lastSeenDate, { addSuffix: true });
@@ -163,7 +160,7 @@ const Home: React.FC = () => {
     const codePrefix = code.slice(0, 3).toUpperCase();
     const locationPrefix = location.slice(0, 3).toUpperCase();
     const randomNumbers = Math.floor(100 + Math.random() * 900);
-    return `${codePrefix}_${locationPrefix}_${randomNumbers}`;
+    return `${codePrefix}-${locationPrefix}-${randomNumbers}`;
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -271,12 +268,14 @@ const Home: React.FC = () => {
               <TableCell>
                 <strong>Device Name</strong>
               </TableCell>
-
+              <TableCell>
+                <strong>IP Address</strong>
+              </TableCell>
               <TableCell>
                 <strong>Status</strong>
               </TableCell>
               <TableCell>
-                <strong>Last Seen</strong>
+                <strong>Last Heartbeat</strong>
               </TableCell>
               <TableCell>
                 <strong>Device Location</strong>
@@ -308,6 +307,7 @@ const Home: React.FC = () => {
                   {device.devicecode}
                 </TableCell>
                 <TableCell>{device.devicename}</TableCell>
+                <TableCell>{heartbeatStatus[device.devicecode]?.ipAddress}</TableCell>
                 <TableCell>
                   {heartbeatStatus[device.devicecode]?.serviceStatus ===
                   "active" ? (
@@ -355,9 +355,14 @@ const Home: React.FC = () => {
                 <TableCell>
                   {formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen)}
                 </TableCell>
-                <TableCell> 
-                  <ImLocation2 style={{marginRight:'5px', color:'#ff1919'}}/>
-                  {device.devicelocation}</TableCell>
+
+                
+              
+              
+                <TableCell>
+                  <ImLocation2 style={{ marginRight: '5px', color: '#ff1919' }} />
+                  {device.devicelocation}
+                </TableCell>
                 <TableCell style={{ textAlign: "center" }}>
                   <VisibilityIcon
                     onClick={() => handleViewDetailsClick(device)}
@@ -375,12 +380,9 @@ const Home: React.FC = () => {
       </TableContainer>
 
       <Dialog open={formOpen} onClose={handleCloseForm} >
-        <DialogTitle style={{borderTop:'7px solid #11a1cd', height:'40px', marginBottom:'0.5rem'}}>Add New Device</DialogTitle>
-        <DialogContent  >
-
-
-          <form onSubmit={handleFormSubmit}  >
-            
+        <DialogTitle style={{ borderTop: '7px solid #11a1cd', height: '40px', marginBottom: '0.5rem' }}>Add New Device</DialogTitle>
+        <DialogContent >
+          <form onSubmit={handleFormSubmit} >
             <TextField
               label="Device Name"
               name="code"
@@ -390,7 +392,6 @@ const Home: React.FC = () => {
               fullWidth
               margin="normal"
             />
-      
             <TextField
               label="Device Location"
               name="location"
@@ -426,57 +427,55 @@ const Home: React.FC = () => {
               disabled
               fullWidth
               margin="normal"
-             
             />
-             <p style={{fontSize:'16px', fontWeight:'600' , fontStyle:'',marginTop:'1rem',marginBottom:'0px'}}>Install Script :</p>
-             <div
-  style={{
-    position: "relative",
-    backgroundColor: "#F5F5F5",
-    padding: "1rem",
-    marginTop: "5px",
-  }}
->
-  <button
-    onClick={copyToClipboard}
-    style={{
-      position: "absolute",
-      bottom: "9.2rem",
-      right: "0px",
-      background: "transparent",
-      border: "none",
-      cursor: "pointer",
-      color:'grey'
-    }}
-  >
-     
-   <p style={{fontSize:'13px', margin:'0px' , }}> <LuCopy style={{marginRight:'5px'}} />Copy</p>
-  </button>
-  <pre id="installScript">
-    curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \<br />
-    --orgcode "{orgCode}" \<br />
-    --devicecode "{newDevice.generatedCode}" \<br />
-    --accesskey "{newDevice.accessKey}" \<br />
-    --secretkey "{newDevice.secretKey}"
-  </pre>
-</div>
-
-            <p style={{fontSize:'13px', marginTop:'5px', marginBottom:'0px'}}> <FaInfoCircle style={{fontSize:'13px'}}/> Copy this script and excute as root on DPM host </p>
+            <p style={{ fontSize: '16px', fontWeight: '600', fontStyle: '', marginTop: '1rem', marginBottom: '0px' }}>Install Script :</p>
+            <div
+              style={{
+                position: "relative",
+                backgroundColor: "#F5F5F5",
+                padding: "1rem",
+                marginTop: "5px",
+              }}
+            >
+              <button
+                onClick={copyToClipboard}
+                style={{
+                  position: "absolute",
+                  bottom: "9.2rem",
+                  right: "0px",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: 'grey'
+                }}
+              >
+                <p style={{ fontSize: '13px', margin: '0px' }}> <LuCopy style={{ marginRight: '5px' }} />Copy</p>
+              </button>
+              <pre id="installScript">
+                curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- <br />
+                --orgcode "{orgCode}" <br />
+                --devicecode "{newDevice.generatedCode}" <br />
+                --accesskey "{newDevice.accessKey}" <br />
+                --secretkey "{newDevice.secretKey}"
+              </pre>
+            </div>
+            <p style={{ fontSize: '13px', marginTop: '5px', marginBottom: '0px' }}> <FaInfoCircle style={{ fontSize: '13px' }} /> Copy this script and execute as root on DPM host </p>
             <DialogActions>
-              <Button style={{color:'#11a1cd', }} onClick={handleCloseForm}>Cancel</Button>
-              <Button type="submit" variant="contained" color="primary" style={{backgroundColor:'#11a1cd', height:'30px', fontWeight:'600'}}>
+              <Button style={{ color: '#11a1cd' }} onClick={handleCloseForm}>Cancel</Button>
+              <Button type="submit" variant="contained" color="primary" style={{ backgroundColor: '#11a1cd', height: '30px', fontWeight: '600' }}>
                 Add
               </Button>
             </DialogActions>
           </form>
-     
         </DialogContent>
       </Dialog>
-   
+
       <DeviceDetailsSidebar
         open={sidebarOpen}
         onClose={handleCloseSidebar}
         device={selectedDevice}
+        heartbeatStatus={heartbeatStatus}
+        
       />
       <ToastContainer />
     </div>
