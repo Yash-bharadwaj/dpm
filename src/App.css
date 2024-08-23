@@ -258,21 +258,29 @@
   padding: 0.75rem 1.25rem;
   margin: 0;
   border-radius: 0.25rem;
+  font-size: 15px; /* Consistent font size */
+}
+
+.breadcrumb-item {
+  display: inline-block;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+/* Breadcrumb separator */
+  color: rgb(113, 110, 110); /* Color for separator */
+  padding: 0 0.5rem; /* Space around separator */
 }
 
 .breadcrumb-item a {
-  color: rgb(113, 110, 110);
-  font-size: 15px;
-  text-decoration: none;
+  color: rgb(113, 110, 110); /* Color for breadcrumb links */
+  text-decoration: none; /* Remove underline from links */
 }
 
-.breadcrumb-item.active {
-  color: #11a1cd;
-  font-size: 1rem;
-}
-
-/* Add hover effect for breadcrumb links */
 .breadcrumb-item a:hover {
   color: #0056b3; /* Darker color on hover */
   text-decoration: underline; /* Underline on hover */
 }
+
+.breadcrumb-item.active {
+  color: #11a1cd; 
+  font-size: 1rem; 

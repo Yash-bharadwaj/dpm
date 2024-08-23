@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import "../App.css";
 
 const Breadcrumbs: React.FC = () => {
@@ -14,20 +14,18 @@ const Breadcrumbs: React.FC = () => {
   return (
     <nav aria-label="breadcrumb" style={{ marginTop: '4.4rem', marginLeft: '1.2rem' }}>
       <ol className="breadcrumb">
-        <li className="breadcrumb-item">
-          <Link to="/">Home</Link>
-        </li>
+        <li className="breadcrumb-item">Home</li>
         {pathnames.map((value, index) => {
           const last = index === pathnames.length - 1;
-          const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+          const label = value.charAt(0).toUpperCase() + value.slice(1); // Capitalize the first letter
 
           return last ? (
-            <li key={to} className="breadcrumb-item active" aria-current="page">
-              {value}
+            <li key={index} className="breadcrumb-item active" aria-current="page">
+              {label}
             </li>
           ) : (
-            <li key={to} className="breadcrumb-item">
-              <Link to={to}>{value}</Link>
+            <li key={index} className="breadcrumb-item">
+              {label}
             </li>
           );
         })}

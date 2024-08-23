@@ -93,29 +93,29 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell><strong>Memory Usage :</strong></TableCell>
+                  <TableCell><strong>Memory Usage:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'}</TableCell>
                 </TableRow>
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Memory Usage:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || 'N/A'}</TableCell>
                 </TableRow>
-                <TableRow>
+                {/* <TableRow>
                   <TableCell><strong>Config Version:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.configVersion?.versionId || 'N/A'}</TableCell>
-                </TableRow>
+                </TableRow> */}
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Last Modified:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.configVersion?.lastModified || 'N/A'}</TableCell>
                 </TableRow>
-                <TableRow>
+                {/* <TableRow>
                   <TableCell><strong>Last Seen:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.lastSeen || 'N/A'}</TableCell>
-                </TableRow>
-                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                </TableRow> */}
+                {/* <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Service Status:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.serviceStatus || 'N/A'}</TableCell>
-                </TableRow>
+                </TableRow> */}
               </TableBody>
             </Table>
           </TableContainer>
