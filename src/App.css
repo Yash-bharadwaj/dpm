@@ -225,6 +225,7 @@
   max-width: 90%;
   overflow: auto;
   max-height: 90%;
+  margin-top: 70px;
 }
 
 @keyframes logo-spin {

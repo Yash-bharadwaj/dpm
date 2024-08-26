@@ -22,7 +22,9 @@ export const checkValueWithRegex = (value, type) => {
   let valid = true;
 
   if (type === "ipaddress") {
+    console.log("value", value);
     valid = ipRegex.test(value);
+    console.log("valid", valid);
   } else if (type === "ipcidr") {
     const valueSplit = value.split(",");
 

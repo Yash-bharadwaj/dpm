@@ -2471,6 +2471,7 @@ const Routing = () => {
 
     setConfigYaml("");
   };
+
   const onRefreshClick = () => {
     setLoadingR(true);
 
@@ -2503,7 +2504,7 @@ const Routing = () => {
           devicecode: deviceCode,
         },
       },
-      fetchPolicy: "network-only",
+      //   fetchPolicy: "network-only",
       onCompleted: () => {
         setViewError(true);
       },
@@ -3015,11 +3016,25 @@ const Routing = () => {
 
         {viewError && (
           <Modal show={viewError} onHide={handleClose} className="error-modal">
-            <Modal.Header style={{ display: "flex", justifyContent: "end" }}>
-              <Button variant="secondary" onClick={handleClose} size="sm">
-                <MdClose />
-              </Button>
+            <Modal.Header
+              style={{ display: "flex", justifyContent: "space-between" }}
+            >
+              <div>
+                <b>Error Log</b>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ marginRight: "8px" }}>
+                  {oldVersionData?.getConfig.versionid ||
+                    data?.getConfig.versionid}
+                </div>
+
+                <Button variant="secondary" onClick={handleClose} size="sm">
+                  <MdClose />
+                </Button>
+              </div>
             </Modal.Header>
+
             <Modal.Body>
               <div>
                 <pre style={{ whiteSpace: "break-spaces" }}>

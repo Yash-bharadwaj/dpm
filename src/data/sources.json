@@ -468,6 +468,7 @@
         },
         {
           "name": "keepalive",
+          "label": "Keep Alive",
           "tooltip": "Settings to keep socket connections active.",
           "fields": [
             {
@@ -511,6 +512,7 @@
         },
         {
           "name": "decoding",
+          "label": "Decoding",
           "tooltip": "Codec to use for decoding events.",
           "fields": [
             {
@@ -580,6 +582,7 @@
       "advanced": [
         {
           "name": "decoding",
+          "label": "Decoding",
           "tooltip": "Codec to use for decoding events.",
           "fields": [
             {
