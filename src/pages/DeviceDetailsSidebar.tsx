@@ -89,9 +89,14 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuUsage ? `${deviceHeartbeat.hardwareInfo.cpuUsage}%` : 'N/A'}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell><strong>Total Memory:</strong></TableCell>
-                  <TableCell>{deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'}</TableCell>
+                  <TableCell><strong>Memory:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || 'N/A'} / {deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'} ( {deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'} )</TableCell>
                 </TableRow>
+                <TableRow>
+                  <TableCell><strong>Total Memory:</strong></TableCell>
+                  <TableCell> {deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'}</TableCell>
+                </TableRow>
+              
                 <TableRow>
                   <TableCell><strong>Memory Usage:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'}</TableCell>

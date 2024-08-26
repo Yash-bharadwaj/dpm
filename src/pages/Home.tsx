@@ -46,7 +46,7 @@ interface Device {
 
 const Home: React.FC = () => {
   const orgCode = "d3b6842d";
-  const [deviceCode, setDeviceCode] = useState<string>("DM_HY_D01");
+  const [deviceCode, setDeviceCode] = useState<string>("DEM-HYD-248");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [formOpen, setFormOpen] = useState<boolean>(false);
@@ -277,6 +277,10 @@ const Home: React.FC = () => {
               <TableCell>
                 <strong>Last Heartbeat</strong>
               </TableCell>
+              
+              <TableCell>
+                <strong>Memory</strong>
+              </TableCell>
               <TableCell>
                 <strong>Device Location</strong>
               </TableCell>
@@ -356,7 +360,7 @@ const Home: React.FC = () => {
                   {formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen)}
                 </TableCell>
 
-                
+                <TableCell>{heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryUsage || '0'} / {heartbeatStatus[device.devicecode]?.hardwareInfo?.totalMemory || '0'} ( {heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryPercent || '0'} )</TableCell>
               
               
                 <TableCell>
