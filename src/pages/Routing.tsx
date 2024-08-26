@@ -2532,22 +2532,28 @@ const Routing = () => {
     handleEdgeChange();
   }, [edges]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (
-        configUpdated === false &&
-        data?.getConfig.configstatus !== "draft" &&
-        data?.getConfig.configstatus !== undefined &&
-        data?.getConfig.configstatus !== "invalid" &&
-        data?.getConfig.configstatus !== "not-deployed" &&
-        selectedVersion === ""
-      ) {
-        refetch();
-      }
-    }, 1000 * 60); // 1 minute interval
+  const isDeployed = selectedVersion !== ""
+  ? oldVersionData?.getConfig?.configstatus?.toLowerCase() === "deployed"
+  : data?.getConfig?.configstatus?.toLowerCase() === "deployed";
 
-    return () => clearInterval(intervalId);
-  }, [configUpdated, data, selectedVersion, refetch]);
+  useEffect(() => {
+     if (!isDeployed) {
+      const intervalId = setInterval(() => {
+        if (
+          configUpdated === false &&
+          data?.getConfig.configstatus !== "draft" &&
+          data?.getConfig.configstatus !== undefined &&
+          data?.getConfig.configstatus !== "invalid" &&
+          data?.getConfig.configstatus !== "not-deployed" &&
+          selectedVersion === ""
+        ) {
+          refetch();
+        }
+      }, 1000 * 15); 
+
+      return () => clearInterval(intervalId);
+    }
+  }, [configUpdated, data, selectedVersion, refetch, isDeployed]);
 
   useEffect(() => {
     if (manualRefresh) {
@@ -2562,7 +2568,7 @@ const Routing = () => {
     onRefreshClick(); // Perform any additional refresh actions
   };
 
-
+  
   return (
     <>
     
@@ -2657,8 +2663,8 @@ const Routing = () => {
                       border: "none",
                     }}
                     onClick={handleRefreshClick} // Use handleRefreshClick here
-                    disabled={loading} // Disable button while loading
-
+                   
+                    disabled={loading || isDeployed}
                     
                   >
                   
