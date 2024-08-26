@@ -2511,9 +2511,13 @@ const Routing = () => {
   };
 
   const getErrorData = () => {
-    const errorLogs = atob(errorData.getErrorLogs.responsedata);
+    if (errorData) {
+      const errorLogs = atob(errorData?.getErrorLogs?.responsedata);
 
-    return errorLogs;
+      return errorLogs;
+    } else {
+      setViewError(false);
+    }
   };
 
   const getDeviceStatus = () => {
@@ -3016,7 +3020,13 @@ const Routing = () => {
                 <MdClose />
               </Button>
             </Modal.Header>
-            <Modal.Body>{getErrorData()}</Modal.Body>
+            <Modal.Body>
+              <div>
+                <pre style={{ whiteSpace: "break-spaces" }}>
+                  {getErrorData()}
+                </pre>
+              </div>
+            </Modal.Body>
           </Modal>
         )}
       </div>
