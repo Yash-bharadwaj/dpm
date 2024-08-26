@@ -90,21 +90,21 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                 </TableRow>
                 <TableRow>
                   <TableCell><strong>Memory:</strong></TableCell>
-                  <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || 'N/A'} / {deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'} ( {deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'} )</TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || '0'} / {deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'} ( {deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'} )</TableCell>
                 </TableRow>
-                <TableRow>
+                {/* <TableRow>
                   <TableCell><strong>Total Memory:</strong></TableCell>
                   <TableCell> {deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'}</TableCell>
-                </TableRow>
+                </TableRow> */}
               
-                <TableRow>
+                {/* <TableRow>
                   <TableCell><strong>Memory Usage:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'}</TableCell>
-                </TableRow>
-                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                </TableRow> */}
+                {/* <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Memory Usage:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || 'N/A'}</TableCell>
-                </TableRow>
+                </TableRow> */}
                 {/* <TableRow>
                   <TableCell><strong>Config Version:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.configVersion?.versionId || 'N/A'}</TableCell>
@@ -112,6 +112,12 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Last Modified:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.configVersion?.lastModified || 'N/A'}</TableCell>
+                </TableRow>
+
+                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                  <TableCell><strong>Cpu Core:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuCores || 'N/A'}</TableCell>
+
                 </TableRow>
                 {/* <TableRow>
                   <TableCell><strong>Last Seen:</strong></TableCell>

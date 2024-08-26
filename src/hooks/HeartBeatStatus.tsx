@@ -15,6 +15,7 @@ interface HardwareInfo {
   totalMemory: string | null;
   memoryUsage: string | null;
   memoryPercent:string | null
+  cpuCores: number | null; 
 }
 
 interface ConfigVersion {
@@ -80,7 +81,9 @@ export const useHeartbeatStatus = (devices: Device[]) => {
                 cpuUsage: responseData.hardware_info?.cpu_usage || null,
                 totalMemory: responseData.hardware_info?.total_memory || null,
                 memoryUsage: responseData.hardware_info?.memory_usage || null,
-                memoryPercent:responseData.hardware_info?.memory_usage_percent || null
+                memoryPercent:responseData.hardware_info?.memory_usage_percent || null,
+                cpuCores: responseData.hardware_info?.cpu_cores || null, 
+
               },
               configVersion: {
                 versionId: responseData.config_version?.version_id || "N/A",

@@ -101,8 +101,10 @@ const Routing = () => {
   const [selectedVersion, setSelectedVersion] = useState("");
   const [viewError, setViewError] = useState(false);
   const [confirmOldSave, setConfirmOldSave] = useState(false);
+  const [manualRefresh, setManualRefresh] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [loadingR, setLoadingR] = useState(false);
 
   const ref = useRef(null);
@@ -2487,10 +2489,10 @@ const Routing = () => {
         },
       },
       onCompleted: () => {
-        setLoadingR(false); // Stop loading when the API call is completed
+        setLoadingR(false); 
       },
       onError: () => {
-        setLoadingR(false); // Stop loading even if there's an error
+        setLoadingR(false); 
       },
     });
   };
@@ -2532,9 +2534,6 @@ const Routing = () => {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      console.log("get data again", selectedVersion);
-      console.log("configUpdated", configUpdated);
-      console.log("status", data);
       if (
         configUpdated === false &&
         data?.getConfig.configstatus !== "draft" &&
@@ -2545,12 +2544,28 @@ const Routing = () => {
       ) {
         refetch();
       }
-    }, 1000 * 60); // in milliseconds
+    }, 1000 * 60); // 1 minute interval
+
     return () => clearInterval(intervalId);
-  }, [configUpdated, data, configUpdated, selectedVersion]);
+  }, [configUpdated, data, selectedVersion, refetch]);
+
+  useEffect(() => {
+    if (manualRefresh) {
+      setRefreshing(true); // Set refreshing to true
+      refetch().finally(() => setRefreshing(false)); // Trigger refetch and reset refreshing state
+      setManualRefresh(false); // Reset the manual refresh trigger
+    }
+  }, [manualRefresh, refetch]);
+
+  const handleRefreshClick = () => {
+    setManualRefresh(true); // Set manual refresh trigger to true
+    onRefreshClick(); // Perform any additional refresh actions
+  };
+
 
   return (
     <>
+    
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col
@@ -2588,10 +2603,14 @@ const Routing = () => {
                 Timestamp :{" "}
                 <b>
                   {" "}
-                  {selectedVersion !== ""
-                    ? oldVersionData?.getConfig &&
-                      getLastModifiedDate(oldVersionData?.getConfig)
-                    : data?.getConfig && getLastModifiedDate(data?.getConfig)}
+                  {refreshing ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : selectedVersion !== "" ? (
+                    oldVersionData?.getConfig &&
+                    getLastModifiedDate(oldVersionData?.getConfig)
+                  ) : (
+                    data?.getConfig && getLastModifiedDate(data?.getConfig)
+                  )}
                 </b>
                 <div
                   className="current-config-data"
@@ -2603,11 +2622,15 @@ const Routing = () => {
                   }}
                 >
                   Status :{" "}
-                  <Badge bg="success">
-                    {selectedVersion !== ""
-                      ? oldVersionData?.getConfig?.configstatus.toUpperCase()
-                      : data?.getConfig?.configstatus.toUpperCase()}
-                  </Badge>
+                  {refreshing ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : (
+                    <Badge bg="success">
+                      {selectedVersion !== ""
+                        ? oldVersionData?.getConfig?.configstatus.toUpperCase()
+                        : data?.getConfig?.configstatus.toUpperCase()}
+                    </Badge>
+                  )}
                   {(data?.getConfig.configstatus === "failed" ||
                     data?.getConfig.configstatus === "invalid" ||
                     data?.getConfig.configstatus === "not-deployed") && (
@@ -2633,9 +2656,12 @@ const Routing = () => {
                       alignItems: "center",
                       border: "none",
                     }}
-                    onClick={onRefreshClick}
+                    onClick={handleRefreshClick} // Use handleRefreshClick here
                     disabled={loading} // Disable button while loading
+
+                    
                   >
+                  
                     <FaSyncAlt />
                     {loading && (
                       <Spinner
