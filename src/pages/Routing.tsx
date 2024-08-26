@@ -9,14 +9,13 @@ import {
   OverlayTrigger,
   Row,
   Tooltip,
-  Spinner
+  Spinner,
 } from "react-bootstrap";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
-import { FaSyncAlt } from 'react-icons/fa';
-
+import { FaSyncAlt } from "react-icons/fa";
 
 import {
   SAVE_CONFIG,
@@ -2474,13 +2473,16 @@ const Routing = () => {
   };
   const onRefreshClick = () => {
     setLoadingR(true);
-  
+
     getConfigTimelineData({
       variables: {
         input: {
           orgcode: orgCode,
           devicecode: deviceCode,
-          versionid: selectedVersion !== "" ? oldVersionData?.getConfig?.versionid : data?.getConfig?.versionid,
+          versionid:
+            selectedVersion !== ""
+              ? oldVersionData?.getConfig?.versionid
+              : data?.getConfig?.versionid,
           timezone: getCurrentTimezone(),
         },
       },
@@ -2492,6 +2494,7 @@ const Routing = () => {
       },
     });
   };
+
   const onGetErrorLogs = () => {
     getErrorLogs({
       variables: {
@@ -2500,7 +2503,7 @@ const Routing = () => {
           devicecode: deviceCode,
         },
       },
-      fetchPolicy: "cache-only",
+      fetchPolicy: "network-only",
       onCompleted: () => {
         setViewError(true);
       },
@@ -2544,7 +2547,6 @@ const Routing = () => {
 
   return (
     <>
-   
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col
@@ -2589,7 +2591,12 @@ const Routing = () => {
                 </b>
                 <div
                   className="current-config-data"
-                  style={{ marginLeft: "12px" , display:'flex' , alignItems:'center', gap:'4px' }}
+                  style={{
+                    marginLeft: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
                 >
                   Status :{" "}
                   <Badge bg="success">
@@ -2606,35 +2613,37 @@ const Routing = () => {
                         width: "25px",
                         fill: "red",
                         marginLeft: "4px",
-                      cursor: "pointer",
+                        cursor: "pointer",
                       }}
                       onClick={() => {
                         onGetErrorLogs();
                       }}
                     />
                   )}
-                  
                   <Button
-      variant="outline-secondary"
-      size="sm"
-      style={{ marginLeft: "4px", display: "flex", alignItems: "center", border:'none' }}
-      onClick={onRefreshClick}
-   
-      disabled={loading} // Disable button while loading
-    >
-      
-      <FaSyncAlt />
-      {loading && (
-        <Spinner
-          animation="border"
-          role="status"
-          size="sm"
-          style={{ marginLeft: "8px" }}
-        >
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      )}
-    </Button>
+                    variant="outline-secondary"
+                    size="sm"
+                    style={{
+                      marginLeft: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: "none",
+                    }}
+                    onClick={onRefreshClick}
+                    disabled={loading} // Disable button while loading
+                  >
+                    <FaSyncAlt />
+                    {loading && (
+                      <Spinner
+                        animation="border"
+                        role="status"
+                        size="sm"
+                        style={{ marginLeft: "8px" }}
+                      >
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
