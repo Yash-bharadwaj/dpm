@@ -2533,22 +2533,42 @@ const Routing = () => {
     handleEdgeChange();
   }, [edges]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (
-        configUpdated === false &&
-        data?.getConfig.configstatus !== "draft" &&
-        data?.getConfig.configstatus !== undefined &&
-        data?.getConfig.configstatus !== "invalid" &&
-        data?.getConfig.configstatus !== "not-deployed" &&
-        selectedVersion === ""
-      ) {
-        refetch();
-      }
-    }, 1000 * 60); // 1 minute interval
+  const isDeployed = selectedVersion !== ""
+  ? oldVersionData?.getConfig?.configstatus?.toLowerCase() === "deployed"
+  : data?.getConfig?.configstatus?.toLowerCase() === "deployed";
 
-    return () => clearInterval(intervalId);
-  }, [configUpdated, data, selectedVersion, refetch]);
+  useEffect(() => {
+    console.log("useEffect triggered");
+  
+    // Set up interval only if the status is not "deployed"
+    if (!isDeployed) {
+      console.log("Setting up interval");
+  
+      const intervalId = setInterval(() => {
+        console.log("Interval triggered");
+        console.log("Config Status:", data?.getConfig.configstatus);
+        if (
+          data?.getConfig.configstatus !== "draft" &&
+          data?.getConfig.configstatus !== "invalid" &&
+          data?.getConfig.configstatus !== "not-deployed" &&
+          data?.getConfig.configstatus !== "converted" &&
+          data?.getConfig.configstatus !== undefined &&
+          selectedVersion === ""
+        ) {
+          console.log("Calling refetch...");
+          refetch()
+            .then((response) => {
+              console.log("API Response:", response);
+            })
+            .catch((error) => {
+              console.error("Error during API call:", error);
+            });
+        }
+      }, 1000 * 15); // 15-second interval
+  
+      return () => clearInterval(intervalId);
+    }
+  }, [data, selectedVersion, refetch, isDeployed]);
 
   useEffect(() => {
     if (manualRefresh) {
@@ -2559,14 +2579,14 @@ const Routing = () => {
   }, [manualRefresh, refetch]);
 
   const handleRefreshClick = () => {
-    setManualRefresh(true); // Set manual refresh trigger to true
-    onRefreshClick(); // Perform any additional refresh actions
+    setManualRefresh(true); 
+    onRefreshClick(); 
   };
 
-
+  
   return (
     <>
-    
+   
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col
@@ -2658,8 +2678,8 @@ const Routing = () => {
                       border: "none",
                     }}
                     onClick={handleRefreshClick} // Use handleRefreshClick here
-                    disabled={loading} // Disable button while loading
-
+                   
+                    disabled={loading || isDeployed}
                     
                   >
                   
