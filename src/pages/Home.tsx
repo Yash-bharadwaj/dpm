@@ -449,7 +449,7 @@ const Home: React.FC = () => {
                 curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \<br />
                 --orgcode "{orgCode}" \<br />
                 --devicecode "{newDevice.generatedCode}" \<br />
-                --accesskey "{newDevice.accessKey}" \ <br />
+                --accesskey "{newDevice.accessKey}" \<br />
                 --secretkey "{newDevice.secretKey}"
               </pre>
             </div>
