@@ -134,11 +134,11 @@ const Home: React.FC = () => {
 
   const formatLastSeen = (lastSeen?: string | null) => {
     if (!lastSeen) return 'N/A';
-  
+
     const lastSeenDate = parseISO(lastSeen);
-  
+
     if (!isValid(lastSeenDate)) return 'N/A';
-  
+
     return formatDistanceToNow(lastSeenDate, { addSuffix: true });
   };
 
@@ -187,7 +187,9 @@ const Home: React.FC = () => {
     }
   };
 
-  const copyToClipboard = () => {
+  const copyToClipboard = (e: React.MouseEvent) => {
+    e.stopPropagation();  
+    e.preventDefault();  
     const copyText = document.getElementById("installScript")?.textContent || "";
     navigator.clipboard.writeText(copyText).then(() => {
       toast.success("Copied to clipboard");
@@ -195,7 +197,7 @@ const Home: React.FC = () => {
       toast.error("Failed to copy");
     });
   };
-  
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -278,7 +280,7 @@ const Home: React.FC = () => {
               <TableCell>
                 <strong>Last Heartbeat</strong>
               </TableCell>
-              
+
               <TableCell>
                 <strong>Memory</strong>
               </TableCell>
@@ -314,43 +316,43 @@ const Home: React.FC = () => {
                 <TableCell>{device.devicename}</TableCell>
                 <TableCell>{heartbeatStatus[device.devicecode]?.ipAddress}</TableCell>
                 <TableCell>
-  {heartbeatStatus[device.devicecode]?.serviceStatus === "active" &&
-  heartbeatStatus[device.devicecode]?.lastSeen &&
-  differenceInMinutes(new Date(), parseISO(heartbeatStatus[device.devicecode].lastSeen || '')) <= 10 ? (
-    <Button
-      variant="contained"
-      style={{
-        height: "25px",
-        fontWeight: "600",
-        backgroundColor: "#DDF1EA",
-        color: "#007867",
-        boxShadow: "none",
-      }}
-    >
-      ACTIVE
-    </Button>
-  ) : (
-    <Button
-      variant="contained"
-      style={{
-        height: "25px",
-        fontWeight: "600",
-        backgroundColor: "#FFF2F2",
-        color: "#E23428",
-        boxShadow: "none",
-      }}
-    >
-      INACTIVE
-    </Button>
-  )}
-</TableCell>
+                  {heartbeatStatus[device.devicecode]?.serviceStatus === "active" &&
+                    heartbeatStatus[device.devicecode]?.lastSeen &&
+                    differenceInMinutes(new Date(), parseISO(heartbeatStatus[device.devicecode].lastSeen || '')) <= 10 ? (
+                    <Button
+                      variant="contained"
+                      style={{
+                        height: "25px",
+                        fontWeight: "600",
+                        backgroundColor: "#DDF1EA",
+                        color: "#007867",
+                        boxShadow: "none",
+                      }}
+                    >
+                      ACTIVE
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      style={{
+                        height: "25px",
+                        fontWeight: "600",
+                        backgroundColor: "#FFF2F2",
+                        color: "#E23428",
+                        boxShadow: "none",
+                      }}
+                    >
+                      INACTIVE
+                    </Button>
+                  )}
+                </TableCell>
                 <TableCell>
                   {formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen)}
                 </TableCell>
 
                 <TableCell>{heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryUsage || '0'} / {heartbeatStatus[device.devicecode]?.hardwareInfo?.totalMemory || '0'} ( {heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryPercent || '0'} )</TableCell>
-              
-              
+
+
                 <TableCell>
                   <ImLocation2 style={{ marginRight: '5px', color: '#ff1919' }} />
                   {device.devicelocation}
@@ -467,7 +469,7 @@ const Home: React.FC = () => {
         onClose={handleCloseSidebar}
         device={selectedDevice}
         heartbeatStatus={heartbeatStatus}
-        
+
       />
       <ToastContainer />
     </div>
