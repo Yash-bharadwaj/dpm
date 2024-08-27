@@ -26,13 +26,14 @@ import Lottie from "react-lottie";
 import loadingAnimation from "../utils/Loading.json";
 import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
 import { DeviceContext } from "../utils/DeviceContext";
-import { formatDistanceToNow, isValid, parseISO } from "date-fns";
+import { differenceInMinutes, parseISO, formatDistanceToNow, isValid } from "date-fns";
 import { GET_DEVICES_LIST, ADD_LC_DEVICE } from "../query/query";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import '../index.css';
 import { FaInfoCircle } from "react-icons/fa";
 import { LuCopy } from "react-icons/lu";
+
 
 interface Device {
   deviceid: string;
@@ -313,49 +314,36 @@ const Home: React.FC = () => {
                 <TableCell>{device.devicename}</TableCell>
                 <TableCell>{heartbeatStatus[device.devicecode]?.ipAddress}</TableCell>
                 <TableCell>
-                  {heartbeatStatus[device.devicecode]?.serviceStatus ===
-                  "active" ? (
-                    <Button
-                      variant="contained"
-                      style={{
-                        height: "25px",
-                        fontWeight: "600",
-                        backgroundColor: "#DDF1EA",
-                        color: "#007867",
-                        boxShadow: "none",
-                      }}
-                    >
-                      ACTIVE
-                    </Button>
-                  ) : heartbeatStatus[device.devicecode]?.serviceStatus ===
-                    "in-active" ? (
-                    <Button
-                      variant="contained"
-                      style={{
-                        height: "25px",
-                        fontWeight: "600",
-                        backgroundColor: "#FFF2F2",
-                        color: "#E23428",
-                        boxShadow: "none",
-                      }}
-                    >
-                      INACTIVE
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      style={{
-                        height: "25px",
-                        fontWeight: "600",
-                        backgroundColor: "#e6f3f7",
-                        color: "#0F5EF7",
-                        boxShadow: "none",
-                      }}
-                    >
-                      PENDING
-                    </Button>
-                  )}
-                </TableCell>
+  {heartbeatStatus[device.devicecode]?.serviceStatus === "active" &&
+  heartbeatStatus[device.devicecode]?.lastSeen &&
+  differenceInMinutes(new Date(), parseISO(heartbeatStatus[device.devicecode].lastSeen || '')) <= 10 ? (
+    <Button
+      variant="contained"
+      style={{
+        height: "25px",
+        fontWeight: "600",
+        backgroundColor: "#DDF1EA",
+        color: "#007867",
+        boxShadow: "none",
+      }}
+    >
+      ACTIVE
+    </Button>
+  ) : (
+    <Button
+      variant="contained"
+      style={{
+        height: "25px",
+        fontWeight: "600",
+        backgroundColor: "#FFF2F2",
+        color: "#E23428",
+        boxShadow: "none",
+      }}
+    >
+      INACTIVE
+    </Button>
+  )}
+</TableCell>
                 <TableCell>
                   {formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen)}
                 </TableCell>
@@ -487,3 +475,4 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+

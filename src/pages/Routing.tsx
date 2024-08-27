@@ -2537,23 +2537,37 @@ const Routing = () => {
   : data?.getConfig?.configstatus?.toLowerCase() === "deployed";
 
   useEffect(() => {
-     if (!isDeployed) {
+    console.log("useEffect triggered");
+  
+    // Set up interval only if the status is not "deployed"
+    if (!isDeployed) {
+      console.log("Setting up interval");
+  
       const intervalId = setInterval(() => {
+        console.log("Interval triggered");
+        console.log("Config Status:", data?.getConfig.configstatus);
         if (
-          configUpdated === false &&
           data?.getConfig.configstatus !== "draft" &&
-          data?.getConfig.configstatus !== undefined &&
           data?.getConfig.configstatus !== "invalid" &&
           data?.getConfig.configstatus !== "not-deployed" &&
+          data?.getConfig.configstatus !== "converted" &&
+          data?.getConfig.configstatus !== undefined &&
           selectedVersion === ""
         ) {
-          refetch();
+          console.log("Calling refetch...");
+          refetch()
+            .then((response) => {
+              console.log("API Response:", response);
+            })
+            .catch((error) => {
+              console.error("Error during API call:", error);
+            });
         }
-      }, 1000 * 15); 
-
+      }, 1000 * 15); // 15-second interval
+  
       return () => clearInterval(intervalId);
     }
-  }, [configUpdated, data, selectedVersion, refetch, isDeployed]);
+  }, [data, selectedVersion, refetch, isDeployed]);
 
   useEffect(() => {
     if (manualRefresh) {
@@ -2564,14 +2578,14 @@ const Routing = () => {
   }, [manualRefresh, refetch]);
 
   const handleRefreshClick = () => {
-    setManualRefresh(true); // Set manual refresh trigger to true
-    onRefreshClick(); // Perform any additional refresh actions
+    setManualRefresh(true); 
+    onRefreshClick(); 
   };
 
   
   return (
     <>
-    
+   
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
           <Col

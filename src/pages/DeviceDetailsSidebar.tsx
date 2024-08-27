@@ -109,13 +109,13 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableCell><strong>Config Version:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.configVersion?.versionId || 'N/A'}</TableCell>
                 </TableRow> */}
-                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                {/* <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>Last Modified:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.configVersion?.lastModified || 'N/A'}</TableCell>
-                </TableRow>
+                </TableRow> */}
 
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                  <TableCell><strong>Cpu Core:</strong></TableCell>
+                  <TableCell><strong>CPU Cores:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuCores || 'N/A'}</TableCell>
 
                 </TableRow>
