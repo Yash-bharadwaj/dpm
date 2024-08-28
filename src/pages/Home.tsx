@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
+import { FiAlertOctagon } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
@@ -27,15 +28,17 @@ import loadingAnimation from "../utils/Loading.json";
 import { useHeartbeatStatus } from "../hooks/HeartBeatStatus";
 import { DeviceContext } from "../utils/DeviceContext";
 import { differenceInMinutes, parseISO, formatDistanceToNow, isValid } from "date-fns";
-import { GET_DEVICES_LIST, ADD_LC_DEVICE } from "../query/query";
+import { GET_DEVICES_LIST, ADD_LC_DEVICE, DELETE_LC_DEVICE } from "../query/query";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import '../index.css';
 import { FaInfoCircle } from "react-icons/fa";
 import { LuCopy } from "react-icons/lu";
+import { MdDelete, MdDeleteForever, MdDeleteOutline } from "react-icons/md";
 
 
 interface Device {
+  versionid: any;
   deviceid: string;
   orgcode: string;
   devicecode: string;
@@ -48,6 +51,10 @@ interface Device {
 const Home: React.FC = () => {
   const orgCode = "d3b6842d";
   const [deviceCode, setDeviceCode] = useState<string>("DEM-HYD-248");
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
+  const [deleteInput, setDeleteInput] = useState<string>("");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [formOpen, setFormOpen] = useState<boolean>(false);
@@ -64,6 +71,7 @@ const Home: React.FC = () => {
     accessKey: "",
     secretKey: "",
   });
+  const [deleteDevice] = useMutation(DELETE_LC_DEVICE);
 
   const deviceContext = useContext(DeviceContext);
   const navigate = useNavigate();
@@ -214,6 +222,59 @@ const Home: React.FC = () => {
     setNewDevice(updatedDevice);
   };
 
+
+  const handleDeleteClick = (device: Device) => {
+    const deviceStatus = heartbeatStatus[device.devicecode];
+    const versionid = deviceStatus?.configVersion?.versionId; // Access versionId from configVersion
+  
+    console.log('Heartbeat Status:', heartbeatStatus);  // Log the entire heartbeat status
+    console.log('Device to delete:', device);
+    console.log('Retrieved versionid:', versionid);
+  
+    if (!versionid) {
+      toast.error("Version ID not found for the device.");
+      return;
+    }
+  
+    setDeviceToDelete({
+      ...device,
+      versionid,
+    });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deviceToDelete) return;
+  
+    
+    const input = {
+      orgcode: deviceToDelete.orgcode,
+      devicecode: deviceToDelete.devicecode,
+      devicename: deviceToDelete.devicename,
+      devicelocation: deviceToDelete.devicelocation,
+      versionid: deviceToDelete.versionid || '',  
+    };
+  
+    console.log('Delete input:', input);
+  
+    try {
+      const response = await deleteDevice({ variables: { input } });
+      console.log('Mutation response:', response);
+      toast.success(`${deviceToDelete.devicename} deleted successfully`);
+      setDeleteDialogOpen(false);
+      setDeleteInput("");
+      refetch();
+    } catch (error) {
+      console.error('Error details:', error);
+      toast.error("Failed to delete device. Please try again.");
+    }
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setDeleteInput("");
+  };
+
   return (
     <div
       style={{
@@ -350,23 +411,63 @@ const Home: React.FC = () => {
                   {formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen)}
                 </TableCell>
 
-                <TableCell>{heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryUsage || '0'} / {heartbeatStatus[device.devicecode]?.hardwareInfo?.totalMemory || '0'} ( {heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryPercent || '0'} )</TableCell>
+                <TableCell>{heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryUsage || "0"} / {heartbeatStatus[device.devicecode]?.hardwareInfo?.totalMemory || '0'} ( {heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryPercent || '0'} )</TableCell>
 
 
                 <TableCell>
                   <ImLocation2 style={{ marginRight: '5px', color: '#ff1919' }} />
                   {device.devicelocation}
                 </TableCell>
-                <TableCell style={{ textAlign: "center" }}>
-                  <VisibilityIcon
-                    onClick={() => handleViewDetailsClick(device)}
-                    style={{
-                      color: "#191919",
-                      fontSize: "25px",
-                      cursor: "pointer",
-                    }}
-                  />
-                </TableCell>
+                <TableCell style={{ textAlign: "center", display: 'flex', justifyContent: 'center', gap: '15px' }}>
+        <VisibilityIcon
+          onClick={() => handleViewDetailsClick(device)}
+          style={{
+            color: "#5a5a5a",
+            fontSize: "25px",
+            cursor: "pointer",
+          }}
+        />
+        <MdDeleteForever
+          onClick={() => handleDeleteClick(device)}
+          style={{
+            color: "#c70000",
+            fontSize: "24px",
+            cursor: "pointer",
+          }}
+        />
+      </TableCell>
+
+      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle style={{borderTop:'6px solid #11a1cd' , height:'7.5rem'}}>
+       
+          <p style={{fontSize:'16px', padding:'10px'}}>  <FiAlertOctagon style={{color:'#c70000'}} />  This operation will permanently remove device. <br />
+           <span > Device Name: <b> {deviceToDelete?.devicename}</b>  <br /> Device Location: <b>{deviceToDelete?.devicelocation}</b>  </span></p>
+        
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Enter device name"
+            placeholder="Enter device Name to Delete.."
+            value={deleteInput}
+            onChange={(e) => setDeleteInput(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog} style={{ color: '#11a1cd' }}>Cancel</Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            
+            style={{ backgroundColor: '#c70000' }}
+            disabled={deleteInput !== deviceToDelete?.devicename}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+                
               </TableRow>
             ))}
           </TableBody>

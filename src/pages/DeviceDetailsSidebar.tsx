@@ -85,8 +85,8 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableCell>{deviceHeartbeat?.systemInfo?.hostname || 'N/A'}</TableCell>
                 </TableRow>
                 <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                  <TableCell><strong>CPU Usage:</strong></TableCell>
-                  <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuUsage ? `${deviceHeartbeat.hardwareInfo.cpuUsage}%` : 'N/A'}</TableCell>
+                  <TableCell><strong>Cores:</strong></TableCell>
+                  <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuCores || 'N/A'} ( Usage: {deviceHeartbeat?.hardwareInfo?.cpuUsage ? `${deviceHeartbeat.hardwareInfo.cpuUsage}%` : 'N/A'} )</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell><strong>Memory:</strong></TableCell>
@@ -114,11 +114,11 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableCell>{deviceHeartbeat?.configVersion?.lastModified || 'N/A'}</TableCell>
                 </TableRow> */}
 
-                <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                {/* <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                   <TableCell><strong>CPU Cores:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuCores || 'N/A'}</TableCell>
 
-                </TableRow>
+                </TableRow> */}
                 {/* <TableRow>
                   <TableCell><strong>Last Seen:</strong></TableCell>
                   <TableCell>{deviceHeartbeat?.lastSeen || 'N/A'}</TableCell>

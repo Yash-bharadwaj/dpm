@@ -17,10 +17,10 @@ const Breadcrumbs: React.FC = () => {
         <li className="breadcrumb-item">Home</li>
         {pathnames.map((value, index) => {
           const last = index === pathnames.length - 1;
-          const label = value.charAt(0).toUpperCase() + value.slice(1); // Capitalize the first letter
+          const label = value ; 
 
           return last ? (
-            <li key={index} className="breadcrumb-item active" aria-current="page">
+            <li style={{fontSize:'14px'}} key={index} className="breadcrumb-item active" aria-current="page">
               {label}
             </li>
           ) : (

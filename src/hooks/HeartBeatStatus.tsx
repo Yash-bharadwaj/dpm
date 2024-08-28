@@ -13,9 +13,9 @@ interface SystemInfo {
 interface HardwareInfo {
   cpuUsage: number | null;
   totalMemory: string | null;
-  memoryUsage: string | null;
-  memoryPercent:string | null
-  cpuCores: number | null; 
+  memoryUsage: string | null; 
+  memoryPercent: number | null;
+  cpuCores: number | null;
 }
 
 interface ConfigVersion {
@@ -24,6 +24,7 @@ interface ConfigVersion {
 }
 
 interface HeartbeatStatus {
+  versionId: any;
   status: string | null;
   lastSeen: string | null;
   serviceStatus: string | null;
@@ -37,7 +38,7 @@ interface HeartbeatStatuses {
   [deviceCode: string]: HeartbeatStatus;
 }
 
-// Define the types for the devices
+
 interface Device {
   orgcode: string;
   devicecode: string;
@@ -45,7 +46,6 @@ interface Device {
 
 export const useHeartbeatStatus = (devices: Device[]) => {
   const [heartbeatStatus, setHeartbeatStatus] = useState<HeartbeatStatuses>({});
-
   const [getHeartbeatStatus] = useMutation(GET_HEARTBEAT_STATUS);
 
   useEffect(() => {
@@ -80,10 +80,9 @@ export const useHeartbeatStatus = (devices: Device[]) => {
               hardwareInfo: {
                 cpuUsage: responseData.hardware_info?.cpu_usage || null,
                 totalMemory: responseData.hardware_info?.total_memory || null,
-                memoryUsage: responseData.hardware_info?.memory_usage || null,
-                memoryPercent:responseData.hardware_info?.memory_usage_percent || null,
-                cpuCores: responseData.hardware_info?.cpu_cores || null, 
-
+                memoryUsage: responseData.hardware_info?.used_memory_gb || "0", // Use used_memory_gb
+                memoryPercent: responseData.hardware_info?.memory_usage_percent || null,
+                cpuCores: responseData.hardware_info?.cpu_cores || null,
               },
               configVersion: {
                 versionId: responseData.config_version?.version_id || "N/A",
