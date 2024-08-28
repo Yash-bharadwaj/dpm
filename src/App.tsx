@@ -17,7 +17,7 @@ function App() {
     <div className="App">
       <Router>
         <MainNavbar  />
-        <div style={{ marginTop:'5rem' , marginBottom:'0'}}> 
+        <div style={{ marginTop:'5rem' , marginBottom:'0',fontSize:'14px'}}> 
         <Breadcrumbs  /> 
         </div>
         

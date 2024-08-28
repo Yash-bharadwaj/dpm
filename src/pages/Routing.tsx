@@ -15,7 +15,11 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
-import { FaSyncAlt } from "react-icons/fa";
+import { FaSourcetree, FaSyncAlt } from "react-icons/fa";
+import {  IoMdAdd } from "react-icons/io";
+
+import { SiJfrogpipelines } from "react-icons/si";
+
 
 import {
   SAVE_CONFIG,
@@ -2828,7 +2832,7 @@ const Routing = () => {
                     size="sm"
                     onClick={onAddSourceClick}
                   >
-                    +
+                   <IoMdAdd style={{color:'black', fontSize:'18px'}} />
                   </Button>
                 </div>
               </div>
@@ -2842,7 +2846,7 @@ const Routing = () => {
                     size="sm"
                     onClick={onAddPipelineClick}
                   >
-                    +
+                 <IoMdAdd style={{color:'black', fontSize:'18px'}} />
                   </Button>
                 </div>
               </div>
@@ -2856,7 +2860,7 @@ const Routing = () => {
                     size="sm"
                     onClick={onAddEnrichmentClick}
                   >
-                    +
+                  <IoMdAdd style={{color:'black', fontSize:'18px'}} />
                   </Button>
                 </div>
               </div>
@@ -2870,7 +2874,7 @@ const Routing = () => {
                     size="sm"
                     onClick={onAddDestinationClick}
                   >
-                    +
+                 <IoMdAdd style={{color:'black', fontSize:'18px'}} />
                   </Button>
                 </div>
               </div>

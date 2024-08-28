@@ -137,3 +137,13 @@ export const GET_ERROR_LOGS = gql`
     }
   }
 `;
+
+export const DELETE_LC_DEVICE = gql`
+  mutation deleteLcDevice($input: deviceinput!) {
+    deleteLcDevice(input: $input) {
+      responsestatus
+      message
+      __typename
+    }
+  }
+`;
