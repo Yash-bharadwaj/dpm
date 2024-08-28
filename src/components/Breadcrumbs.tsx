@@ -6,7 +6,7 @@ const Breadcrumbs: React.FC = () => {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter(x => x);
 
-  // Hide breadcrumbs if the user is on the home page
+  
   if (location.pathname === '/') {
     return null;
   }
