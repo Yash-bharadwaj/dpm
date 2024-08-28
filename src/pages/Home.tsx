@@ -224,35 +224,20 @@ const Home: React.FC = () => {
 
 
   const handleDeleteClick = (device: Device) => {
-    const deviceStatus = heartbeatStatus[device.devicecode];
-    const versionid = deviceStatus?.configVersion?.versionId; // Access versionId from configVersion
-  
-    console.log('Heartbeat Status:', heartbeatStatus);  // Log the entire heartbeat status
-    console.log('Device to delete:', device);
-    console.log('Retrieved versionid:', versionid);
-  
-    if (!versionid) {
-      toast.error("Version ID not found for the device.");
-      return;
-    }
-  
-    setDeviceToDelete({
-      ...device,
-      versionid,
-    });
+    // Directly set the device to delete without versionid
+    setDeviceToDelete(device);
     setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
     if (!deviceToDelete) return;
   
-    
     const input = {
       orgcode: deviceToDelete.orgcode,
       devicecode: deviceToDelete.devicecode,
       devicename: deviceToDelete.devicename,
       devicelocation: deviceToDelete.devicelocation,
-      versionid: deviceToDelete.versionid || '',  
+      versionid: deviceToDelete.deviceid, 
     };
   
     console.log('Delete input:', input);
@@ -269,6 +254,7 @@ const Home: React.FC = () => {
       toast.error("Failed to delete device. Please try again.");
     }
   };
+  
 
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
@@ -447,7 +433,7 @@ const Home: React.FC = () => {
         <DialogContent>
           <TextField
             label="Enter device name"
-            placeholder="Enter device Name to Delete.."
+            placeholder="Enter device Name to delete.."
             value={deleteInput}
             onChange={(e) => setDeleteInput(e.target.value)}
             fullWidth
