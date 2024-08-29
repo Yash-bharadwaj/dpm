@@ -37,18 +37,80 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+
+  
 }
 
+
+
 .source-dest-sub-div {
+  width: 330px;
+  height: 65px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background-color: #ffffff;
+  box-shadow: rgba(9, 30, 66, 0.25) 0px 2px 5px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+
+  overflow: hidden;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
-  border: 1px solid #11a1cd;
-  /* box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px; */
-  padding: 5px;
-  border-radius: 5px;
+  justify-content: space-around;
+  gap: 18px;
+  border: 1px solid rgb(198, 196, 196);
   
+}
+
+.source-dest-sub-div .icon-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* background-color: #e2e5ee48; */
+
+  margin-left: 4px;
+}
+
+.source-dest-sub-div .icon-container .icon {
+  width: 17px;
+  height: 17px;
+  color: #124fff;
+}
+
+.source-dest-sub-div .message-text-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 15rem;
+
+
+}
+
+.source-dest-sub-div .message-text-container .message-text,
+.source-dest-sub-div .message-text-container .sub-text {
+  margin: 0;
+  cursor: default;
+  width: 12rem;
+}
+
+.source-dest-sub-div .message-text-container .message-text {
+  color: #11a1cd;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.source-dest-sub-div .message-text-container .sub-text {
+  font-size: 12px;
+  color: #555;
+}
+
+.source-dest-sub-div .cross-icon {
+  width: 18px;
+  height: 18px;
+  color: #555;
+  cursor: pointer;
 }
 
 .source-dest-sub-div button{

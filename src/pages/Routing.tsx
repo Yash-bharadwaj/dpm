@@ -15,10 +15,14 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
-import { FaSourcetree, FaSyncAlt } from "react-icons/fa";
+import {  FaSyncAlt } from "react-icons/fa";
 import {  IoMdAdd } from "react-icons/io";
 
-import { SiJfrogpipelines } from "react-icons/si";
+import sourceIcon from '../assets/images/SourceIcon.png';
+import pipelineIcon from '../assets/images/PipelineIcon.png';
+import enrichmentsIcon from '../assets/images/enrichmentIcon.png';
+import destinationIcon from '../assets/images/destinationIcon.png';
+
 
 
 import {
@@ -2601,7 +2605,8 @@ const Routing = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: "20px",
+              marginBottom: "10px",
+              marginTop:'2px'
             }}
           >
             <div>
@@ -2820,107 +2825,116 @@ const Routing = () => {
           </Col>
 
           <Col xl={12} lg={12} md={12} sm={12}>
-            <div className="source-dest-div">
-              <div style={{ width: "23%" }}>
-                <div className="source-dest-sub-div" id="source-col">
-                  <div>Sources</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddSourceClick}
-                  >
-                   <IoMdAdd style={{color:'black', fontSize:'18px'}} />
-                  </Button>
-                </div>
-              </div>
-
-              <div style={{ width: "23%" }}>
-                <div className="source-dest-sub-div">
-                  <div>Pipelines</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddPipelineClick}
-                  >
-                 <IoMdAdd style={{color:'black', fontSize:'18px'}} />
-                  </Button>
-                </div>
-              </div>
-
-              <div style={{ width: "23%" }}>
-                <div className="source-dest-sub-div">
-                  <div>Enrichments</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddEnrichmentClick}
-                  >
-                  <IoMdAdd style={{color:'black', fontSize:'18px'}} />
-                  </Button>
-                </div>
-              </div>
-
-              <div style={{ width: "23%" }}>
-                <div className="source-dest-sub-div">
-                  <div>Destinations</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddDestinationClick}
-                  >
-                 <IoMdAdd style={{color:'black', fontSize:'18px'}} />
-                  </Button>
-                </div>
-              </div>
+      <div className="source-dest-div" style={{marginBottom:'2rem'}}>
+        <div style={{ width: "23%" }}>
+          <div className="source-dest-sub-div " id="source-col" >
+            <div className="icon-container">
+              <img src={sourceIcon} alt="" style={{height:'34px'}}/>
             </div>
-
-            {
-              //loading ||
-              (saveLoading ||
-                deployLoading ||
-                errorLoading ||
-                (oldVersionLoading && selectedVersion !== "")) && (
-                <DataLoading
-                  open={
-                    //loading ||
-                    saveLoading ||
-                    deployLoading ||
-                    errorLoading ||
-                    (oldVersionLoading && selectedVersion !== "")
-                  }
-                />
-              )
-            }
-
-            <div style={{ height: "100vh" }}>
-              <ReactFlow
-                ref={ref}
-                nodes={nodes}
-                onNodesChange={onNodesChange}
-                onNodeClick={onNodeClick}
-                edges={edges}
-                onEdgesChange={onEdgesUpdate}
-                onConnect={onConnect}
-                // fitView
-                maxZoom={1.3}
-                minZoom={1.3}
-                deleteKeyCode={enableDelete ? ["Backspace", "Delete"] : null}
-                onPaneClick={onPaneClick}
-                onNodeContextMenu={onNodeContextMenu}
-                onNodeMouseEnter={(event, node) => highlightPath(node, true)}
-                onNodeMouseLeave={() => resetNodeStyles()}
-              >
-                <Controls />
-                {showMenu && (
-                  <ContextMenu onClick={onPaneClick} {...showMenu} />
-                )}
-              </ReactFlow>
+            <div className="message-text-container">
+              <p className="message-text">Sources</p>
+              <p className="sub-text">Configure data sources.</p>
             </div>
-          </Col>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={onAddSourceClick}
+            >
+              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
+            </Button>
+          </div>
+        </div>
+
+        <div style={{ width: "23%" }}>
+          <div className="source-dest-sub-div">
+            <div className="icon-container">
+            <img src={pipelineIcon} alt="" style={{height:'34px'}}/>
+            </div>
+            <div className="message-text-container">
+              <p className="message-text">Pipelines</p>
+              <p className="sub-text">Process and transform data.</p>
+            </div>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={onAddPipelineClick}
+            >
+              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
+            </Button>
+          </div>
+        </div>
+
+        <div style={{ width: "23%" }}>
+          <div className="source-dest-sub-div" >
+            <div className="icon-container">
+            <img src={enrichmentsIcon} alt="" style={{height:'34px'}}/>
+            </div>
+            <div className="message-text-container">
+              <p className="message-text">Enrichments</p>
+              <p className="sub-text">Enhance data with enrichments.</p>
+            </div>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={onAddEnrichmentClick}
+            >
+              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
+            </Button>
+          </div>
+        </div>
+
+        <div style={{ width: "23%" }}>
+          <div className="source-dest-sub-div">
+            <div className="icon-container">
+            <img src={destinationIcon} alt="" style={{height:'34px'}}/>
+            </div>
+            <div className="message-text-container">
+              <p className="message-text">Destinations</p>
+              <p className="sub-text">Deliver processed data.</p>
+            </div>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={onAddDestinationClick}
+            >
+              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {
+        (saveLoading || deployLoading || errorLoading || (oldVersionLoading && selectedVersion !== "")) && (
+          <DataLoading
+            open={saveLoading || deployLoading || errorLoading || (oldVersionLoading && selectedVersion !== "")}
+          />
+        )
+      }
+
+      <div style={{ height: "100vh" }}>
+        <ReactFlow
+          ref={ref}
+          nodes={nodes}
+          onNodesChange={onNodesChange}
+          onNodeClick={onNodeClick}
+          edges={edges}
+          onEdgesChange={onEdgesUpdate}
+          onConnect={onConnect}
+          maxZoom={1.3}
+          minZoom={1.3}
+          deleteKeyCode={enableDelete ? ["Backspace", "Delete"] : null}
+          onPaneClick={onPaneClick}
+          onNodeContextMenu={onNodeContextMenu}
+          onNodeMouseEnter={(event, node) => highlightPath(node, true)}
+          onNodeMouseLeave={() => resetNodeStyles()}
+        >
+          <Controls />
+          {showMenu && (
+            <ContextMenu onClick={onPaneClick} {...showMenu} />
+          )}
+        </ReactFlow>
+      </div>
+    </Col>
         </Row>
 
         <SourceDrawer

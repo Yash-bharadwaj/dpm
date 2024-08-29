@@ -17,17 +17,19 @@ function App() {
     <div className="App">
       <Router>
         <MainNavbar  />
-        <div style={{ marginTop:'5rem' , marginBottom:'0',fontSize:'14px'}}> 
-        <Breadcrumbs  /> 
+       
+        <div style={{ marginTop:'1rem' , marginBottom:'0',fontSize:'14px'}}> 
+        <Breadcrumbs   /> 
         </div>
-        
         <Routes>
+        
           <Route path="/" element={<Home />} />
           <Route path="/config/:orgcode/:devicecode" element={<Routing />} />
           <Route path="/versions/:devicecode" element={<Versions />} />
         </Routes>
 
       </Router>
+      
     </div>
     </DeviceProvider>
   );
