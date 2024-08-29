@@ -635,8 +635,9 @@
         },
         {
           "name": "region",
-          "label": "Region",
-          "tooltip": "AWS region of the target service."
+          "label": "Region *",
+          "tooltip": "AWS region of the target service.",
+          "mandatory": true
         }
       ],
       "authentication": {
@@ -730,8 +731,9 @@
         },
         {
           "name": "region",
-          "label": "Region",
-          "tooltip": "AWS region of the target service."
+          "label": "Region *",
+          "tooltip": "AWS region of the target service.",
+          "mandatory": true
         }
       ],
       "authentication": {

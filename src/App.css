@@ -48,20 +48,16 @@
   /* box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px; */
   padding: 5px;
   border-radius: 5px;
-  
 }
 
-.source-dest-sub-div button{
- border: none;
-
+.source-dest-sub-div button {
+  border: none;
 }
 
-.source-dest-sub-div button:hover{
+.source-dest-sub-div button:hover {
   background-color: #11a1cd;
   color: white !important;
- 
- }
-
+}
 
 .offcanvas-main {
   width: 800px !important;
@@ -135,6 +131,12 @@
   display: flex;
   align-items: center;
   width: 100%;
+  box-shadow: rgba(14, 63, 126, 0.04) 0px 0px 0px 1px,
+    rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px,
+    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px,
+    rgba(42, 51, 70, 0.04) 0px 6px 6px -3px,
+    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px,
+    rgba(14, 63, 126, 0.04) 0px 24px 24px -12px;
 }
 
 .select-card {
