@@ -35,6 +35,7 @@ import '../index.css';
 import { FaInfoCircle } from "react-icons/fa";
 import { LuCopy } from "react-icons/lu";
 import { MdDelete, MdDeleteForever, MdDeleteOutline } from "react-icons/md";
+import { Box } from "react-bootstrap-icons";
 
 
 interface Device {
@@ -424,35 +425,50 @@ const Home: React.FC = () => {
       </TableCell>
 
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-        <DialogTitle style={{borderTop:'6px solid #11a1cd' , height:'7.5rem'}}>
-       
-          <p style={{fontSize:'16px', padding:'10px'}}>  <FiAlertOctagon style={{color:'#c70000'}} />  This operation will permanently remove device. <br />
-           <span > Device Name: <b> {deviceToDelete?.devicename}</b>  <br /> Device Location: <b>{deviceToDelete?.devicelocation}</b>  </span></p>
-        
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Enter device name"
-            placeholder="Enter device Name to delete.."
-            value={deleteInput}
-            onChange={(e) => setDeleteInput(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} style={{ color: '#11a1cd' }}>Cancel</Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            
-            style={{ backgroundColor: '#c70000' }}
-            disabled={deleteInput !== deviceToDelete?.devicename}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+  <DialogTitle style={{ borderTop: '6px solid #11a1cd', height: '9rem' }}>
+    <p style={{ fontSize: '16px', padding: '08px' }}>
+      <p>
+        <FiAlertOctagon style={{ color: '#c70000', marginRight: '6px' }} />
+        Are you sure you want to permanently delete the device <b>{deviceToDelete?.devicename}</b>
+        <br />and its configuration?
+      </p>
+      <div style={{ marginTop: '8px' }}>
+        <span>
+          Device Name: <b>{deviceToDelete?.devicename}</b>
+          <br />
+          Device Location: <b>{deviceToDelete?.devicelocation}</b>
+        </span>
+      </div>
+    </p>
+  </DialogTitle>
+  <DialogContent>
+    <TextField
+      label="Enter device name"
+      placeholder="Enter device Name to delete.."
+      value={deleteInput}
+      onChange={(e) => setDeleteInput(e.target.value)}
+      fullWidth
+      margin="normal"
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleCloseDeleteDialog} style={{ color: '#11a1cd' }}>
+      No, Keep it
+    </Button>
+    <Button
+      onClick={handleDeleteConfirm}
+      variant="contained"
+      style={{
+        backgroundColor: deleteInput === deviceToDelete?.devicename ? '#c70000' : 'grey',
+        color: deleteInput === deviceToDelete?.devicename ? 'white' : '#3b3b3b',
+      }}
+      disabled={deleteInput !== deviceToDelete?.devicename}
+    >
+      Yes, Delete
+    </Button>
+  </DialogActions>
+</Dialog>
+      
                 
               </TableRow>
             ))}
