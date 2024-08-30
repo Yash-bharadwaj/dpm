@@ -7,9 +7,9 @@ import { gqlClient } from './apolloClient.ts';
 import AuthorizedApolloProvider from "./AuthorizedApolloProvider.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  
     <AuthorizedApolloProvider client={gqlClient}> 
       <App />
     </AuthorizedApolloProvider>
-  </React.StrictMode>
+ 
 );

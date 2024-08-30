@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Navbar, Nav, Offcanvas } from "react-bootstrap";
 import Logo from "../assets/images/logoBlusapphire.png";
@@ -11,10 +11,9 @@ const MainNavbar: React.FC = () => {
   const location = useLocation();
   const deviceContext = useContext(DeviceContext);
   const [show, setShow] = useState(false);
-  const [docsContent, setDocsContent] = useState<string>("");
   const isHomePage = location.pathname === "/";
   const isVersionsPage = location.pathname.startsWith("/versions");
-  const url = import.meta.env.VITE_REACT_APP_DOCS;
+  const url = import.meta.env.VITE_REACT_APP_DOCS; // GitBook documentation URL
 
   if (!deviceContext) {
     return null;
@@ -24,23 +23,6 @@ const MainNavbar: React.FC = () => {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-
-  useEffect(() => {
-    const fetchDocs = async () => {
-      try {
-        const response = await fetch(url);
-        const htmlContent = await response.text();
-        setDocsContent(htmlContent);
-      } catch (error) {
-        console.error("Error fetching documentation:", error);
-        setDocsContent("Unable to load documentation.");
-      }
-    };
-
-    if (show) {
-      fetchDocs();
-    }
-  }, [show, url]);
 
   return (
     <>
@@ -108,21 +90,24 @@ const MainNavbar: React.FC = () => {
           </div>
 
           <Nav.Link onClick={handleShow} style={{ marginRight: "12px" }}>
-            <MdHelpOutline style={{ fontSize:'24px' }} />
+            <MdHelpOutline style={{ fontSize: '24px' }} />
           </Nav.Link>
         </div>
         
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
       </Navbar>
+    
 
-      <Offcanvas show={show} onHide={handleClose} placement="end" style={{Width:'50%'}} >
+      <Offcanvas show={show} onHide={handleClose} placement="end" style={{ width: '50%' }} >
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title >Documentation</Offcanvas.Title>
+          <Offcanvas.Title>Documentation</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
-          <div
-            dangerouslySetInnerHTML={{ __html: docsContent }}
-            style={{ width: "100%", height: "100%", overflowY: "auto" }}
+       
+          <iframe
+            src={url}
+            title="Documentation"
+            style={{ width: '100%', height: '100%', border: 'none' }}
           />
         </Offcanvas.Body>
       </Offcanvas>
