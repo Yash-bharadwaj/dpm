@@ -17,7 +17,6 @@ import {
 } from "@mui/material";
 import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
 import "../index.css";
-import { FiAlertOctagon } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import computeranimation from "../assets/computeranimation.gif";
@@ -34,8 +33,10 @@ import "react-toastify/dist/ReactToastify.css";
 import '../index.css';
 import { FaInfoCircle } from "react-icons/fa";
 import { LuCopy } from "react-icons/lu";
-import { MdDelete, MdDeleteForever, MdDeleteOutline } from "react-icons/md";
-import { Box } from "react-bootstrap-icons";
+import {  MdDeleteForever } from "react-icons/md";
+
+import { IoIosWarning, IoMdRefresh } from "react-icons/io";
+import { Refresh } from "@mui/icons-material";
 
 
 interface Device {
@@ -132,7 +133,7 @@ const Home: React.FC = () => {
           height: "100vh",
         }}
       >
-        <Lottie options={defaultOptions} height={200} width={200} />
+         <img src={import.meta.env.VITE_BLUSAPPHIRE_LOADING_GIF} height="50em" />
       </div>
     );
   }
@@ -287,6 +288,23 @@ const Home: React.FC = () => {
         <h3 style={{ color: "#5a5a5a", fontSize: "1.6rem" }}>
           Pipeline Managers
         </h3>
+
+        <div>
+        <Button
+          variant="outlined"
+          onClick={()=> refetch()}
+          style={{
+            marginLeft: "auto",
+            color: "#11a1cd",
+            fontWeight: "600",
+            border: "1px solid #11a1cd",
+            margin:'4px'
+          }}
+        >
+          <IoMdRefresh style={{marginRight:'4px'}} />
+
+          refresh
+        </Button>
         <Button
           variant="outlined"
           onClick={handleAddDeviceClick}
@@ -299,6 +317,10 @@ const Home: React.FC = () => {
         >
           + Add Device
         </Button>
+
+
+        </div>
+        
       </div>
 
       <TableContainer
@@ -425,10 +447,12 @@ const Home: React.FC = () => {
       </TableCell>
 
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-  <DialogTitle style={{ borderTop: '6px solid #11a1cd', height: '9rem' }}>
+        <DialogTitle style={{fontWeight:'600', height:'55px'}}>   <IoIosWarning 
+        style={{ color: '#c70000', marginRight: '4px', marginBottom:'3px' }} /> Confirm Deletion</DialogTitle>
+  <DialogTitle style={{ borderTop: '2px solid #c70000', height: '9rem' }}>
     <p style={{ fontSize: '16px', padding: '08px' }}>
       <p>
-        <FiAlertOctagon style={{ color: '#c70000', marginRight: '6px' }} />
+    
         Are you sure you want to permanently delete the device <b>{deviceToDelete?.devicename}</b>
         <br />and its configuration?
       </p>
@@ -451,7 +475,7 @@ const Home: React.FC = () => {
       margin="normal"
     />
   </DialogContent>
-  <DialogActions>
+  <DialogActions style={{marginBottom:'1rem', marginRight:'10px'}}>
     <Button onClick={handleCloseDeleteDialog} style={{ color: '#11a1cd' }}>
       No, Keep it
     </Button>
@@ -459,7 +483,7 @@ const Home: React.FC = () => {
       onClick={handleDeleteConfirm}
       variant="contained"
       style={{
-        backgroundColor: deleteInput === deviceToDelete?.devicename ? '#c70000' : 'grey',
+        backgroundColor: deleteInput === deviceToDelete?.devicename ? '#c70000' : '#D3D3D3',
         color: deleteInput === deviceToDelete?.devicename ? 'white' : '#3b3b3b',
       }}
       disabled={deleteInput !== deviceToDelete?.devicename}

@@ -69,12 +69,14 @@ import { getSourceFromID, getVersionId } from "./AddNewRouting.tsx/helper";
 import { useParams } from "react-router-dom";
 import ContextMenu from "../components/ContextMenu";
 import DataLoading from "../components/DataLoading";
+import { IoMdAddCircleOutline } from "react-icons/io";
 
 import {
   MdOutlineReplyAll,
   MdReportGmailerrorred,
   MdClose,
 } from "react-icons/md";
+import { IconButton } from "@mui/material";
 
 toastConfig({ theme: "dark" });
 
@@ -83,6 +85,7 @@ const Routing = () => {
 
   const orgCode = params.orgcode;
   const deviceCode = params.devicecode;
+   const [hovered, setHovered] = useState(false);
 
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
@@ -2842,7 +2845,7 @@ const Routing = () => {
               size="sm"
               onClick={onAddSourceClick}
             >
-              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
+             <IoMdAddCircleOutline  className="plusicon" style={{ color: 'black', fontSize: '21px' }} />
             </Button>
           </div>
         </div>
@@ -2860,14 +2863,15 @@ const Routing = () => {
               variant="outline-secondary"
               size="sm"
               onClick={onAddPipelineClick}
+              
             >
-              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
+              <IoMdAddCircleOutline className="plusicon"  style={{ color: 'black', fontSize: '21px' }} />
             </Button>
           </div>
         </div>
 
         <div style={{ width: "23%" }}>
-          <div className="source-dest-sub-div" >
+          <div className="source-dest-sub-div"  >
             <div className="icon-container">
             <img src={enrichmentsIcon} alt="" style={{height:'34px'}}/>
             </div>
@@ -2879,13 +2883,14 @@ const Routing = () => {
               variant="outline-secondary"
               size="sm"
               onClick={onAddEnrichmentClick}
+              className="plusicon" 
             >
-              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
+            <IoMdAddCircleOutline className="plusicon"  style={{ color: 'black', fontSize: '21px' }} />
             </Button>
           </div>
-        </div>
+      </div>
 
-        <div style={{ width: "23%" }}>
+        <div style={{ }}>
           <div className="source-dest-sub-div">
             <div className="icon-container">
             <img src={destinationIcon} alt="" style={{height:'34px'}}/>
@@ -2895,12 +2900,27 @@ const Routing = () => {
               <p className="sub-text">Deliver processed data.</p>
             </div>
             <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={onAddDestinationClick}
-            >
-              <IoMdAdd style={{ color: 'black', fontSize: '18px' }} />
-            </Button>
+      variant="outline-secondary"
+      size="sm"
+      onClick={onAddDestinationClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        backgroundColor: hovered ? '#11a1cd' : 'transparent',
+        borderColor: 'transparent',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <IoMdAddCircleOutline
+       className="plusicon"
+        style={{
+          color: hovered ? 'white' : 'black',
+          fontSize: '21px',
+        }}
+      />
+    </Button>
           </div>
         </div>
       </div>
