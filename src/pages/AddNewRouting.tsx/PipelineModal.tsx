@@ -31,10 +31,27 @@ const PipelineModal = ({
   let currentPipeline = [];
   let currentProducts = [];
 
+  let allParsers = [];
+
+  parsers.observers.forEach((observer: any) => {
+    let disabledParser = true;
+    if (observer.source) {
+      observer.source.forEach((source: any) => {
+        if (!source.disabled) {
+          disabledParser = false;
+        }
+      });
+    }
+
+    if (!disabledParser) {
+      allParsers.push(observer);
+    }
+  });
+
   if (selectedPipeline?.data) {
     let uuid = selectedPipeline.data.nodeData.uuid;
 
-    parsers.observers.forEach((pipeline) => {
+    allParsers.forEach((pipeline) => {
       if (pipeline.uuid === uuid) {
         currentPipeline = [pipeline];
 
@@ -62,12 +79,12 @@ const PipelineModal = ({
     currentProducts || Object
   );
   const [viewAll, setViewAll] = useState(true);
-  const [searchedPipelines, setSearchedPipelines] = useState(parsers.observers);
+  const [searchedPipelines, setSearchedPipelines] = useState(allParsers);
   const [searchText, setSearchText] = useState("");
 
   let matchingPipelines = [];
 
-  parsers.observers.forEach((pipeline) => {
+  allParsers.forEach((pipeline) => {
     addedSources.forEach((source: any) => {
       if (pipeline.input_sources.includes(source.name)) {
         matchingPipelines.push(pipeline);
@@ -165,10 +182,10 @@ const PipelineModal = ({
     setSearchText(searchText);
 
     if (searchText === "") {
-      setSearchedPipelines(parsers.observers);
+      setSearchedPipelines(allParsers);
     } else {
       if (searchText.length >= 3) {
-        parsers.observers.forEach((pipeline) => {
+        allParsers.forEach((pipeline) => {
           const name = pipeline.name.toLowerCase();
 
           if (name.match(searchText)) {
@@ -263,29 +280,35 @@ const PipelineModal = ({
                     {selectedParser.length !== 0 &&
                       selectedParser[0].name === pipeline.name &&
                       pipeline.source &&
-                      pipeline.source.map((source) => (
-                        <tr>
-                          <td>
-                            <Form.Check
-                              name="product"
-                              type={"radio"}
-                              id={`inline-checkbox-2`}
-                              onChange={(event) => {
-                                onSelectProducts(event.target.checked, source);
-                              }}
-                              checked={
-                                selectedProducts.label &&
-                                selectedProducts.label === source.label
-                              }
-                              style={{ float: "right" }}
-                            />
-                          </td>
-                          <td>{source.label}</td>
-                          <td>{source.type}</td>
-                          <td>{source.vendor}</td>
-                          <td>{source.product}</td>
-                        </tr>
-                      ))}
+                      pipeline.source.map(
+                        (source: any) =>
+                          !source.disabled && (
+                            <tr>
+                              <td>
+                                <Form.Check
+                                  name="product"
+                                  type={"radio"}
+                                  id={`inline-checkbox-2`}
+                                  onChange={(event) => {
+                                    onSelectProducts(
+                                      event.target.checked,
+                                      source
+                                    );
+                                  }}
+                                  checked={
+                                    selectedProducts.label &&
+                                    selectedProducts.label === source.label
+                                  }
+                                  style={{ float: "right" }}
+                                />
+                              </td>
+                              <td>{source.label}</td>
+                              <td>{source.type}</td>
+                              <td>{source.vendor}</td>
+                              <td>{source.product}</td>
+                            </tr>
+                          )
+                      )}
                   </>
                 )
               )}
