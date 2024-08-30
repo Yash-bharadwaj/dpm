@@ -44,7 +44,7 @@
 
 
 .source-dest-sub-div {
-  width: 330px;
+  width: 340px;
   height: 65px;
   border-radius: 8px;
   box-sizing: border-box;
@@ -55,8 +55,8 @@
   overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  gap: 18px;
+  justify-content: space-between;
+  gap: 10px;
   border: 1px solid rgb(198, 196, 196);
   
 }
@@ -122,6 +122,11 @@
   background-color: #11a1cd;
   color: white !important;
  
+ }
+
+ .source-dest-sub-div button .plusicon:hover{
+  color: white !important;
+  background-color: #11a1cd;
  }
 
 
@@ -362,4 +367,9 @@
 .breadcrumb-item.active {
   color: #11a1cd;
   font-size: 1rem;
+}
+
+
+.offcanvas.offcanvas-end {
+  width: 30% !important;
 }
