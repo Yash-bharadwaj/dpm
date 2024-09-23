@@ -375,7 +375,7 @@ const Home: React.FC = () => {
                     `${heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryUsage || "0"} / ${heartbeatStatus[device.devicecode]?.hardwareInfo?.totalMemory || '0'} (${heartbeatStatus[device.devicecode]?.hardwareInfo?.memoryPercent || '0'})`
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell>x
                   <ImLocation2 style={{ marginRight: '5px', color: '#ff1919' }} />
                   {device.devicelocation}
                 </TableCell>
