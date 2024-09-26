@@ -1,5 +1,5 @@
 #root {
-  max-width: 1280px;
+  /* max-width: 1280px; */
   margin: 0 auto;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .main-page-div {
-  margin-top: 100px;
+  margin-top: 30px;
 }
 
 .mt-3 {
@@ -40,11 +40,85 @@
 }
 
 .source-dest-sub-div {
+  width: 340px;
+  height: 65px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background-color: #ffffff;
+  box-shadow: rgba(9, 30, 66, 0.25) 0px 2px 5px -2px,
+    rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+
+  overflow: hidden;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #d9d9d9;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid rgb(198, 196, 196);
+}
+
+.source-dest-sub-div .icon-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* background-color: #e2e5ee48; */
+
+  margin-left: 4px;
+}
+
+.source-dest-sub-div .icon-container .icon {
+  width: 17px;
+  height: 17px;
+  color: #124fff;
+}
+
+.source-dest-sub-div .message-text-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 15rem;
+}
+
+.source-dest-sub-div .message-text-container .message-text,
+.source-dest-sub-div .message-text-container .sub-text {
+  margin: 0;
+  cursor: default;
+  width: 12rem;
+}
+
+.source-dest-sub-div .message-text-container .message-text {
+  color: #11a1cd;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.source-dest-sub-div .message-text-container .sub-text {
+  font-size: 12px;
+  color: #555;
+}
+
+.source-dest-sub-div .cross-icon {
+  width: 18px;
+  height: 18px;
+  color: #555;
+  cursor: pointer;
+}
+
+.source-dest-sub-div button {
+  border: none;
+}
+
+.source-dest-sub-div button:hover {
+  background-color: #11a1cd;
+  color: white !important;
+}
+
+.source-dest-sub-div button .plusicon:hover {
+  color: white !important;
+  background-color: #11a1cd;
 }
 
 .offcanvas-main {
@@ -119,6 +193,12 @@
   display: flex;
   align-items: center;
   width: 100%;
+  box-shadow: rgba(14, 63, 126, 0.04) 0px 0px 0px 1px,
+    rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px,
+    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px,
+    rgba(42, 51, 70, 0.04) 0px 6px 6px -3px,
+    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px,
+    rgba(14, 63, 126, 0.04) 0px 24px 24px -12px;
 }
 
 .select-card {
@@ -160,7 +240,7 @@
 }
 
 .select-card:hover .main-card-div {
-  background-color: #00000099;
+  background-color: #16647c;
 }
 
 .modal-90w {
@@ -173,6 +253,59 @@
 
 .progress-bar {
   background-color: #1d92bb !important;
+}
+
+.context-menu {
+  background: white;
+  border: 1px solid #333;
+  border-radius: 5px;
+  box-shadow: 10px 19px 20px rgba(0, 0, 0, 10%);
+  position: absolute;
+  z-index: 10;
+}
+
+.context-menu button {
+  border: none;
+  display: block;
+  padding: 0.5em;
+  text-align: left;
+  width: 100%;
+  font-size: 14px;
+}
+
+.context-menu button:hover {
+  background: white;
+}
+
+.current-config-data {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.versions-div {
+  display: flex;
+  align-items: baseline;
+}
+
+.versions-div .form-select,
+.versions-div .form-select span {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.versions-div .form-select p {
+  font-size: 13px;
+  max-width: 70px;
+  overflow-x: hidden;
+  margin-bottom: 0;
+}
+
+.error-modal .modal-dialog {
+  max-width: 90%;
+  overflow: auto;
+  max-height: 90%;
+  margin-top: 70px;
 }
 
 @keyframes logo-spin {
@@ -196,4 +329,44 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* src/App.css */
+
+/* Style for the breadcrumb list */
+.breadcrumb {
+  background-color: transparent;
+  padding: 0.75rem 1.25rem;
+  margin: 0;
+  border-radius: 0.25rem;
+  font-size: 15px; /* Consistent font size */
+}
+
+.breadcrumb-item {
+  display: inline-block;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  /* Breadcrumb separator */
+  color: rgb(113, 110, 110); /* Color for separator */
+  padding: 0 0.5rem; /* Space around separator */
+}
+
+.breadcrumb-item a {
+  color: rgb(113, 110, 110); /* Color for breadcrumb links */
+  text-decoration: none; /* Remove underline from links */
+}
+
+.breadcrumb-item a:hover {
+  color: #0056b3; /* Darker color on hover */
+  text-decoration: underline; /* Underline on hover */
+}
+
+.breadcrumb-item.active {
+  color: #11a1cd;
+  font-size: 1rem;
+}
+
+.offcanvas.offcanvas-end {
+  width: 43% !important;
 }

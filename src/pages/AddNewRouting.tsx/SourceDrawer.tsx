@@ -15,9 +15,13 @@ import { useState } from "react";
 
 import EditSourceData from "./EditSourceData";
 
+import { MdOutlineSearch } from "react-icons/md";
+
 const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
   const [showAddSource, setShowAddSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState(Object);
+  const [matchedSources, setMatchedSources] = useState(sources.sources);
+  const [searchText, setSearchText] = useState("");
 
   const onSourceSelect = (source: object) => {
     setSelectedSource(source);
@@ -43,6 +47,27 @@ const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
     return imageUrl;
   };
 
+  const onSearch = (searchText: string) => {
+    let searchedSources = [];
+    setSearchText(searchText);
+
+    if (searchText === "") {
+      setMatchedSources(sources.sources);
+    } else {
+      if (searchText.length >= 3) {
+        sources.sources.forEach((source) => {
+          const name = source.name.toLowerCase();
+
+          if (name.match(searchText)) {
+            searchedSources.push(source);
+          }
+        });
+
+        setMatchedSources(searchedSources);
+      }
+    }
+  };
+
   return (
     <Offcanvas
       show={show}
@@ -58,18 +83,25 @@ const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
         <Row className="justify-content-md-center">
           <Col xl={12} lg={12} md={12} sm={12}>
             <InputGroup className="mb-3">
-              <InputGroup.Text id="filter">@</InputGroup.Text>
+              <InputGroup.Text id="filter">
+                <MdOutlineSearch />
+              </InputGroup.Text>
+
               <Form.Control
                 placeholder="Filter Sources"
                 aria-label="filter"
                 aria-describedby="filter"
+                onChange={(event) => {
+                  onSearch(event.target.value);
+                }}
+                value={searchText}
               />
             </InputGroup>
           </Col>
 
           <Col xl={12} lg={12} md={12} sm={12}>
             <Row>
-              {sources.sources.map((source) => (
+              {matchedSources.map((source) => (
                 <Col xl={4} lg={4}>
                   <Card className="mb-2 pointer select-card">
                     <Card.Body className="main-card-div">
@@ -86,26 +118,21 @@ const SourceDrawer = ({ show, handleClose, onAddSource, addedNodes }: any) => {
                         </Card.Text>
 
                         <div className="overlay-div">
-                          {/* <Button
-                            variant="light"
-                            size="sm"
-                            onClick={() => {
-                              onSourceSelect(source);
-                            }}
-                            className="mb-2"
-                          >
-                            Select Existing
-                          </Button> */}
-
-                          <Button
-                            variant="light"
-                            size="sm"
-                            onClick={() => {
-                              onSourceSelect(source);
-                            }}
-                          >
-                            Add New
-                          </Button>
+                          {source.disabled ? (
+                            <Button variant="light" size="sm" disabled>
+                              Coming Soon
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="light"
+                              size="sm"
+                              onClick={() => {
+                                onSourceSelect(source);
+                              }}
+                            >
+                              Add New
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card.Body>

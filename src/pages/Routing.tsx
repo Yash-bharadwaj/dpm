@@ -1,19 +1,50 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Button, Col, Row } from "react-bootstrap";
+import {
+  Badge,
+  Button,
+  Col,
+  Form,
+  Modal,
+  OverlayTrigger,
+  Row,
+  Tooltip,
+  Spinner,
+} from "react-bootstrap";
 
-import RoutingNavbar from "../components/RoutingNavbar";
-
-import { useCallback, useEffect, useState } from "react";
-
+import { useCallback, useEffect, useRef, useState } from "react";
 import SourceDrawer from "./AddNewRouting.tsx/SourceDrawer";
 import DestinationDrawer from "./AddNewRouting.tsx/DestinationDrawer";
+import {  FaSyncAlt } from "react-icons/fa";
+import {  IoMdAdd } from "react-icons/io";
+
+import sourceIcon from '../assets/images/SourceIcon.png';
+import pipelineIcon from '../assets/images/PipelineIcon.png';
+import enrichmentsIcon from '../assets/images/enrichmentIcon.png';
+import destinationIcon from '../assets/images/destinationIcon.png';
+
+
+
+import {
+  SAVE_CONFIG,
+  GET_CONFIG,
+  DEPLOY_CONFIG,
+  GET_CONFIG_TIMELINE_BY_VERSION,
+  GET_CONFIG_VALID_VERSIONS,
+  GET_OLDER_CONFIG_DETAILS,
+  GET_ERROR_LOGS,
+  GET_HEARTBEAT_STATUS,
+} from "../query/query";
 
 import ReactFlow, {
   Controls,
   Position,
   addEdge,
   applyEdgeChanges,
+  getIncomers,
+  getOutgoers,
+  isEdge,
+  isNode,
   useNodesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -28,22 +59,43 @@ import toast, { toastConfig } from "react-simple-toasts";
 import "react-simple-toasts/dist/theme/dark.css";
 import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
+import "react-simple-toasts/dist/theme/info.css";
+
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
+
+import jsyaml from "js-yaml";
+import { getSourceFromID, getVersionId } from "./AddNewRouting.tsx/helper";
+
+import { useParams } from "react-router-dom";
+import ContextMenu from "../components/ContextMenu";
+import DataLoading from "../components/DataLoading";
+import { IoMdAddCircleOutline } from "react-icons/io";
+
+import {
+  MdOutlineReplyAll,
+  MdReportGmailerrorred,
+  MdClose,
+} from "react-icons/md";
+import { IconButton } from "@mui/material";
 
 toastConfig({ theme: "dark" });
 
-const initialEdges = [];
-const initialNodes = [];
-
 const Routing = () => {
+  const params = useParams();
+
+  const orgCode = params.orgcode;
+  const deviceCode = params.devicecode;
+   const [hovered, setHovered] = useState(false);
+
   const [showSource, setShowSource] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
-  const [addedSources, setAddedSources] = useState(Array);
-  const [addedDestinations, setAddedDestinations] = useState(Array);
-  const [edges, setEdges] = useState(initialEdges);
+  const [addedSources, setAddedSources] = useState([]);
+  const [addedDestinations, setAddedDestinations] = useState([]);
+  const [edges, setEdges] = useState([]);
   const [showPipelines, setShowPipelines] = useState(false);
   const [showEnrichment, setShowEnrichments] = useState(false);
-  const [addedPipelines, setPipelines] = useState(Array);
-  const [enrichments, setEnrichments] = useState(Array);
+  const [addedPipelines, setPipelines] = useState([]);
+  const [enrichments, setEnrichments] = useState([]);
   const [showEditSource, setShowEditSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState(Object);
   const [selectedNode, setSelectedNode] = useState(Object);
@@ -51,14 +103,36 @@ const Routing = () => {
   const [connectedNodes, setConnectedNodes] = useState(Array);
   const [currentSource, setCurrentSource] = useState("");
   const [enableDelete, setEnableDelete] = useState(false);
+  const [confirmDeploy, setConfirmDeploy] = useState(false);
+  const [nodeType, setNodeType] = useState("");
+  const [configYaml, setConfigYaml] = useState("");
+  const [showMenu, setShowMenu] = useState(null);
+  const [configUpdated, setConfigUpdated] = useState(false);
+  const [comment, setComment] = useState("");
+  const [selectedVersion, setSelectedVersion] = useState("");
+  const [viewError, setViewError] = useState(false);
+  const [confirmOldSave, setConfirmOldSave] = useState(false);
+  const [manualRefresh, setManualRefresh] = useState(false);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingR, setLoadingR] = useState(false);
+
+  const ref = useRef(null);
+
+  const getCurrentTimezone = () => {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  };
 
   const handleClose = () => {
     setShowSource(false);
     setShowDestination(false);
     setShowPipelines(false);
     setShowEnrichments(false);
+    setSelectedSource({});
+    setSelectedNode({});
+    setNodeType("");
+    setViewError(false);
   };
 
   const onAddSourceClick = () => {
@@ -99,15 +173,400 @@ const Routing = () => {
       });
     }
 
+    if (addedPipelines.length !== 0) {
+      addedPipelines.forEach((pipeline) => {
+        if (pipeline.name === node.id) {
+          mainSource = pipeline;
+          type = "pipeline";
+        }
+      });
+    }
+
+    if (enrichments.length !== 0) {
+      enrichments.forEach((enrichment) => {
+        if (enrichment.name === node.id) {
+          mainSource = enrichment;
+          type = "enrichment";
+        }
+      });
+    }
+
     setSelectedSource(mainSource);
     setSelectedNode(node);
+    setNodeType(type);
 
     if (type === "source") {
       setShowEditSource(true);
     } else if (type === "destination") {
       setShowEditDestination(true);
+    } else if (type === "pipeline") {
+      //   setShowEditPipeline(true);
+    } else if (type === "enrichment") {
+      //   setShowEditPipeline(true);
     }
   };
+
+  //get config timeline data
+  const [getConfigTimelineData] = useLazyQuery(GET_CONFIG_TIMELINE_BY_VERSION, {
+    onCompleted: (response) => {
+      //   console.log("response", response);
+
+      if (response?.getConfig?.responsestatus) {
+        const savedConfig = atob(response.getConfig.responsedata);
+
+        getConfigTimelineData({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              versionid: response.getConfig.versionid,
+              timezone: getCurrentTimezone(),
+            },
+          },
+        });
+
+        if (savedConfig && configYaml === "") {
+          getConfigDetails(savedConfig);
+        }
+      }
+    },
+  });
+
+  //get error logs
+  const [getErrorLogs, { loading: errorLoading, data: errorData }] =
+    useLazyQuery(GET_ERROR_LOGS);
+
+  //get selected config details
+  const [
+    getOlderConfigDetails,
+    { loading: oldVersionLoading, data: oldVersionData },
+  ] = useLazyQuery(GET_OLDER_CONFIG_DETAILS, {
+    onCompleted: (response) => {
+      //   console.log("response", response);
+
+      if (response.getConfig.responsestatus) {
+        const savedConfig = atob(response.getConfig.responsedata);
+
+        getConfigTimelineData({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              versionid: response.getConfig.versionid,
+              timezone: getCurrentTimezone(),
+            },
+          },
+        });
+
+        if (savedConfig && configYaml === "") {
+          getConfigDetails(savedConfig);
+        }
+      }
+    },
+    fetchPolicy: "no-cache",
+  });
+
+  //get heartbeat status
+  const [getHeartbeatStatus, { loading: statusLoading, data: heartbeatData }] =
+    useMutation(GET_HEARTBEAT_STATUS);
+
+  const getConfigDetails = (savedConfig: any) => {
+    const sample = jsyaml.load(savedConfig);
+
+    // console.log("sample", sample);
+
+    let initialAddedSources: any = [];
+    let initialAddedDestinations: any = [];
+    let initialAddedPipelines: any = [];
+    let initialAddedEnrichments: any = [];
+
+    let existingNodes: any = [];
+    let existingEdges: any = [];
+
+    if (!sample.node.sources.disabled) {
+      const sources = sample.node.sources;
+      const destinations = sample.node.destinations;
+      const pipelines = sample.node.pipelines;
+      const enrichments = sample.node.enrichments;
+
+      Object.keys(sources).forEach((source, index) => {
+        if (source !== "disabled") {
+          const sourceId = sources[source].name;
+
+          let originalSource = getSourceFromID(
+            sources[source].uuid,
+            "source",
+            sources[source]
+          );
+
+          let currentOrigin = { ...originalSource };
+
+          currentOrigin.id = sourceId;
+
+          const yPosition = 10 + index * 40;
+
+          const currentSource = {
+            id: sourceId,
+            sourcePosition: Position.Right,
+            type: "input",
+            position: { x: 0, y: yPosition },
+            height: 35,
+            width: 150,
+            data: {
+              label: sourceId,
+              nodeData: sources[source],
+              type: "source",
+            },
+            style: {
+              backgroundColor: "#EBF8FF",
+            },
+          };
+
+          existingNodes.push(currentSource);
+          initialAddedSources.push(currentOrigin);
+
+          if (sources[source].outputs.length !== 0) {
+            sources[source].outputs.forEach((edge: string) => {
+              const edgeId = sourceId + "-" + edge;
+
+              const newEdge = {
+                animated: true,
+                id: edgeId,
+                source: sourceId,
+                target: edge,
+                type: "smoothstep",
+              };
+
+              existingEdges.push(newEdge);
+            });
+          }
+        }
+      });
+
+      if (pipelines) {
+        Object.keys(pipelines).forEach((pipeline, index) => {
+          if (pipeline !== "disabled") {
+            const pipelineId = pipelines[pipeline].name;
+
+            const yPosition = 10 + index * 40;
+
+            const colWidth = document.getElementById("source-col")?.clientWidth;
+            const xPosition = (colWidth - 30) * 1;
+
+            const currentPipeline = {
+              id: pipelineId,
+              sourcePosition: "right",
+              targetPosition: "left",
+              type: "default",
+              height: 35,
+              width: 150,
+              position: { x: xPosition, y: yPosition },
+              data: {
+                label: pipelineId,
+                nodeData: pipelines[pipeline],
+                type: "pipeline",
+              },
+              style: {
+                backgroundColor: "#E6FFFA",
+              },
+            };
+
+            existingNodes.push(currentPipeline);
+            initialAddedPipelines.push(pipelines[pipeline]);
+
+            if (pipelines[pipeline].outputs.length !== 0) {
+              pipelines[pipeline].outputs.forEach((edge: string) => {
+                const edgeId = pipelineId + "-" + edge;
+
+                const newEdge = {
+                  animated: true,
+                  id: edgeId,
+                  source: pipelineId,
+                  target: edge,
+                  type: "smoothstep",
+                };
+
+                existingEdges.push(newEdge);
+              });
+            }
+          }
+        });
+      }
+
+      if (enrichments) {
+        Object.keys(enrichments).forEach((enrichment, index) => {
+          if (enrichment !== "disabled") {
+            const enrichmentId = enrichments[enrichment].name;
+
+            const yPosition = 10 + index * 40;
+            const colWidth = document.getElementById("source-col")?.clientWidth;
+            const xPosition = (colWidth - 30) * 2;
+
+            const currentEnrichment = {
+              id: enrichmentId,
+              sourcePosition: "right",
+              targetPosition: "left",
+              type: "default",
+              height: 35,
+              width: 150,
+              position: { x: xPosition, y: yPosition },
+              data: {
+                label: enrichmentId,
+                nodeData: enrichments[enrichment],
+                type: "enrichment",
+              },
+              style: {
+                backgroundColor: "#F0FFF4",
+              },
+            };
+
+            existingNodes.push(currentEnrichment);
+            initialAddedEnrichments.push(enrichments[enrichment]);
+
+            if (enrichments[enrichment].outputs.length !== 0) {
+              enrichments[enrichment].outputs.forEach((edge: string) => {
+                const edgeId = enrichmentId + "-" + edge;
+
+                const newEdge = {
+                  animated: true,
+                  id: edgeId,
+                  source: enrichmentId,
+                  target: edge,
+                  type: "smoothstep",
+                };
+
+                existingEdges.push(newEdge);
+              });
+            }
+          }
+        });
+      }
+
+      Object.keys(destinations).forEach((destination, index) => {
+        if (destination !== "disabled") {
+          const destinationId = destinations[destination].name;
+
+          const originalSource = getSourceFromID(
+            destinations[destination].uuid,
+            "destination",
+            destinations[destination]
+          );
+
+          let currentOrigin = { ...originalSource };
+
+          currentOrigin.id = destinationId;
+
+          const yPosition = 10 + index * 40;
+          const colWidth = document.getElementById("source-col")?.clientWidth;
+          const xPosition = (colWidth - 30) * 3;
+
+          const currentDestination = {
+            id: destinationId,
+            targetPosition: Position.Left,
+            type: "output",
+            height: 35,
+            width: 150,
+            position: { x: xPosition, y: yPosition },
+            data: {
+              label: destinationId,
+              nodeData: destinations[destination],
+              type: "destination",
+            },
+            style: {
+              backgroundColor: "#FFFAF0",
+            },
+          };
+
+          existingNodes.push(currentDestination);
+          initialAddedDestinations.push(currentOrigin);
+        }
+      });
+    }
+
+    setConfigYaml(savedConfig);
+    setNodes(existingNodes);
+    setEdges(existingEdges);
+    setAddedDestinations(initialAddedDestinations);
+    setAddedSources(initialAddedSources);
+    setEnrichments(initialAddedEnrichments);
+    setPipelines(initialAddedPipelines);
+    setConfigUpdated(false);
+  };
+
+  // get config code here
+  const { loading, data, refetch } = useQuery(GET_CONFIG, {
+    variables: {
+      input: {
+        orgcode: orgCode,
+        devicecode: deviceCode,
+        timezone: getCurrentTimezone(),
+        versionid: "",
+      },
+    },
+    fetchPolicy: "no-cache",
+    onCompleted: (response) => {
+      if (response.getConfig.responsestatus) {
+        const savedConfig = atob(response.getConfig.responsedata);
+
+        //get timeline data
+        getConfigTimelineData({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              versionid: response.getConfig.versionid,
+              timezone: getCurrentTimezone(),
+            },
+          },
+        });
+
+        //get heartbeat status
+        getHeartbeatStatus({
+          variables: {
+            input: {
+              orgcode: orgCode,
+              devicecode: deviceCode,
+              timezone: getCurrentTimezone(),
+            },
+          },
+        });
+
+        if (savedConfig && configYaml === "") {
+          getConfigDetails(savedConfig);
+        }
+      }
+    },
+    onError: (error) => {
+      //   console.log("error", error?.networkError);
+      if (error?.networkError) {
+        if (error?.message === "Failed to fetch") {
+          //   window.location.reload();
+        }
+      }
+    },
+  });
+
+  //get config versions
+  const { data: versionsData } = useQuery(GET_CONFIG_VALID_VERSIONS, {
+    variables: {
+      input: {
+        orgcode: orgCode,
+        devicecode: deviceCode,
+        timezone: getCurrentTimezone(),
+      },
+    },
+    onCompleted: (response) => {
+      //   console.log("response time🕰️", response);
+    },
+  });
+
+  // save config code here
+  const [saveConfigMutation, { loading: saveLoading }] =
+    useMutation(SAVE_CONFIG);
+
+  const [deploySavedConfig, { loading: deployLoading }] =
+    useMutation(DEPLOY_CONFIG);
+  // save config ends here
 
   const onAddSource = (source: object, sourceValues: object) => {
     const nodeData = { ...sourceValues };
@@ -115,12 +574,20 @@ const Routing = () => {
 
     sourceData.id = nodeData.name;
 
+    const nodeCount = addedSources.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const xPosition = 0;
+
     const newNode = {
       id: sourceValues.name,
       data: { label: sourceValues.name, type: "source", nodeData },
       type: "input",
       sourcePosition: Position.Right,
-      position: { x: -150, y: 0 },
+      position: { x: xPosition, y: yPosition },
+      style: {
+        backgroundColor: "#EBF8FF",
+      },
     };
 
     addNode(newNode);
@@ -135,6 +602,12 @@ const Routing = () => {
   const onAddDestination = (destination: object, destinationValues: object) => {
     const nodeData = { ...destinationValues };
 
+    const nodeCount = addedDestinations.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const colWidth = document.getElementById("source-col")?.clientWidth;
+    const xPosition = (colWidth - 30) * 3;
+
     let destData = { ...destination };
     destData.id = nodeData?.name;
 
@@ -142,8 +615,11 @@ const Routing = () => {
       id: destinationValues.name,
       data: { label: destinationValues.name, type: "destination", nodeData },
       targetPosition: Position.Left,
-      position: { x: 300, y: 100 },
+      position: { x: xPosition, y: yPosition },
       type: "output",
+      style: {
+        backgroundColor: "#FFFAF0",
+      },
     };
 
     addNode(newNode);
@@ -152,17 +628,24 @@ const Routing = () => {
     setAddedDestinations((prevList) => [...prevList, destData]);
   };
 
-  const onEdgesChange = useCallback((changes: any) => {
-    if (changes[0].selected) {
+  const onEdgesUpdate = useCallback((changes: any) => {
+    if (changes[0]?.selected) {
       setEnableDelete(true);
     } else {
-      setEnableDelete(false);
+      if (changes[0].type === "select" && !changes[0].selected) {
+        setEnableDelete(false);
+      } else {
+        setEnableDelete(false);
+        setConfigUpdated(true);
+      }
     }
+
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
   const onConnect = useCallback(
     (params: any) => {
+      //   console.log("params", params);
       let targetType = "";
       let sourceType = "";
       let sourceIndex = -1;
@@ -188,6 +671,8 @@ const Routing = () => {
             }
           });
         }
+
+        // console.log("source index", sourceIndex);
 
         if (sourceIndex === -1) {
           let destinationArray: Array<string> = [];
@@ -233,18 +718,108 @@ const Routing = () => {
         } else {
           let prevNodes = [...connectedNodes];
 
-          if (targetType === "pipeline") {
-            prevNodes[sourceIndex].pipelines.push(params.target);
-          }
-          if (targetType === "enrichment") {
-            prevNodes[sourceIndex].enrichments.push(params.target);
-          }
-          if (targetType === "destination") {
-            let currentDestIndex = prevNodes[sourceIndex].destinations.indexOf(
-              params.target
-            );
+          //   console.log("prev nodes", prevNodes[sourceIndex]);
 
+          const destType =
+            targetType === "pipeline"
+              ? "pipelines"
+              : targetType === "enrichment"
+              ? "enrichments"
+              : "destinations";
+
+          //   console.log("dest type", destType);
+
+          const currentDestIndex = prevNodes[sourceIndex][destType].indexOf(
+            params.target
+          );
+
+          //   console.log("currentDestIndex", currentDestIndex);
+
+          if (targetType === "pipeline" || targetType === "enrichment") {
+            let nodeCheck = "";
+            let connectionPresent = false;
+            if (edges.length !== 0) {
+              edges.forEach((edge: any) => {
+                if (edge.source === params.target) {
+                  //   console.log("edge", edge);
+                  const targetSplit = edge.target.split("_");
+                  //   console.log("targetSplit", targetSplit);
+                  const currentTargetType =
+                    targetSplit[0] === "enrich"
+                      ? "enrichments"
+                      : "destinations";
+
+                  //   console.log("currentTargetType", currentTargetType);
+
+                  const currentTargetIndex = prevNodes[sourceIndex][
+                    currentTargetType
+                  ].indexOf(edge.target);
+
+                  if (currentTargetIndex !== -1) {
+                    // if (currentTargetType === "destinations") {
+                    //   connectionPresent = true;
+                    //   console.log("edge", edge);
+                    // } else {
+                    nodeCheck = edge.target;
+                    // }
+                  }
+                }
+              });
+            }
+
+            if (currentDestIndex === -1 && destType === "pipelines") {
+              destPresent = false;
+            } else {
+              if (connectionPresent) {
+                // console.log("dest present");
+                destPresent = true;
+              } else {
+                if (nodeCheck !== "") {
+                  //   console.log("node check", nodeCheck);
+
+                  let nodeConnectionCheck = false;
+
+                  edges.map((edge: any) => {
+                    if (edge.target === nodeCheck) {
+                      //   console.log("source connect present", edge);
+
+                      if (edge.source === params.target) {
+                        // console.log("match", edge);
+                        nodeConnectionCheck = true;
+                      } else {
+                        // console.log("dest not same", edge);
+                      }
+                    } else {
+                      if (edge.target === nodeCheck) {
+                        if (edge.source === params.source) {
+                          nodeConnectionCheck = true;
+                        }
+                      }
+                    }
+                  });
+
+                  if (nodeConnectionCheck) {
+                    // console.log("dest present");
+                    destPresent = true;
+                  } else {
+                    destPresent = false;
+                  }
+                } else {
+                  if (targetType === "pipeline") {
+                    destPresent = false;
+                    prevNodes[sourceIndex].pipelines.push(params.target);
+                  } else {
+                    destPresent = false;
+                    prevNodes[sourceIndex].enrichments.push(params.target);
+                  }
+                }
+              }
+            }
+          }
+
+          if (targetType === "destination") {
             if (currentDestIndex !== -1) {
+              //   console.log("dest present");
               destPresent = true;
             } else {
               prevNodes[sourceIndex].destinations.push(params.target);
@@ -255,6 +830,7 @@ const Routing = () => {
         }
       } else {
         if (sourceType === "pipeline" || sourceType === "enrichment") {
+          //   console.log("source - pipeline/enrichment");
           if (connectedNodes.length !== 0) {
             let prevNodes = [...connectedNodes];
 
@@ -272,29 +848,249 @@ const Routing = () => {
               const edgeSourceIndex = node[type].indexOf(params.source);
               const edgeTargetIndex = node[destType].indexOf(params.target);
 
-              if (targetType !== "destination") {
-                if (edgeTargetIndex === -1) {
-                  node[destType].push(params.target);
-                }
+              //   console.log("node", node);
 
-                if (edgeSourceIndex === -1) {
-                  node[type].push(params.source);
+              //   console.log("edge source index", edgeSourceIndex);
+              //   console.log("edge target index", edgeTargetIndex);
+
+              if (targetType !== "destination") {
+                // console.log("node", node);
+                // console.log("params", params);
+
+                if (edgeTargetIndex !== -1 && edgeSourceIndex !== -1) {
+                  let connectionPresent = false;
+                  let checkNode = "";
+                  if (edges.length !== 0) {
+                    // let connectionPresent = false;
+                    edges.forEach((connect: any) => {
+                      if (connect.source === params.target) {
+                        const targetNode = connect.target;
+                        // console.log("targetNode", targetNode);
+                        let targetType = "";
+
+                        nodes.forEach((node) => {
+                          if (targetNode === node.id) {
+                            targetType = node.data.type;
+                          }
+                        });
+
+                        const destType =
+                          targetType === "pipeline"
+                            ? "pipelines"
+                            : targetType === "enrichment"
+                            ? "enrichments"
+                            : "destinations";
+
+                        if (
+                          node[destType].indexOf(targetNode) !== -1 &&
+                          edgeSourceIndex !== -1
+                        ) {
+                          //   console.log("connection present");
+                          if (
+                            destType === "destinations" &&
+                            type === "pipelines"
+                          ) {
+                            checkNode = targetNode;
+                          } else {
+                            connectionPresent = true;
+                          }
+                        } else {
+                          //   console.log("not present");
+                        }
+                      }
+                    });
+
+                    if (connectionPresent) {
+                      //   console.log("dest present");
+                      destPresent = true;
+                    } else {
+                      //   console.log("add edge", checkNode);
+
+                      if (checkNode !== "") {
+                        if (node[destType].indexOf(checkNode) === -1) {
+                          node[destType].push(params.target);
+                          destPresent = false;
+                        }
+                      }
+                    }
+                  }
+
+                  //   console.log("connection present", connectionPresent);
+
+                  if (connectionPresent) {
+                    // console.log("dest present");
+                    destPresent = true;
+                  } else {
+                    destPresent = false;
+                    // console.log("no connection pressent", checkNode);
+                    // if (checkNode !== "") {
+                    //   let nodeConnectionCheck = false;
+
+                    //   edges.map((edge: any) => {
+                    //     if (edge.source === checkNode) {
+                    //       console.log("source connect present", edge);
+
+                    //       if (edge.target === params.target) {
+                    //         nodeConnectionCheck = true;
+                    //       } else {
+                    //         console.log("dest not same");
+                    //       }
+                    //     } else {
+                    //       if (edge.target === checkNode) {
+                    //         if (edge.source === params.source) {
+                    //           nodeConnectionCheck = true;
+                    //         }
+                    //       }
+                    //     }
+                    //   });
+
+                    //   if (nodeConnectionCheck) {
+                    //     destPresent = true;
+                    //   } else {
+                    //     destPresent = false;
+                    //   }
+                    // } else {
+                    //   destPresent = false;
+                    // }
+                  }
+                } else {
+                  if (edgeTargetIndex === -1) {
+                    if (edges.length !== 0) {
+                      let connectionPresent = false;
+                      edges.forEach((connect: any) => {
+                        if (connect.source === params.target) {
+                          const targetNode = connect.target;
+                          let targetType = "";
+
+                          //   console.log("target", targetNode);
+
+                          nodes.forEach((node) => {
+                            if (targetNode === node.id) {
+                              targetType = node.data.type;
+                            }
+                          });
+
+                          const destType =
+                            targetType === "pipeline"
+                              ? "pipelines"
+                              : targetType === "enrichment"
+                              ? "enrichments"
+                              : "destinations";
+
+                          //   console.log("destType", destType);
+
+                          if (node[destType].indexOf(targetNode) !== -1) {
+                            if (
+                              destType === "destinations" ||
+                              edgeSourceIndex !== -1
+                            ) {
+                              //   console.log("connection present");
+                              connectionPresent = true;
+                            }
+                          } else {
+                            // console.log("connection not present");
+                          }
+                        }
+                      });
+
+                      if (connectionPresent) {
+                        // console.log("dest present");
+                        destPresent = true;
+                      } else {
+                        // console.log("add edge", params);
+                        if (edgeSourceIndex !== -1) {
+                          node[destType].push(params.target);
+                          destPresent = false;
+                        } else {
+                          //   destPresent = true;
+                        }
+                      }
+                    }
+                  }
+
+                  if (edgeSourceIndex === -1) {
+                    // console.log("edge source not present");
+                    // destPresent = true;
+                    // node[type].push(params.source);
+                  }
                 }
               } else {
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(params.target);
 
                   if (destIndex !== -1) {
-                    destPresent = true;
+                    let connectionPresent = false;
+                    let checkNode = "";
+                    // console.log("params", params);
+                    if (edges.length !== 0) {
+                      edges.map((edge: any) => {
+                        // console.log("edge check", edge);
+                        if (edge.source === params.source) {
+                          //   console.log("source connect present", edge);
+
+                          if (edge.target === params.target) {
+                            connectionPresent = true;
+                          } else {
+                            checkNode = edge.target;
+                            // console.log("dest not same");
+                          }
+                        }
+                      });
+                    }
+
+                    if (connectionPresent) {
+                      //   console.log("dest present");
+                      destPresent = true;
+                    } else {
+                      if (checkNode !== "") {
+                        let nodeConnectionCheck = false;
+
+                        edges.map((edge: any) => {
+                          if (edge.source === checkNode) {
+                            // console.log("source connect present", edge);
+
+                            if (edge.target === params.target) {
+                              nodeConnectionCheck = true;
+                            } else {
+                              //   console.log("dest not same");
+                            }
+                          }
+                        });
+
+                        if (nodeConnectionCheck) {
+                          //   console.log("dest present");
+                          destPresent = true;
+                        } else {
+                          destPresent = false;
+                        }
+                      } else {
+                        const sourceDestConnectCheck = sourceCheck(
+                          node.source,
+                          params.target
+                        );
+                        // console.log(
+                        //   "sourceDestConnectCheck",
+                        //   sourceDestConnectCheck
+                        // );
+
+                        if (sourceDestConnectCheck) {
+                          destPresent = true;
+                        } else {
+                          destPresent = false;
+                        }
+                      }
+                    }
                   } else {
                     node.destinations.push(params.target);
                     destPresent = false;
                   }
                 } else {
-                  node[type].push(params.source);
+                  //node[type].push(params.source);
                 }
               }
             });
+
+            // console.log("prevNodes", prevNodes);
 
             setConnectedNodes((prevList) => [...prevNodes]);
           } else {
@@ -302,6 +1098,8 @@ const Routing = () => {
           }
         }
       }
+
+      //   console.log("destPresent", destPresent);
 
       if (destPresent) {
         toast("Source and Destination connection already present!", {
@@ -321,6 +1119,7 @@ const Routing = () => {
         newEdge.type = "smoothstep";
 
         setEdges((eds) => addEdge(newEdge, eds));
+        setConfigUpdated(true);
       }
     },
     [nodes, connectedNodes, currentSource]
@@ -336,6 +1135,12 @@ const Routing = () => {
   );
 
   const savePipeline = (pipeline: object) => {
+    const nodeCount = addedPipelines.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const colWidth = document.getElementById("source-col")?.clientWidth;
+    const xPosition = (colWidth - 30) * 1;
+
     const nodeData = { ...pipeline };
 
     const pipelineData = { ...pipeline };
@@ -347,10 +1152,13 @@ const Routing = () => {
         type: "pipeline",
         nodeData,
       },
-      position: { x: 50, y: 50 },
+      position: { x: xPosition, y: yPosition },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
+      style: {
+        backgroundColor: "#E6FFFA",
+      },
     };
 
     addNode(newNode);
@@ -361,6 +1169,12 @@ const Routing = () => {
   };
 
   const onAddEnrichment = (enrichment: object) => {
+    const nodeCount = enrichments.length + 1;
+
+    const yPosition = 10 + nodeCount * 40;
+    const colWidth = document.getElementById("source-col")?.clientWidth;
+    const xPosition = (colWidth - 30) * 2;
+
     const nodeData = { ...enrichment };
 
     let enrichData = { ...enrichment };
@@ -373,10 +1187,13 @@ const Routing = () => {
         type: "enrichment",
         nodeData,
       },
-      position: { x: 70, y: 50 },
+      position: { x: xPosition, y: yPosition },
       type: "default",
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
+      style: {
+        backgroundColor: "#F0FFF4",
+      },
     };
 
     addNode(newNode);
@@ -386,7 +1203,17 @@ const Routing = () => {
     handleClose();
   };
 
-  const onSave = () => {
+  const onSave = (type: string) => {
+    if (type === "revert") {
+      setConfirmOldSave(false);
+
+      toast("Reverting to selected version.", {
+        position: "top-right",
+        zIndex: 9999,
+        theme: "success",
+      });
+    }
+
     let config = {
       node: {
         sources: {
@@ -743,11 +1570,13 @@ const Routing = () => {
         }
       });
 
+      console.log("config", config);
+
       if (
         config.node.destinations.disabled === true ||
         config.node.sources.disabled === true
       ) {
-        toast("No source-destination connections found!", {
+        toast("No complete source-destination connections found!", {
           position: "top-right",
           zIndex: 9999,
           theme: "failure",
@@ -756,8 +1585,72 @@ const Routing = () => {
         config.node.pipelines = finalConfigPipelines;
         config.node.enrichments = finalConfigEnrichments;
 
-        const yaml = convert(config);
-        console.log(yaml);
+        let validConfig = true;
+        Object.keys(config.node.sources).forEach((source) => {
+          if (source !== "disabled") {
+            if (config.node.sources[source].outputs.length === 0) {
+              validConfig = false;
+            }
+          }
+        });
+
+        Object.keys(config.node.destinations).forEach((destination) => {
+          if (destination !== "disabled") {
+            if (config.node.destinations[destination].inputs.length === 0) {
+              validConfig = false;
+            }
+          }
+        });
+
+        if (validConfig) {
+          const yaml = convert(config);
+          setConfigYaml(yaml);
+
+          console.log("yaml", yaml);
+
+          const config64code = btoa(yaml);
+
+          saveConfigMutation({
+            variables: {
+              input: {
+                orgcode: orgCode,
+                devicecode: deviceCode,
+                configdata: config64code,
+              },
+            },
+          })
+            .then((response) => {
+              // Handle the response
+
+              if (response.data.saveConfig.responsestatus) {
+                toast(response.data.saveConfig.message, {
+                  position: "top-right",
+                  zIndex: 9999,
+                  theme: "success",
+                });
+
+                setSelectedVersion("");
+
+                refetch();
+              }
+            })
+            .catch((error) => {
+              // Handle any errors
+              console.error("Error saving config:", error);
+
+              toast(error, {
+                position: "top-right",
+                zIndex: 9999,
+                theme: "failure",
+              });
+            });
+        } else {
+          toast("No complete source-destination connections found!", {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "failure",
+          });
+        }
       }
     } else {
       toast("No source-destination connections found!", {
@@ -772,6 +1665,7 @@ const Routing = () => {
     setShowEditSource(false);
     setShowEditDestination(false);
     setSelectedSource(Object);
+    setNodeType("");
   };
 
   const onEditSettings = (value: any) => {
@@ -818,11 +1712,12 @@ const Routing = () => {
       }
 
       if (changes.length !== 0) {
-        onEdgesChange(changes);
+        setEdges((eds) => applyEdgeChanges(changes, eds));
       }
 
       setAddedSources((prevList) => [...prevSources]);
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     } else {
       if (value.name !== selectedSource.id) {
         prevSources[selectedIndex].id = value.name;
@@ -837,6 +1732,7 @@ const Routing = () => {
       };
 
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     }
   };
 
@@ -885,11 +1781,12 @@ const Routing = () => {
       }
 
       if (changes.length !== 0) {
-        onEdgesChange(changes);
+        setEdges((eds) => applyEdgeChanges(changes, eds));
       }
 
       setAddedDestinations((prevList) => [...prevDestinations]);
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     } else {
       if (value.name !== selectedSource.id) {
         prevDestinations[selectedIndex].id = value.name;
@@ -904,6 +1801,7 @@ const Routing = () => {
       };
 
       setNodes((prevList) => [...prevNodes]);
+      setConfigUpdated(true);
     }
   };
 
@@ -923,6 +1821,7 @@ const Routing = () => {
     let newEdges = [];
 
     edges.forEach((edge) => {
+      //   console.log("edge", edge);
       let targetType = "";
       let sourceType = "";
       let sourceIndex = -1;
@@ -937,13 +1836,20 @@ const Routing = () => {
       });
 
       if (sourceType === "source") {
+        // console.log("edge", edge);
+
         if (newEdges.length !== 0) {
+          //   console.log("new edges", newEdges);
           newEdges.forEach((connect: any, index: number) => {
+            // console.log("connect", connect);
+            // console.log("edge", edge);
             if (connect.source === edge.source) {
               sourceIndex = index;
             }
           });
         }
+
+        // console.log("source index", sourceIndex);
 
         if (sourceIndex === -1) {
           const newConnection = {
@@ -984,6 +1890,8 @@ const Routing = () => {
         if (sourceType === "pipeline" || sourceType === "enrichment") {
           let prevConnection = [...connectedNodes];
 
+          //   console.log("prevConnection", prevConnection);
+
           if (prevConnection.length !== 0) {
             const type =
               sourceType === "pipeline" ? "pipelines" : "enrichments";
@@ -996,12 +1904,28 @@ const Routing = () => {
               const edgeTargetIndex = node[destType].indexOf(edge.target);
 
               if (targetType !== "destination") {
+                // console.log("node", node);
+                // console.log("edge", edge);
+                // console.log("source index", edgeSourceIndex);
+                // console.log("target index", edgeTargetIndex);
                 if (edgeTargetIndex !== -1) {
+                  //   console.log("here", node);
+                  const sourceConnectionPresent = sourceCheck(
+                    node.source,
+                    edge.source
+                  );
+
+                  //   console.log(
+                  //     "sourceConnectionPresent",
+                  //     sourceConnectionPresent
+                  //   );
+
                   if (newEdges[index]) {
-                    newEdges[index][destType].push(edge.target);
+                    if (sourceConnectionPresent) {
+                      newEdges[index][destType].push(edge.target);
+                    }
                   } else {
                     //target present but edge not created
-
                     //check if source is connected before
                     const sourceConnectionPresent = sourceCheck(
                       node.source,
@@ -1010,12 +1934,15 @@ const Routing = () => {
 
                     //create new only if node source is connected to edge source
                     if (sourceConnectionPresent) {
+                      //   console.log("create new");
                       const newConnection = {
                         source: node.source,
                         pipelines: type === "pipelines" ? [edge.source] : [],
                         enrichments:
-                          destType === "enrichments" || type === "enrichments"
+                          destType === "enrichments"
                             ? [edge.target]
+                            : type === "enrichments"
+                            ? [edge.source]
                             : [],
                         destinations:
                           destType === "destinations" ? [edge.target] : [],
@@ -1030,29 +1957,95 @@ const Routing = () => {
                     edge.source
                   );
 
-                  //create new only if node source is connected to edge source
-                  if (sourceConnectionPresent) {
-                    const newConnection = {
-                      source: node.source,
-                      pipelines: type === "pipelines" ? [edge.source] : [],
-                      enrichments:
-                        destType === "enrichments" || type === "enrichments"
-                          ? [edge.target]
-                          : [],
-                      destinations:
-                        destType === "destinations" ? [edge.target] : [],
-                    };
+                  //   console.log(
+                  //     "sourceConnectionPresent",
+                  //     sourceConnectionPresent
+                  //   );
 
-                    newEdges.push(newConnection);
+                  if (edgeSourceIndex !== -1) {
+                    // console.log("source present", newEdges);
+
+                    // console.log("new", newEdges[index]);
+                    if (newEdges[index]) {
+                      newEdges[index][destType].push(edge.target);
+                    } else {
+                      if (sourceConnectionPresent) {
+                        const newConnection = {
+                          source: node.source,
+                          pipelines:
+                            type === "pipelines"
+                              ? [edge.source]
+                              : node.pipelines,
+                          enrichments:
+                            destType === "enrichments"
+                              ? [edge.target]
+                              : type === "enrichments"
+                              ? [edge.source]
+                              : node.enrichments,
+                          destinations:
+                            destType === "destinations"
+                              ? [edge.target]
+                              : node.destinations,
+                        };
+
+                        newEdges.push(newConnection);
+                      }
+                    }
+                  } else {
+                    //create new only if node source is connected to edge source
+                    if (sourceConnectionPresent) {
+                      //   console.log("create new", node);
+                      //   console.log("edge", edge);
+                      const newConnection = {
+                        source: node.source,
+                        pipelines: type === "pipelines" ? [edge.source] : [],
+                        enrichments:
+                          destType === "enrichments"
+                            ? [edge.target]
+                            : type === "enrichments"
+                            ? [edge.source]
+                            : [],
+                        destinations:
+                          destType === "destinations" ? [edge.target] : [],
+                      };
+
+                      newEdges.push(newConnection);
+                    }
                   }
                 }
               } else {
+                // console.log("node", node);
+                // console.log("edge", edge);
+                // console.log("source index", edgeSourceIndex);
+                // console.log("target index", edgeTargetIndex);
                 if (edgeSourceIndex !== -1) {
                   const destIndex = node.destinations.indexOf(edge.target);
+                  //   console.log("destIndex", destIndex);
 
                   if (destIndex !== -1) {
+                    const sourceConnectionPresent = sourceCheck(
+                      node.source,
+                      edge.source
+                    );
+
                     if (newEdges[index]) {
-                      newEdges[index][destType].push(edge.target);
+                      //   console.log("new edge", newEdges[index]);
+                      const currentSourceIndex = newEdges[index][type].indexOf(
+                        edge.source
+                      );
+
+                      //   console.log("currentSourceIndex", currentSourceIndex);
+
+                      if (currentSourceIndex !== -1) {
+                        if (edgeTargetIndex === -1) {
+                          newEdges[index][destType].push(edge.target);
+                        } else {
+                          //add target
+                          if (destIndex !== -1) {
+                            newEdges[index][destType].push(edge.target);
+                          }
+                        }
+                      }
                     } else {
                       //check if source is connected before
                       const sourceConnectionPresent = sourceCheck(
@@ -1062,11 +2055,20 @@ const Routing = () => {
 
                       //create new only if node source is connected to edge source
                       if (sourceConnectionPresent) {
+                        // console.log(
+                        //   "sourceConnectionPresent",
+                        //   sourceConnectionPresent
+                        // );
                         const newConnection = {
                           source: node.source,
-                          pipelines: type === "pipelines" ? [edge.source] : [],
+                          pipelines:
+                            type === "pipelines"
+                              ? [edge.source]
+                              : node.pipelines,
                           enrichments:
-                            type === "enrichments" ? [edge.source] : [],
+                            type === "enrichments"
+                              ? [edge.source]
+                              : node.enrichments,
                           destinations: [edge.target],
                         };
 
@@ -1088,13 +2090,123 @@ const Routing = () => {
 
                         newEdges.push(newConnection);
                       }
+                    } else {
+                      //   console.log("newEdge", newEdges[index]);
+                      if (newEdges[index]) {
+                        const currentSourceIndex = newEdges[index][
+                          type
+                        ].indexOf(edge.source);
+
+                        // console.log("currentSourceIndex", currentSourceIndex);
+
+                        if (currentSourceIndex !== -1) {
+                          if (edgeTargetIndex === -1) {
+                            newEdges[index][destType].push(edge.target);
+                          }
+                        } else {
+                          //   console.log("present in old connection", node);
+                          if (edgeSourceIndex !== -1) {
+                            // console.log("present in old connection", node);
+                            let nodeCheck = "";
+                            if (edges.length !== 0) {
+                              edges.forEach((connect) => {
+                                if (connect.target === edge.source) {
+                                  nodeCheck = edge.target;
+                                }
+                              });
+                            }
+
+                            // console.log("node check", nodeCheck);
+
+                            if (nodeCheck !== "") {
+                              let nodeType = "";
+                              nodes.forEach((node) => {
+                                if (nodeCheck === node.id) {
+                                  nodeType = node.data.type;
+                                }
+                              });
+
+                              if (nodeType !== "source") {
+                                const targetType =
+                                  nodeType === "enrichment"
+                                    ? "enrichments"
+                                    : nodeType === "pipeline"
+                                    ? "pipelines"
+                                    : "destinations";
+
+                                if (newEdges[index] && newEdges[index]) {
+                                  //   console.log(
+                                  //     "targetType",
+                                  //     newEdges[index][targetType]
+                                  //   );
+
+                                  const targetIndex =
+                                    newEdges[index][targetType].indexOf(
+                                      nodeCheck
+                                    );
+
+                                  if (targetIndex === -1) {
+                                    newEdges[index][targetType].push(
+                                      edge.target
+                                    );
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      } else {
+                        // console.log("no new edge", edge);
+                        // console.log("node", node);
+
+                        const currentSourceIndex = node[type].indexOf(
+                          edge.source
+                        );
+
+                        // console.log("currentSourceIndex", currentSourceIndex);
+
+                        //create new only if node source is connected to edge source
+                        if (currentSourceIndex !== -1) {
+                          const newConnection = {
+                            source: node.source,
+                            pipelines:
+                              type === "pipelines" ? [edge.source] : [],
+                            enrichments:
+                              destType === "enrichments"
+                                ? [edge.target]
+                                : type === "enrichments"
+                                ? [edge.source]
+                                : [],
+                            destinations:
+                              destType === "destinations" ? [edge.target] : [],
+                          };
+
+                          newEdges.push(newConnection);
+                        }
+                      }
                     }
                   }
                 } else {
                   if (newEdges[index]) {
-                    newEdges[index][destType].push(edge.target);
-                    newEdges[index][type].push(edge.source);
+                    // console.log("new edge", newEdges[index]);
+                    const currentSourceIndex = newEdges[index][type].indexOf(
+                      edge.source
+                    );
+                    const currentDestIndex = newEdges[index][destType].indexOf(
+                      edge.target
+                    );
+
+                    // console.log("currentSourceIndex", currentSourceIndex);
+
+                    if (currentSourceIndex !== -1) {
+                      if (currentDestIndex === -1) {
+                        newEdges[index][destType].push(edge.target);
+                      }
+                      newEdges[index][type].push(edge.source);
+                    }
                   } else {
+                    // console.log("no new edge");
+
                     const sourceConnectionPresent = sourceCheck(
                       node.source,
                       edge.source
@@ -1106,8 +2218,10 @@ const Routing = () => {
                         source: node.source,
                         pipelines: type === "pipelines" ? [edge.source] : [],
                         enrichments:
-                          destType === "enrichments" || type === "enrichments"
+                          destType === "enrichments"
                             ? [edge.target]
+                            : type === "enrichments"
+                            ? [edge.source]
                             : [],
                         destinations:
                           destType === "destinations" ? [edge.target] : [],
@@ -1119,111 +2233,730 @@ const Routing = () => {
                 }
               }
             });
+          } else {
+            // console.log("edge", edge);
+            // console.log("new edges", newEdges);
+
+            if (newEdges.length !== 0) {
+              const type =
+                sourceType === "pipeline" ? "pipelines" : "enrichments";
+
+              const destType =
+                targetType === "enrichment" ? "enrichments" : "destinations";
+
+              let edgeSourceIndex = -1;
+              let edgeTargetIndex = -1;
+
+              newEdges.forEach((connect: any) => {
+                // console.log("connect", connect);
+                // console.log("edge", edge);
+
+                edgeSourceIndex = connect[type].indexOf(edge.source);
+                edgeTargetIndex = connect[destType].indexOf(edge.target);
+
+                if (edgeSourceIndex !== -1) {
+                  if (edgeTargetIndex === -1) {
+                    connect[destType].push(edge.target);
+                  }
+                }
+              });
+            }
           }
         }
       }
     });
 
+    console.log("new connections", newEdges);
+
     setConnectedNodes((prevList) => [...newEdges]);
+  };
+
+  const onDeployConfig = () => {
+    if (edges.length !== 0) {
+      setConfirmDeploy(true);
+    } else {
+      toast("No source-destination connections found!", {
+        position: "top-right",
+        zIndex: 9999,
+        theme: "failure",
+      });
+    }
+  };
+
+  const onConfirmDeploy = () => {
+    const config64code = btoa(configYaml);
+
+    console.log("yaml", configYaml);
+
+    setConfirmDeploy(false);
+
+    deploySavedConfig({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+          configdata: config64code,
+          versionid: data?.getConfig?.versionid,
+          comment: comment,
+        },
+      },
+      onCompleted: (response) => {
+        setComment("");
+        if (response.deployConfig.responsestatus) {
+          toast(response.deployConfig.message, {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "success",
+          });
+
+          refetch();
+        } else {
+          toast(response.deployConfig.message, {
+            position: "top-right",
+            zIndex: 9999,
+            theme: "failure",
+          });
+        }
+      },
+      onError: (error) => {
+        console.log("error", error);
+        toast("Something went wrong", {
+          position: "top-right",
+          zIndex: 9999,
+          theme: "failure",
+        });
+      },
+    });
+  };
+
+  const onNodeContextMenu = useCallback(
+    (event: any, node: any) => {
+      // Prevent native context menu from showing
+      event.preventDefault();
+
+      if (node.data.type === "pipeline" || node.data.type === "enrichment") {
+        // Calculate position of the context menu. We want to make sure it
+        // doesn't get positioned off-screen.
+        const pane = ref.current.getBoundingClientRect();
+
+        const top =
+          event.clientY < pane.height - 200
+            ? event.clientY - 200
+            : event.clientY - 200;
+
+        setShowMenu({
+          id: node.id,
+          top: top,
+          left: event.clientX - 100,
+          right:
+            event.clientX >= pane.width - 200 && pane.width - event.clientX,
+          // bottom:
+          //   event.clientY >= pane.height - 200 && pane.height - event.clientY,
+        });
+      }
+    },
+    [setShowMenu]
+  );
+
+  const onPaneClick = useCallback(() => setShowMenu(null), [setShowMenu]);
+
+  const getLastModifiedDate = (configData: any) => {
+    const currentStatus = configData.configstatus;
+    let timestamp = "";
+
+    configData.configtags.forEach((tag: any) => {
+      if (tag.tagkey === "timestamp_" + currentStatus) {
+        timestamp = tag.tagvalue;
+      }
+    });
+
+    return timestamp;
+  };
+
+  const getAllIncomers = (node: any) => {
+    return getIncomers(node, nodes, edges).reduce(
+      (memo, incomer) => [...memo, incomer, ...getAllIncomers(incomer, nodes)],
+      []
+    );
+  };
+
+  const getAllOutgoers = (node: any) => {
+    return getOutgoers(node, nodes, edges).reduce(
+      (memo, outgoer) => [...memo, outgoer, ...getAllOutgoers(outgoer, nodes)],
+      []
+    );
+  };
+
+  const highlightPath = (node: any, selection: boolean) => {
+    const allIncomers = getAllIncomers(node);
+    const allOutgoers = getAllOutgoers(node);
+
+    setNodes((prevElements) => {
+      return prevElements?.map((elem) => {
+        const incomerIds = allIncomers.map((i) => i.id);
+        const outgoerIds = allOutgoers.map((o) => o.id);
+
+        if (
+          isNode(elem) &&
+          (allOutgoers.length > 0 || allIncomers.length > 0)
+        ) {
+          const highlight =
+            elem.id === node.id ||
+            incomerIds.includes(elem.id) ||
+            outgoerIds.includes(elem.id);
+
+          elem.style = {
+            ...elem.style,
+            opacity: highlight ? 1 : 0.25,
+          };
+        }
+
+        if (isEdge(elem)) {
+          if (selection) {
+            elem.animated = true;
+          } else {
+            elem.animated = true;
+          }
+        }
+
+        return elem;
+      });
+    });
+  };
+
+  const resetNodeStyles = () => {
+    setNodes((prevElements) => {
+      return prevElements?.map((elem) => {
+        if (isNode(elem)) {
+          elem.style = {
+            ...elem.style,
+            opacity: 1,
+          };
+        } else {
+          elem.animated = true;
+          elem.style = {
+            ...elem.style,
+            stroke: "#b1b1b7",
+            opacity: 1,
+          };
+        }
+
+        return elem;
+      });
+    });
+  };
+
+  const onVersionClick = (event: any) => {
+    setSelectedVersion(event.target.value);
+
+    getOlderConfigDetails({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+          timezone: getCurrentTimezone(),
+          versionid: event.target.value,
+        },
+      },
+    });
+
+    setConfigYaml("");
+  };
+
+  const onRevert = () => {
+    setConfirmOldSave(true);
+  };
+
+  const onCancelRevert = () => {
+    setSelectedVersion("");
+
+    toast("Switching to current version", {
+      position: "top-right",
+      zIndex: 9999,
+      theme: "info",
+    });
+
+    getOlderConfigDetails({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+          timezone: getCurrentTimezone(),
+        },
+      },
+    });
+
+    setConfigYaml("");
+  };
+
+  const onRefreshClick = () => {
+    setLoadingR(true);
+
+    getConfigTimelineData({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+          versionid:
+            selectedVersion !== ""
+              ? oldVersionData?.getConfig?.versionid
+              : data?.getConfig?.versionid,
+          timezone: getCurrentTimezone(),
+        },
+      },
+      onCompleted: () => {
+        setLoadingR(false);
+      },
+      onError: () => {
+        setLoadingR(false);
+      },
+    });
+  };
+
+  const onGetErrorLogs = () => {
+    getErrorLogs({
+      variables: {
+        input: {
+          orgcode: orgCode,
+          devicecode: deviceCode,
+        },
+      },
+      //   fetchPolicy: "network-only",
+      onCompleted: () => {
+        setViewError(true);
+      },
+    });
+  };
+
+  const getErrorData = () => {
+    if (errorData) {
+      const errorLogs = atob(errorData?.getErrorLogs?.responsedata);
+
+      return errorLogs;
+    } else {
+      setViewError(false);
+    }
+  };
+
+  const getDeviceStatus = () => {
+    const statusData = JSON.parse(heartbeatData.getHeartbeat.responsedata);
+
+    return statusData.service_status.toUpperCase();
   };
 
   useEffect(() => {
     handleEdgeChange();
   }, [edges]);
 
+  const isDeployed =
+    selectedVersion !== ""
+      ? oldVersionData?.getConfig?.configstatus?.toLowerCase() === "deployed"
+      : data?.getConfig?.configstatus?.toLowerCase() === "deployed";
+
+  useEffect(() => {
+    console.log("useEffect triggered");
+
+    // Set up interval only if the status is not "deployed"
+    if (!isDeployed) {
+      console.log("Setting up interval");
+
+      const intervalId = setInterval(() => {
+        console.log("Interval triggered");
+        console.log("Config Status:", data?.getConfig.configstatus);
+        if (
+          data?.getConfig.configstatus !== "draft" &&
+          data?.getConfig.configstatus !== "invalid" &&
+          data?.getConfig.configstatus !== "not-deployed" &&
+          data?.getConfig.configstatus !== "converted" &&
+          data?.getConfig.configstatus !== undefined &&
+          selectedVersion === ""
+        ) {
+          console.log("Calling refetch...");
+          refetch()
+            .then((response) => {
+              console.log("API Response:", response);
+            })
+            .catch((error) => {
+              console.error("Error during API call:", error);
+            });
+        }
+      }, 1000 * 15); // 15-second interval
+
+      return () => clearInterval(intervalId);
+    }
+  }, [data, selectedVersion, refetch, isDeployed]);
+
+  useEffect(() => {
+    if (manualRefresh) {
+      setRefreshing(true); // Set refreshing to true
+      refetch().finally(() => setRefreshing(false)); // Trigger refetch and reset refreshing state
+      setManualRefresh(false); // Reset the manual refresh trigger
+    }
+  }, [manualRefresh, refetch]);
+
+  const handleRefreshClick = () => {
+    setManualRefresh(true);
+    onRefreshClick();
+  };
+
   return (
     <>
-      <RoutingNavbar />
-
       <div className="main-page-div">
         <Row className="justify-content-md-center" style={{ margin: "0 8px" }}>
+          <Col
+            xl={12}
+            lg={12}
+            md={12}
+            sm={12}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "10px",
+              marginTop:'2px'
+            }}
+          >
+            <div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <div className="current-config-data">
+                  Device : <b>{deviceCode}</b>
+                </div>
+                <div className="current-config-data">
+                  Status :{" "}
+                  <b>{heartbeatData?.getHeartbeat ? getDeviceStatus() : "-"}</b>
+                </div>
+              </div>
+              <div className="current-config-data">
+                Version :{" "}
+                <b>
+                  {selectedVersion !== ""
+                    ? oldVersionData?.getConfig?.versionid
+                    : data?.getConfig?.versionid}
+                </b>
+              </div>
+
+              <div className="current-config-data" style={{ display: "flex" }}>
+                Timestamp :{" "}
+                <b>
+                  {" "}
+                  {refreshing ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : selectedVersion !== "" ? (
+                    oldVersionData?.getConfig &&
+                    getLastModifiedDate(oldVersionData?.getConfig)
+                  ) : (
+                    data?.getConfig && getLastModifiedDate(data?.getConfig)
+                  )}
+                </b>
+                <div
+                  className="current-config-data"
+                  style={{
+                    marginLeft: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  Status :{" "}
+                  {refreshing ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : (
+                    <Badge bg="success">
+                      {selectedVersion !== ""
+                        ? oldVersionData?.getConfig?.configstatus.toUpperCase()
+                        : data?.getConfig?.configstatus.toUpperCase()}
+                    </Badge>
+                  )}
+                  {(data?.getConfig.configstatus === "failed" ||
+                    data?.getConfig.configstatus === "invalid" ||
+                    data?.getConfig.configstatus === "not-deployed") && (
+                    <MdReportGmailerrorred
+                      style={{
+                        height: "25px",
+                        width: "25px",
+                        fill: "red",
+                        marginLeft: "4px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        onGetErrorLogs();
+                      }}
+                    />
+                  )}
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    style={{
+                      marginLeft: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      border: "none",
+                    }}
+                    onClick={handleRefreshClick} // Use handleRefreshClick here
+                    disabled={loading || isDeployed}
+                  >
+                    <FaSyncAlt />
+                    {loading && (
+                      <Spinner
+                        animation="border"
+                        role="status"
+                        size="sm"
+                        style={{ marginLeft: "8px" }}
+                      >
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div className="versions-div">
+                <Form.Select
+                  aria-label="Select"
+                  size="sm"
+                  onChange={(event) => {
+                    onVersionClick(event);
+                  }}
+                  id={"version"}
+                  value={selectedVersion}
+                >
+                  <option value="" hidden>
+                    Older Versions
+                  </option>
+
+                  {versionsData?.getConfigValidVersion.map((version: any) => (
+                    <option value={version.versionid}>
+                      <OverlayTrigger
+                        placement="right"
+                        overlay={
+                          <Tooltip id={version.versionid}>
+                            {version.comment || "No comment"}
+                          </Tooltip>
+                        }
+                      >
+                        <span style={{ display: "flex" }}>
+                          {version.lastmodified} (
+                          <p>{getVersionId(version.versionid)}</p>)
+                        </span>
+                      </OverlayTrigger>
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
+
+              {selectedVersion !== "" ? (
+                <>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={"cancel"}>
+                        Go back to the current version
+                      </Tooltip>
+                    }
+                  >
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={onCancelRevert}
+                      style={{
+                        marginLeft: "8px",
+                      }}
+                    >
+                      <MdOutlineReplyAll />
+                    </Button>
+                  </OverlayTrigger>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onRevert}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                  >
+                    Save
+                  </Button>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onDeployConfig}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                    disabled={
+                      oldVersionData?.getConfig?.configstatus !== "draft"
+                    }
+                  >
+                    Deploy
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      onSave("");
+                    }}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                    disabled={
+                      data?.getConfig?.configstatus !== "draft" &&
+                      data?.getConfig?.configstatus !== "deployed" &&
+                      !configUpdated
+                    }
+                  >
+                    Save
+                  </Button>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onDeployConfig}
+                    style={{
+                      marginLeft: "8px",
+                    }}
+                    disabled={data?.getConfig?.configstatus !== "draft"}
+                  >
+                    Deploy
+                  </Button>
+                </>
+              )}
+            </div>
+          </Col>
+
           <Col xl={12} lg={12} md={12} sm={12}>
+      <div className="source-dest-div" style={{marginBottom:'2rem'}}>
+        <div style={{ width: "23%" }}>
+          <div className="source-dest-sub-div " id="source-col" >
+            <div className="icon-container">
+              <img src={sourceIcon} alt="" style={{height:'34px'}}/>
+            </div>
+            <div className="message-text-container">
+              <p className="message-text">Sources</p>
+              <p className="sub-text">Configure data sources.</p>
+            </div>
             <Button
-              variant="primary"
+              variant="outline-secondary"
               size="sm"
-              onClick={onSave}
-              style={{ float: "right", marginBottom: "12px" }}
+              onClick={onAddSourceClick}
             >
-              Save Configuration
+             <IoMdAddCircleOutline  className="plusicon" style={{ color: 'black', fontSize: '21px' }} />
             </Button>
-          </Col>
+          </div>
+        </div>
 
-          <Col xl={12} lg={12} md={12} sm={12}>
-            <div className="source-dest-div">
-              <div style={{ width: "20%" }}>
-                <div className="source-dest-sub-div">
-                  <div>Sources</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddSourceClick}
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
-
-              <div style={{ width: "20%" }}>
-                <div className="source-dest-sub-div">
-                  <div>Pipelines</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddPipelineClick}
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
-
-              <div style={{ width: "20%" }}>
-                <div className="source-dest-sub-div">
-                  <div>Enrichments</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddEnrichmentClick}
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
-
-              <div style={{ width: "20%" }}>
-                <div className="source-dest-sub-div">
-                  <div>Destinations</div>
-
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={onAddDestinationClick}
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
+        <div style={{ width: "23%" }}>
+          <div className="source-dest-sub-div">
+            <div className="icon-container">
+            <img src={pipelineIcon} alt="" style={{height:'34px'}}/>
             </div>
-
-            <div style={{ height: "100vh" }}>
-              <ReactFlow
-                nodes={nodes}
-                onNodesChange={onNodesChange}
-                onNodeClick={onNodeClick}
-                edges={edges}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                fitView
-                maxZoom={1.3}
-                minZoom={1.3}
-                deleteKeyCode={enableDelete ? ["Backspace", "Delete"] : null}
-              >
-                <Controls />
-              </ReactFlow>
+            <div className="message-text-container">
+              <p className="message-text">Pipelines</p>
+              <p className="sub-text">Process and transform data.</p>
             </div>
-          </Col>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={onAddPipelineClick}
+              
+            >
+              <IoMdAddCircleOutline className="plusicon"  style={{ color: 'black', fontSize: '21px' }} />
+            </Button>
+          </div>
+        </div>
+
+        <div style={{ width: "23%" }}>
+          <div className="source-dest-sub-div"  >
+            <div className="icon-container">
+            <img src={enrichmentsIcon} alt="" style={{height:'34px'}}/>
+            </div>
+            <div className="message-text-container">
+              <p className="message-text">Enrichments</p>
+              <p className="sub-text">Enhance data with enrichments.</p>
+            </div>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={onAddEnrichmentClick}
+              className="plusicon" 
+            >
+            <IoMdAddCircleOutline className="plusicon"  style={{ color: 'black', fontSize: '21px' }} />
+            </Button>
+          </div>
+      </div>
+
+        <div style={{ }}>
+          <div className="source-dest-sub-div">
+            <div className="icon-container">
+            <img src={destinationIcon} alt="" style={{height:'34px'}}/>
+            </div>
+            <div className="message-text-container">
+              <p className="message-text">Destinations</p>
+              <p className="sub-text">Deliver processed data.</p>
+            </div>
+            <Button
+      variant="outline-secondary"
+      size="sm"
+      onClick={onAddDestinationClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        backgroundColor: hovered ? '#11a1cd' : 'transparent',
+        borderColor: 'transparent',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <IoMdAddCircleOutline
+       className="plusicon"
+        style={{
+          color: hovered ? 'white' : 'black',
+          fontSize: '21px',
+        }}
+      />
+    </Button>
+          </div>
+        </div>
+      </div>
+
+      {
+        (saveLoading || deployLoading || errorLoading || (oldVersionLoading && selectedVersion !== "")) && (
+          <DataLoading
+            open={saveLoading || deployLoading || errorLoading || (oldVersionLoading && selectedVersion !== "")}
+          />
+        )
+      }
+
+      <div style={{ height: "100vh" }}>
+        <ReactFlow
+          ref={ref}
+          nodes={nodes}
+          onNodesChange={onNodesChange}
+          onNodeClick={onNodeClick}
+          edges={edges}
+          onEdgesChange={onEdgesUpdate}
+          onConnect={onConnect}
+          maxZoom={1.3}
+          minZoom={1.3}
+          deleteKeyCode={enableDelete ? ["Backspace", "Delete"] : null}
+          onPaneClick={onPaneClick}
+          onNodeContextMenu={onNodeContextMenu}
+          onNodeMouseEnter={(event, node) => highlightPath(node, true)}
+          onNodeMouseLeave={() => resetNodeStyles()}
+        >
+          <Controls />
+          {showMenu && (
+            <ContextMenu onClick={onPaneClick} {...showMenu} />
+          )}
+        </ReactFlow>
+      </div>
+    </Col>
         </Row>
 
         <SourceDrawer
@@ -1247,6 +2980,7 @@ const Routing = () => {
             savePipeline={savePipeline}
             addedSources={addedSources}
             addedPipelines={addedPipelines}
+            selectedPipeline={selectedNode}
           />
         )}
 
@@ -1279,6 +3013,121 @@ const Routing = () => {
             selectedNode={selectedNode}
             addedNodes={nodes}
           />
+        )}
+
+        {confirmDeploy && (
+          <Modal show={confirmDeploy} onHide={handleClose}>
+            <Modal.Body>
+              <h6>
+                Deploying the new configuration requires a DPM service restart.
+                This process may take a few moments to complete.
+              </h6>
+
+              <Form.Control
+                placeholder={`Enter Comment`}
+                aria-label={"comment"}
+                aria-describedby={"comment"}
+                className="mb-3 mt-3"
+                size="sm"
+                id={"comment"}
+                onChange={(event) => {
+                  setComment(event.target.value);
+                }}
+                value={comment}
+                type={"text"}
+              />
+
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setConfirmDeploy(false);
+                }}
+                size="sm"
+                style={{ marginRight: "8px" }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="primary"
+                onClick={() => {
+                  onConfirmDeploy();
+                }}
+                size="sm"
+                disabled={comment.trim() === ""}
+              >
+                Deploy
+              </Button>
+            </Modal.Body>
+          </Modal>
+        )}
+
+        {confirmOldSave && (
+          <Modal show={confirmOldSave} onHide={handleClose}>
+            <Modal.Body>
+              <h6>Do you want to proceed using this configuration?</h6>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setConfirmOldSave(false);
+                  }}
+                  size="sm"
+                  style={{ marginRight: "8px" }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    onSave("revert");
+                  }}
+                  size="sm"
+                >
+                  Yes
+                </Button>
+              </div>
+            </Modal.Body>
+          </Modal>
+        )}
+
+        {viewError && (
+          <Modal show={viewError} onHide={handleClose} className="error-modal">
+            <Modal.Header
+              style={{ display: "flex", justifyContent: "space-between" }}
+            >
+              <div>
+                <b>Error Log</b>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ marginRight: "8px" }}>
+                  {oldVersionData?.getConfig.versionid ||
+                    data?.getConfig.versionid}
+                </div>
+
+                <Button variant="secondary" onClick={handleClose} size="sm">
+                  <MdClose />
+                </Button>
+              </div>
+            </Modal.Header>
+
+            <Modal.Body>
+              <div>
+                <pre style={{ whiteSpace: "break-spaces" }}>
+                  {getErrorData()}
+                </pre>
+              </div>
+            </Modal.Body>
+          </Modal>
         )}
       </div>
     </>

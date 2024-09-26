@@ -15,6 +15,8 @@ import { useState } from "react";
 
 import EditDestinationData from "./EditDestinationData";
 
+import { MdOutlineSearch } from "react-icons/md";
+
 const DestinationDrawer = ({
   show,
   handleClose,
@@ -23,6 +25,10 @@ const DestinationDrawer = ({
 }: any) => {
   const [showAddDest, setShowAddDestination] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState(Object);
+  const [matchedDestinations, setMatchedDestinations] = useState(
+    sources.destinations
+  );
+  const [searchText, setSearchText] = useState("");
 
   const onDestinationSelect = (destination: object) => {
     setSelectedDestination(destination);
@@ -47,6 +53,27 @@ const DestinationDrawer = ({
     return imageUrl;
   };
 
+  const onSearch = (searchText: string) => {
+    let searchedDestinations = [];
+    setSearchText(searchText);
+
+    if (searchText === "") {
+      setMatchedDestinations(sources.destinations);
+    } else {
+      if (searchText.length >= 3) {
+        sources.sources.forEach((source) => {
+          const name = source.name.toLowerCase();
+
+          if (name.match(searchText)) {
+            searchedDestinations.push(source);
+          }
+        });
+
+        setMatchedDestinations(searchedDestinations);
+      }
+    }
+  };
+
   return (
     <Offcanvas
       show={show}
@@ -62,18 +89,25 @@ const DestinationDrawer = ({
         <Row className="justify-content-md-center">
           <Col xl={12} lg={12} md={12} sm={12}>
             <InputGroup className="mb-3">
-              <InputGroup.Text id="filter">@</InputGroup.Text>
+              <InputGroup.Text id="filter">
+                <MdOutlineSearch />
+              </InputGroup.Text>
+
               <Form.Control
-                placeholder="Filter Sources"
+                placeholder="Filter Destinations"
                 aria-label="filter"
                 aria-describedby="filter"
+                value={searchText}
+                onChange={(event) => {
+                  onSearch(event.target.value);
+                }}
               />
             </InputGroup>
           </Col>
 
           <Col xl={12} lg={12} md={12} sm={12}>
             <Row>
-              {sources.destinations.map((destination) => (
+              {matchedDestinations.map((destination) => (
                 <Col xl={4} lg={4}>
                   <Card className="mb-2 pointer select-card">
                     <Card.Body className="main-card-div">
@@ -83,21 +117,28 @@ const DestinationDrawer = ({
                             <img
                               src={getImageSource(destination.image)}
                               alt={destination.name}
+                              style={{ width: "60px" }}
                             />
                           </div>
                           {destination?.name}
                         </Card.Text>
 
                         <div className="overlay-div">
-                          <Button
-                            variant="light"
-                            size="sm"
-                            onClick={() => {
-                              onDestinationSelect(destination);
-                            }}
-                          >
-                            Add New
-                          </Button>
+                          {destination.disabled ? (
+                            <Button variant="light" size="sm" disabled>
+                              Coming Soon
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="light"
+                              size="sm"
+                              onClick={() => {
+                                onDestinationSelect(destination);
+                              }}
+                            >
+                              Add New
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card.Body>

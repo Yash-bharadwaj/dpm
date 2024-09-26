@@ -29,6 +29,7 @@ import "react-simple-toasts/dist/theme/dark.css";
 
 import "react-simple-toasts/dist/theme/failure.css";
 import "react-simple-toasts/dist/theme/success.css";
+import { useParams } from "react-router-dom";
 
 toastConfig({ theme: "dark" });
 
@@ -40,6 +41,9 @@ const EditSourceData = ({
   selectedNode,
   addedNodes,
 }: any) => {
+  const params = useParams();
+  const orgCode = params.orgcode;
+
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
   const [topics, setTopics] = useState([""]);
@@ -249,10 +253,20 @@ const EditSourceData = ({
   }
 
   sources.fields.forEach((field: any) => {
-    sourceInitialValues[field.label] =
-      selectedNode?.data.nodeData[field.name] ||
-      selectedSource[field.label] ||
-      "";
+    if (field.label === "organization.id") {
+      sourceInitialValues.organization = {
+        id:
+          selectedNode?.data.nodeData[field.name] ||
+          selectedSource[field.label] ||
+          orgCode,
+      };
+    } else {
+      sourceInitialValues[field.label] =
+        selectedNode?.data.nodeData[field.name] ||
+        selectedSource[field.label] ||
+        "";
+    }
+
     if (field.mandatory) {
       mandatoryFields.push(field.label);
     }
@@ -448,7 +462,13 @@ const EditSourceData = ({
             };
           } else if (item === "tls" || item === "codec") {
             if (item === "tls") {
-              sourceValues["tls"] = { enabled: formik.values["tls"] };
+              sourceValues["tls"] = {
+                enabled:
+                  formik.values["tls"] === "true" ||
+                  formik.values["tls"] === true
+                    ? true
+                    : false,
+              };
             } else {
               sourceValues["decoding"] = {
                 codec: formik.values["codec"],
@@ -558,10 +578,13 @@ const EditSourceData = ({
       });
 
       sourceValues["type"] = selectedSource.type;
+      sourceValues["uuid"] = selectedSource.uuid;
 
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;
       }
+
+      console.log("values", sourceValues);
 
       onSaveSettings(sourceValues);
     }
@@ -683,7 +706,7 @@ const EditSourceData = ({
               tabInvalid = true;
             }
           } else {
-            if (setting.datatype === "integer" && setting.name === "port") {
+            if (setting.datatype === "integer" && value === "port") {
               if (values[value] > 65535) {
                 tabInvalid = true;
               }
@@ -1108,7 +1131,7 @@ const EditSourceData = ({
                         size="sm"
                         id={field.label}
                         onChange={formik.handleChange}
-                        value={formik.values[field.name]}
+                        value={formik.values["organization"].id}
                         maxLength={field.maxChar || 20}
                         type={field.datatype === "integer" ? "number" : "text"}
                         isInvalid={invalidCheck(field)}

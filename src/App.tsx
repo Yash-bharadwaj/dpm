@@ -1,28 +1,37 @@
 import "./App.css";
 import MainNavbar from "./components/MainNavbar";
 import "bootstrap/dist/css/bootstrap.min.css";
-
-import { createBrowserHistory } from "history";
+import Versions from "./pages/Versions";
+import Breadcrumbs from "./components/Breadcrumbs";
+import { DeviceContext, DeviceProvider } from "./utils/DeviceContext";
 
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+
 
 import Home from "./pages/Home";
 import Routing from "./pages/Routing";
 
 function App() {
-  const browserHistory = createBrowserHistory();
-
   return (
+    <DeviceProvider>
     <div className="App">
-      <Router history={browserHistory}>
-        <MainNavbar />
-
+      <Router>
+        <MainNavbar  />
+       
+        <div style={{ marginTop:'1rem' , marginBottom:'0',fontSize:'14px'}}> 
+        <Breadcrumbs   /> 
+        </div>
         <Routes>
+        
           <Route path="/" element={<Home />} />
-          <Route path="/config" element={<Routing />} />
+          <Route path="/config/:orgcode/:devicecode" element={<Routing />} />
+          <Route path="/versions/:devicecode" element={<Versions />} />
         </Routes>
+
       </Router>
+      
     </div>
+    </DeviceProvider>
   );
 }
 
