@@ -1,0 +1,673 @@
+{
+  "observers": [
+    {
+      "name": "Microsoft Windows",
+      "uuid": "microsoftwindows",
+      "source": [
+        {
+          "label": "Microsoft Windows Events",
+          "Description": "Microsoft Windows endpoint logs include detailed records of system events, security incidents, application activities, and user actions on an endpoint device",
+          "type": "windows",
+          "vendor": "microsoft",
+          "product": "windows",
+          "disabled": false
+        }
+      ],
+      "input_sources": ["Windows Events - Winlogbeat", "Windows Events - Nxlog"]
+    },
+    {
+      "name": "Amazon Web Service (AWS)",
+      "uuid": "aws",
+      "source": [
+        {
+          "label": "Amazon Cloudtrail Logs",
+          "description": "Amazon CloudTrail logs provide detailed information on AWS API calls, including request parameters, timestamps, and user identities, for auditing and security analysis.",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "cloudtrail",
+          "disabled": false
+        },
+        {
+          "label": "Amazon Web Application Firewall Logs",
+          "description": "Amazon WAF logs provide detailed information on HTTP requests, blocked or allowed traffic, rule evaluations, and security events.",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "waf",
+          "disabled": false
+        },
+        {
+          "label": "Amazon ElasticLoad Balancer (ELB) Logs",
+          "description": "Amazon ElasticLoad Balancer logs provide detailed information on HTTP/S request activities, including client IPs, request paths, response statuses, and latency metrics for monitoring and analysis.",
+          "type": "lb",
+          "vendor": "aws",
+          "product": "elb",
+          "disabled": false
+        },
+        {
+          "label": "Amazon VPCFlow Logs",
+          "description": "Amazon VPC-Flow logs capture and send detailed records of network traffic flow within and between VPCs, including source and destination IP addresses, ports, and traffic acceptance or rejection.",
+          "type": "flow",
+          "vendor": "aws",
+          "product": "vpcflow",
+          "disabled": false
+        },
+        {
+          "label": "Amazon Guardduty Logs",
+          "description": "Amazon Guardduty Logs include security findings related to suspicious activity, unauthorized access, and potential threats detected in AWS environments.",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "guardduty",
+          "disabled": true
+        },
+        {
+          "label": "Amazon Inspector Logs",
+          "description": "Amazon Inspector logs include detailed findings of security vulnerabilities, configuration issues, and compliance violations identified during automated assessments of AWS resources.",
+          "type": "cloud-aws",
+          "vendor": "aws",
+          "product": "inspector",
+          "disabled": true
+        }
+      ],
+      "input_sources": ["AWS - Filebeat", "Amazon S3", "Amazon SQS"]
+    },
+    {
+      "name": "Microsoft Entra ID (Azure Active Directory)",
+      "uuid": "aad",
+      "source": [
+        {
+          "label": "Audit Logs",
+          "description": "Audit logs include records of all changes made to AAD resources, such as user and group management activities, application updates, and directory configuration changes.",
+          "type": "cloud-azure",
+          "vendor": "azure",
+          "product": "auditlogs",
+          "disabled": false
+        },
+        {
+          "label": "Sign-in logs",
+          "description": "Sign-in logs include information about user sign-in activities, such as user identity, timestamp, sign-in status, IP address, client application used, and location.",
+          "type": "cloud-azure",
+          "vendor": "azure",
+          "product": "signinlogs",
+          "disabled": false
+        },
+        {
+          "label": "Activity logs",
+          "description": "Activity logs include details on user sign-ins, application usage, administrative activities, conditional access, and risk detections.",
+          "type": "cloud-azure",
+          "vendor": "azure",
+          "product": "activitylogs",
+          "disabled": false
+        }
+      ],
+      "input_sources": ["Azure Event Hub", "Azure EventHub - Filebeat"]
+    },
+    {
+      "name": "Microsoft Office-365",
+      "uuid": "microsoftoffice365",
+      "source": [
+        {
+          "label": "Office-365 Logs",
+          "description": "O365 audit logs include records of user and administrator activities such as logins, file access, changes to settings, and mailbox operations across various Office 365 services",
+          "type": "cloud-azure",
+          "vendor": "azure",
+          "product": "o365",
+          "disabled": false
+        }
+      ],
+      "input_sources": ["Office365 - Filebeat"]
+    },
+    {
+      "name": "Firewalls (NGFW)",
+      "uuid": "ngfw",
+      "source": [
+        {
+          "label": "Checkpoint Firewall",
+          "description": "Checkpoint Firewall logs",
+          "type": "ngfw",
+          "vendor": "checkpoint",
+          "product": "firewall",
+          "disabled": false
+        },
+        {
+          "label": "Cisco Meraki Firewall",
+          "description": "Cisco Meraki Firewall logs",
+          "type": "ngfw",
+          "vendor": "cisco",
+          "product": "meraki",
+          "disabled": false
+        },
+        {
+          "label": "Cisco Firepower Threat Defense (FTD)",
+          "description": "Cisco Firepower Threat Defense (FTD) logs",
+          "type": "ngfw",
+          "vendor": "cisco",
+          "product": "ftd",
+          "disabled": true
+        },
+        {
+          "label": "Cisco ASA Firewall",
+          "description": "Cisco ASA firewall logs",
+          "type": "ngfw",
+          "vendor": "cisco",
+          "product": "asa",
+          "disabled": true
+        },
+        {
+          "label": "Eagle Firewall",
+          "description": "Eagle firewall logs",
+          "type": "ngfw",
+          "vendor": "eagle",
+          "product": "firewall",
+          "disabled": true
+        },
+        {
+          "label": "Fortinet Fortigate Firewall",
+          "description": "Fortinet Fortigate firewall logs",
+          "type": "ngfw",
+          "vendor": "fortinet",
+          "product": "fortigate",
+          "disabled": false
+        },
+        {
+          "label": "PaloAlto Firewall",
+          "description": "PaloAlto firewall logs",
+          "type": "ngfw",
+          "vendor": "paloalto",
+          "product": "firewall",
+          "disabled": false
+        },
+        {
+          "label": "Sophos XG Firewall",
+          "description": "Sophos XG Firewall logs",
+          "type": "ngfw",
+          "vendor": "sophos",
+          "product": "xg",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Syslog-tcp",
+        "Syslog-udp",
+        "Socket-udp",
+        "Socket-tcp",
+        "Amazon S3"
+      ]
+    },
+    {
+      "name": "Endpoint Detection and Response (EDR)",
+      "uuid": "edr",
+      "source": [
+        {
+          "label": "Sophos Intercept X Endpoint Logs",
+          "description": "Sophos Intercept X Endpoint logs",
+          "type": "edr",
+          "vendor": "sophos",
+          "product": "intercept-x",
+          "disabled": false
+        },
+        {
+          "label": "Crowdstrike Falcon Logs",
+          "description": "Crowdstrike Falcon logs",
+          "type": "epp",
+          "vendor": "crowdstrike",
+          "product": "falcon",
+          "disabled": false
+        },
+        {
+          "label": "SentinelOne Endpoint Protection Logs",
+          "description": "SentinelOne Endpoint Protection logs",
+          "type": "epp",
+          "vendor": "sentinelone",
+          "product": "sentinelone",
+          "disabled": true
+        },
+        {
+          "label": "Seqrite AV Logs",
+          "description": "Seqrite AV logs",
+          "type": "epp",
+          "vendor": "seqrite",
+          "product": "antivirus",
+          "disabled": true
+        },
+        {
+          "label": "Symantec Endpoint Security Logs",
+          "description": "Symantec Endpoint Security logs",
+          "type": "epp",
+          "vendor": "symantec",
+          "product": "endpoint_protection",
+          "disabled": true
+        },
+        {
+          "label": "Kaspersky Endpoint Security Logs",
+          "description": "Kaspersky Endpoint Security logs",
+          "type": "epp",
+          "vendor": "kaspersky",
+          "product": "kaspersky",
+          "disabled": true
+        }
+      ],
+      "input_sources": [
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-udp",
+        "Socket-udp",
+        "Amazon S3"
+      ]
+    },
+    {
+      "name": "Identity and Access Management (IAM)",
+      "uuid": "iam",
+      "source": [
+        {
+          "label": "Cisco Duo Logs",
+          "description": "Cisco Duo logs include detailed records of user authentication attempts, including information on login success or failure, user and device details, and associated security events",
+          "type": "auth",
+          "vendor": "cisco",
+          "product": "duo",
+          "disabled": false
+        },
+        {
+          "label": "OneLogin Logs",
+          "description": "OneLogin logs include authentication events, user activity, login attempts, system errors, and administrative actions.",
+          "type": "auth",
+          "vendor": "onelogin",
+          "product": "sso",
+          "disabled": true
+        }
+      ],
+      "input_sources": [
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-udp",
+        "Socket-udp",
+        "Amazon S3",
+        "Amazon SQS"
+      ]
+    },
+    {
+      "name": "Network Access Control (NAC)",
+      "uuid": "nac",
+      "source": [
+        {
+          "label": "Cisco Identity Services Engine (ISE) Logs",
+          "description": "Cisco ISE logs include authentication and authorization events, policy decisions, system alerts, and user activity records.",
+          "type": "nac",
+          "vendor": "cisco",
+          "product": "ise",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-udp",
+        "Socket-udp",
+        "Amazon S3",
+        "Amazon SQS"
+      ]
+    },
+    {
+      "name": "Network Attached Storage (NAS)",
+      "uuid": "nas",
+      "source": [
+        {
+          "label": "Quality Network Appliance Provider (QNAP) Logs",
+          "description": "QNAP NAS logs",
+          "type": "nas",
+          "vendor": "qnap",
+          "product": "nas",
+          "disabled": false
+        },
+        {
+          "label": "IBM Storwize Logs",
+          "description": "IBM Storwize logs",
+          "type": "nas",
+          "vendor": "ibm",
+          "product": "storwize",
+          "disabled": true
+        },
+        {
+          "label": "Dell CloudIQ Logs",
+          "description": "Dell CloudIQ logs",
+          "type": "nas",
+          "vendor": "dell",
+          "product": "cloudiq",
+          "disabled": true
+        }
+      ],
+      "input_sources": [
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-udp",
+        "Socket-udp",
+        "Amazon S3",
+        "Amazon SQS"
+      ]
+    },
+    {
+      "name": "Loadbalancers (LB)",
+      "uuid": "lb",
+      "source": [
+        {
+          "label": "Google Cloud Platform (GCP) Loadbalancer",
+          "description": "GCP Loadbalancer logs include details on traffic flow, request and response attributes, and error rates, offering insights into load balancing performance and network traffic patterns.",
+          "type": "lb",
+          "vendor": "gcp",
+          "product": "loadbalancer",
+          "disabled": false
+        },
+        {
+          "label": "Array Networks",
+          "description": "Array Network Loadbalancer logs include traffic patterns, load balancing decisions, session information, and health checks for monitoring.",
+          "type": "lb",
+          "vendor": "array",
+          "product": "loadbalancer",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-udp",
+        "Socket-udp",
+        "Amazon S3",
+        "Amazon SQS"
+      ]
+    },
+    {
+      "name": "Email Proxies",
+      "uuid": "email",
+      "source": [
+        {
+          "label": "Mimecast Email Security Logs",
+          "description": "Mimecast Email Security Logs include detailed records of email transactions, filtering actions, and security events related to spam, malware, and policy enforcement.",
+          "type": "proxy-mail",
+          "vendor": "mimecast",
+          "product": "email_security",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp",
+        "Syslog-udp",
+        "Socket-udp",
+        "Amazon S3",
+        "Amazon SQS"
+      ]
+    },
+    {
+      "name": "Web Proxies",
+      "uuid": "web",
+      "source": [
+        {
+          "label": "Zscaler Internet Access (ZIA) Logs",
+          "description": "Zscaler Internet Access (ZIA) logs include detailed records of web traffic, user activities, and security events, such as URL requests, and threat detections.",
+          "type": "proxy-web",
+          "vendor": "zscaler",
+          "product": "zia",
+          "disabled": false
+        }
+      ],
+      "input_sources": ["Amazon S3", "Amazon SQS", "Filebeat", "Syslog-tcp"]
+    },
+    {
+      "name": "WebServers",
+      "uuid": "webservers",
+      "source": [
+        {
+          "label": "Liferay CMS Logs",
+          "description": "Liferay CMS logs includes user activities, system errors, access requests, and configuration changes.",
+          "type": "webserver",
+          "vendor": "liferay",
+          "product": "cms",
+          "disabled": true
+        }
+      ],
+      "input_sources": ["Amazon S3", "Amazon SQS", "Filebeat", "Syslog-tcp"]
+    },
+    {
+      "name": "Databases",
+      "uuid": "databases",
+      "source": [
+        {
+          "label": "Microsoft SQL Server Logs",
+          "description": "Microsoft SQL Server logs",
+          "type": "db",
+          "vendor": "microsoft",
+          "product": "sqlserver",
+          "disabled": true
+        },
+        {
+          "label": "Oracle Database Logs",
+          "description": "Oracle Database logs",
+          "type": "db",
+          "vendor": "oracle",
+          "product": "database",
+          "disabled": true
+        }
+      ],
+      "input_sources": ["Filebeat", "Syslog-tcp", "Amazon S3"]
+    },
+    {
+      "name": "Linux Servers",
+      "uuid": "linux",
+      "source": [
+        {
+          "label": "Linux Auditd",
+          "description": "Auditd logs include detailed records of system calls, file accesses, authentication attempts, and other security-relevant events for auditing and monitoring purposes.",
+          "type": "linux",
+          "vendor": "linux",
+          "product": "auditd",
+          "disabled": false
+        },
+        {
+          "label": "Linux",
+          "description": "Linux syslog logs include system messages related to kernel activity, system processes, authentication events, and application logs.",
+          "type": "linux",
+          "vendor": "linux",
+          "product": "syslog",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Amazon S3",
+        "Amazon SQS",
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp"
+      ]
+    },
+    {
+      "name": "Remote Management Service (RMS)",
+      "uuid": "rms",
+      "source": [
+        {
+          "label": "IBM Remote Management Service (RMS)",
+          "description": "IBM RMS logs include system configuration changes, hardware diagnostics, firmware updates, and remote management activities, insights into the status",
+          "type": "linux",
+          "vendor": "ibm",
+          "product": "rms",
+          "disabled": true
+        },
+        {
+          "label": "Cisco Remote Management Service (RMS)",
+          "description": "Cisco RMS logs include system status information, configuration changes, and remote access activities for network devices.",
+          "type": "linux",
+          "vendor": "cisco",
+          "product": "rms",
+          "disabled": true
+        },
+        {
+          "label": "Lenovo Remote Management Service (RMS)",
+          "description": "Lenovo RMS logs include hardware diagnostics, firmware updates, system health status, and configuration changes.",
+          "type": "linux",
+          "vendor": "lenovo",
+          "product": "rms",
+          "disabled": true
+        },
+        {
+          "label": "HPE Remote Management Service (RMS)",
+          "description": "HPE RMS logs include hardware health alerts, configuration changes, firmware updates, and system status information.",
+          "type": "linux",
+          "vendor": "hpe",
+          "product": "rms",
+          "disabled": true
+        },
+        {
+          "label": "Dell Remote Management Service (RMS)",
+          "description": "Dell RMS logs include system health status, hardware events, firmware changes, and remote management actions.",
+          "type": "linux",
+          "vendor": "dell",
+          "product": "rms",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Amazon S3",
+        "Amazon SQS",
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp"
+      ]
+    },
+    {
+      "name": "Remote Access/Administration",
+      "uuid": "remoteaccess",
+      "source": [
+        {
+          "label": "Citrix NetScaler Logs",
+          "description": "Citrix NetScaler logs include system events, traffic data, error messages, and performance metrics related to the operation of the NetScaler appliance.",
+          "type": "ra",
+          "vendor": "citrix",
+          "product": "netscaler",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Amazon S3",
+        "Amazon SQS",
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp"
+      ]
+    },
+    {
+      "name": "Hyper-Converged Infrastructure (HCI)",
+      "uuid": "hci",
+      "source": [
+        {
+          "label": "Nutanix HCI Logs",
+          "description": "Nutanix HCI logs include detailed information on cluster health, virtual machine activities, hardware performance, and system events for comprehensive monitoring and troubleshooting.",
+          "type": "virtual",
+          "vendor": "nutanix",
+          "product": "hci",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Amazon S3",
+        "Amazon SQS",
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp"
+      ]
+    },
+    {
+      "name": "NetFlow",
+      "uuid": "netflow",
+      "source": [
+        {
+          "label": "Flow Data",
+          "description": "Flow logs encompass detailed records of network traffic, including source and destination IPs, ports, protocols, and traffic volume.",
+          "type": "flow",
+          "vendor": "flow",
+          "product": "ipfix",
+          "disabled": true
+        }
+      ],
+      "input_sources": [
+        "Amazon S3",
+        "Amazon SQS",
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp"
+      ]
+    },
+    {
+      "name": "Network Switches/Routers",
+      "uuid": "networkswitches",
+      "source": [
+        {
+          "label": "HPE Aruba Switch",
+          "description": "HPE Aruba Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "type": "network",
+          "vendor": "hp",
+          "product": "aruba_switch",
+          "disabled": false
+        },
+        {
+          "label": "Brocade Switch",
+          "description": "Brocade Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "type": "network",
+          "vendor": "brocade",
+          "product": "switch",
+          "disabled": true
+        },
+        {
+          "label": "Ruckus Switch",
+          "description": "Ruckus Switch logs include details on network traffic, port status, configuration changes, and system events.",
+          "type": "network",
+          "vendor": "ruckus",
+          "product": "switch",
+          "disabled": true
+        }
+      ],
+      "input_sources": [
+        "Amazon S3",
+        "Amazon SQS",
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp"
+      ]
+    },
+    {
+      "name": "Wireless",
+      "uuid": "wireless",
+      "source": [
+        {
+          "label": "Cisco Wireless Control System (WCS) Logs",
+          "description": "Cisco Wireless Control System (WCS) logs include detailed records of access points, wireless clients, network events, and system performance metrics.",
+          "type": "wireless",
+          "vendor": "cisco",
+          "product": "wcs",
+          "disabled": true
+        },
+        {
+          "label": "Ruckus Wireless Controller Logs",
+          "description": "Ruckus Wireless Controller logs include detailed records of wireless network activities, configuration changes, client connections, and system events.",
+          "type": "wireless",
+          "vendor": "ruckus",
+          "product": "wireless_controller",
+          "disabled": true
+        },
+        {
+          "label": "HPE Aruba Wireless Logs",
+          "description": "HPE Aruba Wireless logs include detailed records of wireless network activity, including access points' status, client connections, authentication events, and system events.",
+          "type": "wireless",
+          "vendor": "hp",
+          "product": "aruba_wireless",
+          "disabled": true
+        }
+      ],
+      "input_sources": [
+        "Amazon S3",
+        "Amazon SQS",
+        "Filebeat",
+        "Syslog-tcp",
+        "Syslog-tcp"
+      ]
+    }
+  ]
+}
