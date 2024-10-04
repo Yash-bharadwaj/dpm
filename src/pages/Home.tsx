@@ -499,34 +499,38 @@ const Home: React.FC = () => {
               fullWidth
               margin="normal"
             />
-            <p style={{ fontSize: '16px', fontWeight: '600', fontStyle: '', marginTop: '1rem', marginBottom: '0px' }}>Install Script :  <button
+            <div style={{ fontSize: '16px', fontWeight: '600', marginTop: '.6rem' , display:'flex', justifyContent:'space-between', alignItems:"center",height:'36px'}}>
+              
+               <p > Install Script :</p>  
+            
+             <button
                 onClick={copyToClipboard}
                 style={{
-                  position: "absolute",
-                  bottom: "10.2rem",
-                  right: "5px",
+                
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
                   color: 'grey'
                 }}
               >
-                <p style={{ fontSize: '13px', margin: '0px' }}> <LuCopy style={{ marginRight: '5px' }} />Copy</p>
-              </button></p>
+                <p style={{ fontSize: '13px' }}> <LuCopy style={{ marginRight: '5px' }} />Copy</p>
+              </button>
+              
+              </div>
             <div
               style={{
                 position: "relative",
                 backgroundColor: "#F5F5F5",
                 padding: "1rem",
-                marginTop: "5px",
+                marginTop: "-3px",
               }}
             >
              
               <pre id="installScript">
-                curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \
-                --orgcode "{orgCode}" \
-                --devicecode "{newDevice.generatedCode}" \
-                --accesskey "{newDevice.accessKey}" \
+                curl -Ls https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh | bash -s -- \ <br />
+                --orgcode "{orgCode}" \ <br />
+                --devicecode "{newDevice.generatedCode}" \ <br />
+                --accesskey "{newDevice.accessKey}" \ <br />
                 --secretkey "{newDevice.secretKey}"
               </pre>
             </div>
