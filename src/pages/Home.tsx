@@ -31,6 +31,7 @@ import '../index.css';
 import { FaInfoCircle } from "react-icons/fa";
 import { LuCopy } from "react-icons/lu";
 import { MdDeleteForever } from "react-icons/md";
+import { useSearchParams } from "react-router-dom";
 import { IoIosWarning, IoMdRefresh } from "react-icons/io";
 
 interface Device {
@@ -59,7 +60,8 @@ interface HeartbeatStatus {
 }
 
 const Home: React.FC = () => {
-  const orgCode = "d3b6842d";
+  const [searchParams] = useSearchParams();
+  const orgCode = searchParams.get("orgCode") || "";
   const [deviceCode, setDeviceCode] = useState<string>("DEM-HYD-248");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
