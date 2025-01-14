@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import {Table,TableBody,TableCell,TableContainer,TableHead,TableRow, Paper, Collapse, Box, Chip, Typography, IconButton, Stepper, Step, StepLabel, TablePagination,  Dialog,Button,DialogActions,DialogContent,Checkbox,FormControlLabel,DialogTitle,} from "@mui/material";
 import {KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon, } from "@mui/icons-material";
 import { useQuery, useLazyQuery } from "@apollo/client";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import Lottie from "react-lottie";
 import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE} from "../query/query";
