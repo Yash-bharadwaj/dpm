@@ -14,7 +14,6 @@ import { QuestionCircle } from "react-bootstrap-icons";
 
 import regions from "../../data/regions.json";
 import sources from "../../data/sources.json";
-import sourceLogTypes from "../../data/source_logtypes.json"; // Add this line
 
 import { useState } from "react";
 import { useFormik } from "formik";
@@ -252,6 +251,7 @@ const EditSourceData = ({
       }
     }
   }
+
   sources.fields.forEach((field: any) => {
     if (field.label === "organization.id") {
       sourceInitialValues.organization = {
@@ -260,13 +260,6 @@ const EditSourceData = ({
           selectedSource[field.label] ||
           orgCode,
       };
-    } else if (field.label === "log.schema" || field.label === "log.format" || field.label === "log.type") {
-      // Preserve existing log values
-      const existingLog = selectedNode?.data.nodeData?.log || {};
-      const fieldKey = field.label.split('.')[1];
-      
-      sourceInitialValues[field.label] = existingLog[fieldKey] || selectedSource[field.label] || 
-        (fieldKey === 'schema' ? "raw" : fieldKey === 'format' ? "json" : "");
     } else {
       sourceInitialValues[field.label] =
         selectedNode?.data.nodeData[field.name] ||
@@ -280,15 +273,6 @@ const EditSourceData = ({
   });
 
   const [checkMandatoryFields, setMandatoryFields] = useState(mandatoryFields);
-
-  const getFormattedLogTypes = () => {
-    return Object.entries(sourceLogTypes)
-      .filter(([_, value]) => !value.disabled) 
-      .map(([key, value]) => ({
-        value: key,
-        label: `${key} (${value.name})`
-      }));
-  };
 
   const validateForm = async (values: any) => {
     return checkFormValid(values);
@@ -460,24 +444,22 @@ const EditSourceData = ({
             if (formik.values["organization"].id !== "") {
               sourceValues["organization"] = formik.values["organization"];
             }
-          } else if (item === "log.schema" || item === "log.format" || item === "log.type" || item === "log") {
-            // Get existing values first
-            let existingLog = selectedNode?.data.nodeData?.log || {};
-            
-            // Get current form values
-            let schema = formik.values.log ? formik.values.log.schema : formik.values["log.schema"];
-            let format = formik.values.log ? formik.values.log.format : formik.values["log.format"];
-            let type = formik.values.log ? formik.values.log.type : formik.values["log.type"];
-          
+          } else if (
+            item === "log.schema" ||
+            item === "log.format" ||
+            item === "log"
+          ) {
+            let schema = formik.values.log
+              ? formik.values.log.schema
+              : formik.values["log.schema"];
+            let format = formik.values.log
+              ? formik.values.log.format
+              : formik.values["log.format"];
+
             sourceValues.log = {
-              schema: schema || existingLog.schema || "raw",    
-              format: format || existingLog.format || "json"   
+              schema: schema,
+              format: format,
             };
-          
-            // Only add type if it was explicitly selected
-            if (type || existingLog.type) {
-              sourceValues.log.type = type || existingLog.type;
-            }
           } else if (item === "tls" || item === "codec") {
             if (item === "tls") {
               sourceValues["tls"] = {
@@ -589,15 +571,13 @@ const EditSourceData = ({
 
           if (topics[0] !== "") {
             topics.map((topic) => addedTopics.push(topic));
-          } 
+          }
 
           sourceValues["topics"] = addedTopics;
         }
       });
 
-      if (formik.values["log.type"]) {
-        sourceValues["type"] = selectedSource.type;
-      }
+      sourceValues["type"] = selectedSource.type;
       sourceValues["uuid"] = selectedSource.uuid;
 
       if (selectedSource.mode) {
@@ -1120,41 +1100,28 @@ const EditSourceData = ({
                         />
                       ) : (
                         <Form.Select
-                        aria-label="Select Log Schema"
-                        className="mb-3"
-                        size="sm"
-                        id={field.label}
-                        onChange={formik.handleChange}
-                        value={
-                          formik.values.log
-                            ? field.label === "log.schema"
-                              ? formik.values.log.schema
-                              : field.label === "log.format"
-                                ? formik.values.log.format
-                                : formik.values.log.type
-                            : field.label === "log.schema"
-                            ? formik.values["log.schema"]
-                            : field.label === "log.format"
-                              ? formik.values["log.format"]
-                              : formik.values["log.type"]
-                        }
-                      >
-                        <option value="" hidden>
-                          Select {field.label}
-                        </option>
-                        {field.label === "log.type" 
-                          ? getFormattedLogTypes().map((logType) => (
-                              <option key={logType.value} value={logType.value}>
-                                {logType.label}
-                              </option>
-                            ))
-                          : field.options.map((value: string) => (
-                              <option key={value} value={value}>
-                                {value}
-                              </option>
-                            ))
-                        }
-                      </Form.Select>
+                          aria-label="Select Log Schema"
+                          className="mb-3"
+                          size="sm"
+                          id={field.label}
+                          onChange={formik.handleChange}
+                          value={
+                            formik.values.log
+                              ? field.label === "log.schema"
+                                ? formik.values.log.schema
+                                : formik.values.log.format
+                              : field.label === "log.schema"
+                              ? formik.values["log.schema"]
+                              : formik.values["log.format"]
+                          }
+                        >
+                          <option value="" hidden>
+                            Select {field.label}
+                          </option>
+                          {field.options.map((value: string) => (
+                            <option value={value}>{value}</option>
+                          ))}
+                        </Form.Select>
                       )
                     ) : (
                       <Form.Control

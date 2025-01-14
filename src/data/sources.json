@@ -1,7 +1,5 @@
 {
   "sources": [
-
-   
     {
       "name": "Windows Events - Winlogbeat",
       "type": "logstash",
@@ -1401,7 +1399,7 @@
       ]
     }
   ],
- "fields": [
+  "fields": [
     {
       "name": "Organization ID",
       "label": "organization.id",
@@ -1412,7 +1410,7 @@
     },
     {
       "name": "Log Schema",
-      "label": "log.schema", 
+      "label": "log.schema",
       "options": ["raw", "ecs", "ocsf"],
       "tooltip": "Select the log schema for this source, DPM will process data accordingly"
     },
@@ -1421,12 +1419,6 @@
       "label": "log.format",
       "options": ["raw", "json", "syslog", "cef"],
       "tooltip": "Select the log format for this source, DPM will process data accordingly"
-    },
-    {
-      "name": "Log Type",
-      "label": "log.type",
-      "options": [],
-      "tooltip": "Select the log type for this source"
     }
   ],
   "destinations": [
