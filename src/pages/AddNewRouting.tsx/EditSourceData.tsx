@@ -693,13 +693,11 @@ useEffect(() => {
           if (topics[0] !== "") {
             topics.map((topic) => addedTopics.push(topic));
           }
-          }
 
           sourceValues["topics"] = addedTopics;
         }
       });
 
-      sourceValues["type"] = selectedSource.type;
       sourceValues["type"] = selectedSource.type;
       sourceValues["uuid"] = selectedSource.uuid;
 
