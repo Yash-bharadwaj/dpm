@@ -50,19 +50,19 @@ const PipelineModal = ({
 
   if (selectedPipeline?.data) {
     let uuid = selectedPipeline.data.nodeData.uuid;
-
+  
     allParsers.forEach((pipeline) => {
       if (pipeline.uuid === uuid) {
         currentPipeline = [pipeline];
-
+  
         if (pipeline.source) {
           pipeline.source.forEach((source: any) => {
             const observerProduct = source.product;
             const observerVendor = source.vendor;
-
+  
             const pipelineName =
               "pipeline_" + observerVendor + "_" + observerProduct;
-
+  
             if (pipelineName === selectedPipeline.id) {
               currentProducts = source;
             }
@@ -84,13 +84,21 @@ const PipelineModal = ({
 
   let matchingPipelines = [];
 
-  allParsers.forEach((pipeline) => {
-    addedSources.forEach((source: any) => {
-      if (pipeline.input_sources.includes(source.name)) {
+allParsers.forEach((pipeline) => {
+  // Skip if pipeline doesn't have input_sources
+  if (!pipeline.input_sources || !Array.isArray(pipeline.input_sources)) {
+    return;
+  }
+
+  addedSources.forEach((source: any) => {
+    if (source && source.name && pipeline.input_sources.includes(source.name)) {
+      // Only add the pipeline once if it matches multiple sources
+      if (!matchingPipelines.includes(pipeline)) {
         matchingPipelines.push(pipeline);
       }
-    });
+    }
   });
+});
 
   const onSavePipeline = () => {
     const selectedPipeline = selectedParser[0];
@@ -151,22 +159,22 @@ const PipelineModal = ({
     } else {
       const prevColumns = selectedParser;
       let currentIndex = -1;
-
+  
       prevColumns.forEach((item: unknown, index: number) => {
-        if (item.name === pipeline.name) {
+        // Change from name to label
+        if (item.label === pipeline.label) {
           currentIndex = index;
         }
       });
-
+  
       setSelectedParser([
         ...prevColumns.slice(0, currentIndex),
         ...prevColumns.slice(currentIndex + 1),
       ]);
-
+  
       setSelectedProducts({});
     }
   };
-
   const onSelectProducts = (event: boolean, source: object) => {
     if (event) {
       setSelectedProducts(source);
@@ -180,24 +188,24 @@ const PipelineModal = ({
   const onSearch = (searchText: string) => {
     let searchedPipelines = [];
     setSearchText(searchText);
-
+  
     if (searchText === "") {
       setSearchedPipelines(allParsers);
     } else {
       if (searchText.length >= 3) {
         allParsers.forEach((pipeline) => {
-          const name = pipeline.name.toLowerCase();
-
-          if (name.match(searchText)) {
+          // Change from name to label
+          const pipelineLabel = pipeline.label.toLowerCase();
+  
+          if (pipelineLabel.match(searchText)) {
             searchedPipelines.push(pipeline);
           }
         });
-
+  
         setSearchedPipelines(searchedPipelines);
       }
     }
   };
-
   return (
     <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
       <Modal.Header closeButton style={{ padding: "8px 12px" }}>
@@ -226,94 +234,90 @@ const PipelineModal = ({
         />
 
         <div style={{ height: "380px", overflow: "auto" }}>
-          <Table striped bordered>
-            <thead>
-              <tr>
-                <th>Select</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Vendor</th>
-                <th>Product</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {(viewAll ? searchedPipelines : matchingPipelines).map(
-                (pipeline) => (
-                  <>
-                    <tr>
-                      <td align="center">
-                        {pipeline.source ? (
-                          selectedParser.length !== 0 &&
-                          selectedParser[0].name === pipeline.name ? (
-                            <CaretUp
-                              style={{ cursor: "pointer" }}
-                              onClick={() => onSelectPipeline(false, pipeline)}
-                            />
-                          ) : (
-                            <CaretDown
-                              style={{ cursor: "pointer" }}
-                              onClick={() => onSelectPipeline(true, pipeline)}
-                            />
-                          )
-                        ) : (
-                          <Form.Check
-                            name="pipeline"
-                            type={"radio"}
-                            id={`inline-checkbox-1`}
-                            onChange={(event) => {
-                              onSelectPipeline(event.target.checked, pipeline);
-                            }}
-                            checked={
-                              selectedParser.length !== 0 &&
-                              selectedParser[0].name === pipeline.name
-                            }
-                          />
-                        )}
-                      </td>
-                      <td>{pipeline.name}</td>
-                      <td>{pipeline.type}</td>
-                      <td>{pipeline.vendor}</td>
-                      <td>{pipeline.product}</td>
-                    </tr>
-
-                    {selectedParser.length !== 0 &&
-                      selectedParser[0].name === pipeline.name &&
-                      pipeline.source &&
-                      pipeline.source.map(
-                        (source: any) =>
-                          !source.disabled && (
-                            <tr>
-                              <td>
-                                <Form.Check
-                                  name="product"
-                                  type={"radio"}
-                                  id={`inline-checkbox-2`}
-                                  onChange={(event) => {
-                                    onSelectProducts(
-                                      event.target.checked,
-                                      source
-                                    );
-                                  }}
-                                  checked={
-                                    selectedProducts.label &&
-                                    selectedProducts.label === source.label
-                                  }
-                                  style={{ float: "right" }}
-                                />
-                              </td>
-                              <td>{source.label}</td>
-                              <td>{source.type}</td>
-                              <td>{source.vendor}</td>
-                              <td>{source.product}</td>
-                            </tr>
-                          )
-                      )}
-                  </>
+        <Table striped bordered>
+  <thead>
+    <tr>
+      <th>Select</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Vendor</th>
+      <th>Product</th>
+    </tr>
+  </thead>
+  <tbody>
+    {(viewAll ? searchedPipelines : matchingPipelines).map(
+      (pipeline) => (
+        <>
+          <tr>
+            <td align="center">
+              {pipeline.source ? (
+                selectedParser.length !== 0 &&
+                selectedParser[0].label === pipeline.label ? (
+                  <CaretUp
+                    style={{ cursor: "pointer" }}
+                    onClick={() => onSelectPipeline(false, pipeline)}
+                  />
+                ) : (
+                  <CaretDown
+                    style={{ cursor: "pointer" }}
+                    onClick={() => onSelectPipeline(true, pipeline)}
+                  />
                 )
+              ) : (
+                <Form.Check
+                  name="pipeline"
+                  type={"radio"}
+                  id={`inline-checkbox-1`}
+                  onChange={(event) => {
+                    onSelectPipeline(event.target.checked, pipeline);
+                  }}
+                  checked={
+                    selectedParser.length !== 0 &&
+                    selectedParser[0].label === pipeline.label
+                  }
+                />
               )}
-            </tbody>
-          </Table>
+            </td>
+            <td>{pipeline.label}</td>
+            <td>{pipeline.type}</td>
+            <td>{pipeline.vendor}</td>
+            <td>{pipeline.product}</td>
+          </tr>
+
+          {selectedParser.length !== 0 &&
+            selectedParser[0].label === pipeline.label &&
+            pipeline.source &&
+            pipeline.source.map(
+              (source: any) =>
+                !source.disabled && (
+                  <tr>
+                    <td>
+                      <Form.Check
+                        name="product"
+                        type={"radio"}
+                        id={`inline-checkbox-2`}
+                        onChange={(event) => {
+                          onSelectProducts(event.target.checked, source);
+                        }}
+                        checked={
+                          selectedProducts.name &&
+                          selectedProducts.name === source.name
+                        }
+                        style={{ float: "right" }}
+                      />
+                    </td>
+                    <td>{source.name}</td>
+                    <td>{source.type}</td>
+                    <td>{source.vendor}</td>
+                    <td>{source.product}</td>
+                  </tr>
+                )
+            )}
+        </>
+      )
+    )}
+  </tbody>
+</Table>
         </div>
       </Modal.Body>
 
