@@ -1419,7 +1419,25 @@
       "label": "log.format",
       "options": ["raw", "json", "syslog", "cef"],
       "tooltip": "Select the log format for this source, DPM will process data accordingly"
+    },
+    {
+      "name": "log.source_type",
+      "label": "log.source_type",
+      "datatype": "string",
+      "options": true,
+      "tooltip": "Select the type of log source"
+    },
+    {
+      "name": "log.source_name",
+      "label": "log.source_name",
+      "datatype": "string",
+      "tooltip": "Enter the name for this log source"
     }
+
+   
+    
+   
+
   ],
   "destinations": [
     {
