@@ -1,7 +1,7 @@
 {
   "observers": [
     {
-      "label": "Microsoft Windows",
+      "label": "Microsoft",
       "uuid": "microsoftwindows",
       "source": [
         {
@@ -746,6 +746,14 @@
       "uuid": "webservers",
       "source": [
         {
+          "name": "Microsoft IIS Logs",
+          "description": "Microsoft IIS includes access and error logs.",
+          "type": "webserver",
+          "vendor": "microsoft",
+          "product": "iis",
+          "disabled": false
+        },
+        {
           "name": "Liferay CMS Logs",
           "description": "Liferay CMS logs includes user activities, system errors, access requests, and configuration changes.",
           "type": "webserver",
@@ -761,12 +769,34 @@
       "uuid": "databases",
       "source": [
         {
-          "name": "Microsoft SQL Server Logs",
-          "description": "Microsoft SQL Server logs",
-          "type": "db",
-          "vendor": "microsoft",
           "product": "sqlserver",
-          "disabled": true
+          "vendor": "microsoft",
+          "type": "db",
+          "name": "Microsoft SQL Server",
+          "description": "Microsoft SQL Server logs capture auditing events from the specified Windows event log channel.",
+          "pipeline_id": "microsoft_sqlserver",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "mysql",
+          "vendor": "oracle",
+          "type": "db",
+          "name": "MySQL Enterprise",
+          "description": "MySQL Enterprise logs include database audit activities, user access.",
+          "pipeline_id": "mysql_enterprise",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "database",
+          "vendor": "oracle",
+          "type": "db",
+          "name": "Oracle Database",
+          "description": "Oracle Database logs include database activities, user access, error.",
+          "pipeline_id": "mysql_enterprise",
+          "status": "beta",
+          "disabled": false
         },
         {
           "name": "Oracle Database Logs",
@@ -950,6 +980,64 @@
         "Filebeat",
         "Syslog-tcp",
         "Syslog-tcp"
+      ]
+    },
+    {
+      "label": "IPS/IDS",
+      "uuid": "ips-ids",
+      "source": [
+        {
+          "product": "paf",
+          "vendor": "blusapphire",
+          "type": "ips",
+          "name": "Packet Analysis Framework (PAF)",
+          "description": "Packet Analysis Framework (PAF) logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
+          "pipeline_id": "paf_alerts",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "suricata",
+          "vendor": "suricata",
+          "type": "ips",
+          "name": "Suricata IDS/IPS",
+          "description": "Suricata logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
+          "pipeline_id": "suricata",
+          "status": "beta",
+          "disabled": false
+        }
+      ],
+      "input_sources": [
+        "Filebeat"
+      ]
+    },
+    {
+      "label": "Network Behavior Anomaly Detection (NBAD)",
+      "uuid": "nbad-naf",
+      "source": [
+        {
+          "product": "naf",
+          "vendor": "blusapphire",
+          "type": "nbad",
+          "name": "Network Behavior Anomaly Detection (NBAD)",
+          "description": "Network Behavior Anomaly Detection (NBAD) monitors network traffic to identify unusual patterns or behaviors that could indicate potential security threats.",
+          "pipeline_id": "nbad",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "zeek",
+          "vendor": "zeek",
+          "type": "zeek",
+          "name": "Zeek",
+          "description": "Zeek monitors network traffic to identify unusual patterns or behaviors that could indicate potential security threats.",
+          "pipeline_id": "zeek",
+          "status": "beta",
+          "disabled": true
+        }
+      ],
+      "input_sources": [
+        "Filebeat"
       ]
     },
     {

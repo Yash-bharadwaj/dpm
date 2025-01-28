@@ -1,604 +1,712 @@
 {
-    "winevtlogs": {
-      "product": "windows",
-      "vendor": "microsoft",
-      "type": "windows",
-      "name": "Microsoft Windows",
-      "description": "Microsoft Windows Events",
-      "pipeline_id": "winevtlogs",
-      "status": "beta",
-      "disabled": false
-    },
-    "microsoft_dns": {
-      "product": "dns",
-      "vendor": "microsoft",
-      "type": "dns",
-      "name": "Microsoft DNS Server",
-      "description": "Microsoft DNS Server logs",
-      "pipeline_id": "microsoft_dns",
-      "status": "beta",
-      "disabled": false
-    },
-    "microsoft_dhcp": {
-      "product": "dhcp",
-      "vendor": "microsoft",
-      "type": "dhcp",
-      "name": "Microsoft DHCP",
-      "description": "Microsoft DHCP logs",
-      "pipeline_id": "microsoft_dhcp",
-      "status": "beta",
-      "disabled": false
-    },
-    "auditd": {
-      "product": "auditd",
-      "vendor": "linux",
-      "type": "linux",
-      "name": "Linux",
-      "description": "Linux audit daemon logs include detailed records of system calls, file accesses, authentication attempts, and other security-relevant events for auditing and monitoring purposes.",
-      "pipeline_id": "auditd",
-      "status": "beta",
-      "disabled": false
-    },
-    "syslog": {
-      "product": "syslog",
-      "vendor": "linux",
-      "type": "linux",
-      "name": "Linux Syslog",
-      "description": "Linux syslog logs include system messages related to system processes, authentication events, and application logs.",
-      "pipeline_id": "syslog",
-      "status": "beta",
-      "disabled": false
-    },
-    "azure_auditlogs": {
-      "product": "auditlogs",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Azure Active-Directory Auditlogs",
-      "description": "Azure Audit logs include records of all changes made to AAD resources, such as user and group management activities, application updates, and directory configuration changes.",
-      "pipeline_id": "azure_auditlogs",
-      "status": "beta",
-      "disabled": false
-    },
-    "azure_signinlogs": {
-      "product": "signinlogs",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Azure Active-Directory Signinlogs",
-      "description": "Azure Sign-in logs include information about user sign-in activities, such as user identity, timestamp, sign-in status, IP address, client application used, and location.",
-      "pipeline_id": "azure_signinlogs",
-      "status": "beta",
-      "disabled": false
-    },
-    "azure_activitylogs": {
-      "product": "activitylogs",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Azure Active-Directory Activity logs",
-      "description": "Azure Activity logs include details on user, application usage, administrative activities, conditional access, and risk detections.",
-      "pipeline_id": "azure_activitylogs",
-      "status": "beta",
-      "disabled": false
-    },
-    "azure_provisioninglogs": {
-      "product": "provisioninglogs",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Azure Active-Directory Provisioning logs",
-      "description": "Azure Provisioning logs include detailed records of user and service provisioning activities, including resource creation, modification, status, and timestamps.",
-      "pipeline_id": "azure_provisioninglogs",
-      "status": "beta",
-      "disabled": false
-    },
-    "azure_firewall": {
-      "product": "firewall",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Azure Firewall",
-      "description": "Azure Firewall logs include detailed records of network traffic, including allowed and denied connections, source and destination IPs, ports, protocols, and timestamps for security monitoring and analysis.",
-      "pipeline_id": "azure_firewall",
-      "status": "beta",
-      "disabled": true
-    },
-    "azure_application_gateway": {
-      "product": "application-gateway",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Azure Application Gateway",
-      "description": "Azure Application Gateway logs include detailed records of web traffic, including request URLs, client IPs, response status, latency, for monitoring web applications.",
-      "pipeline_id": "azure_application_gateway",
-      "status": "beta",
-      "disabled": true
-    },
-    "azure_identity_protection": {
-      "product": "identity-protection",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Azure Identity Protection",
-      "description": "Azure Identity Protection logs include detailed records of risky sign-ins, user risk levels, detected vulnerabilities, and remediation actions to help secure user identities and prevent unauthorized access.",
-      "pipeline_id": "azure_identity_protection",
-      "status": "beta",
-      "disabled": true
-    },
-    "o365_audit": {
-      "product": "o365",
-      "vendor": "microsoft",
-      "type": "cloud-azure",
-      "name": "Office-365 Audit",
-      "description": "Microsoft 365 Audit logs include detailed records of user activities, such as login attempts, file accesses, email actions, and administrative changes.",
-      "pipeline_id": "o365_audit",
-      "status": "beta",
-      "disabled": false
-    },
-    "aws_cloudtrail": {
-      "product": "cloudtrail",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS Cloudtrail",
-      "description": "Amazon CloudTrail logs provide detailed information on AWS API calls, including request parameters, timestamps, and user identities, for auditing and security analysis.",
-      "pipeline_id": "aws_cloudtrail",
-      "status": "beta",
-      "disabled": false
-    },
-    "aws_waf": {
-      "product": "waf",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS WAF",
-      "description": "Amazon WAF logs provide detailed information on HTTP requests, blocked or allowed traffic, rule evaluations, and security events.",
-      "pipeline_id": "aws_waf",
-      "status": "beta",
-      "disabled": false
-    },
-    "aws_elb": {
-      "product": "elb",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS ELB",
-      "description": "Amazon ElasticLoad Balancer logs provide detailed information on HTTP/S request activities, including client IPs, request paths, response statuses, and latency metrics for monitoring and analysis.",
-      "pipeline_id": "aws_elb",
-      "status": "beta",
-      "disabled": false
-    },
-    "aws_vpcflow": {
-      "product": "vpcflow",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS VPCflow",
-      "description": "Amazon VPC-Flow logs capture and send detailed records of network traffic flow within and between VPCs, including source and destination IP addresses, ports, and traffic acceptance or rejection.",
-      "pipeline_id": "aws_vpcflow",
-      "status": "beta",
-      "disabled": false
-    },
-    "aws_guardduty": {
-      "product": "guardduty",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS Guardduty",
-      "description": "Amazon Guardduty Logs include security findings related to suspicious activity, unauthorized access, and potential threats detected in AWS environments.",
-      "pipeline_id": "aws_guardduty",
-      "status": "beta",
-      "disabled": false
-    },
-    "aws_cloudwatch": {
-      "product": "cloudwatch",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS Cloudwatch",
-      "description": "AWS CloudWatch logs include detailed records of system and application events, including performance metrics, error messages, and operational data for monitoring and troubleshooting AWS resources.",
-      "pipeline_id": "aws_cloudwatch",
-      "status": "beta",
-      "disabled": false
-    },
-    "aws_cloudfront": {
-      "product": "cloudfront",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS Cloudfront",
-      "description": "AWS CloudFront logs include detailed records of HTTP/HTTPS requests made to CloudFront distributions, including requesters' IP addresses, requested URLs, response status, and timestamps.",
-      "pipeline_id": "aws_cloudfront",
-      "status": "beta",
-      "disabled": true
-    },
-    "aws_s3access": {
-      "product": "s3access",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS S3 Access",
-      "description": "AWS S3 Access logs include detailed records of requests made to S3 buckets, such as requester information, request type, response status, and timestamps.",
-      "pipeline_id": "aws_s3access",
-      "status": "beta",
-      "disabled": true
-    },
-    "aws_route53": {
-      "product": "route53",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS Route53",
-      "description": "AWS Route 53 logs include detailed records of DNS queries, including domain names queried, response types, and query timestamps for monitoring and analysis.",
-      "pipeline_id": "aws_route53",
-      "status": "beta",
-      "disabled": true
-    },
-    "aws_inspector": {
-      "product": "inspector",
-      "vendor": "aws",
-      "type": "cloud-aws",
-      "name": "AWS Inspector",
-      "description": "Amazon Inspector logs include detailed findings of security vulnerabilities, configuration issues, and compliance violations identified during automated assessments of AWS resources.",
-      "pipeline_id": "aws_inspector",
-      "status": "beta",
-      "disabled": true
-    },
-    "checkpoint_firewall": {
-      "product": "firewall",
-      "vendor": "checkpoint",
-      "type": "ngfw",
-      "name": "Checkpoint Firewall",
-      "description": "Checkpoint Firewall logs include detailed records of network traffic, security events, allowed and blocked connections, source and destination IPs for security monitoring.",
-      "pipeline_id": "checkpoint_firewall",
-      "status": "beta",
-      "disabled": false
-    },
-    "paloalto_firewall": {
-      "product": "firewall",
-      "vendor": "paloalto",
-      "type": "ngfw",
-      "name": "PaloAlto Firewall",
-      "description": "Palo Alto Firewall logs include detailed records of network traffic, security events, allowed and blocked connections, threat detections, and timestamps, for monitoring and analyzing network security.",
-      "pipeline_id": "paloalto_firewall",
-      "status": "beta",
-      "disabled": false
-    },
-    "cisco_meraki": {
-      "product": "meraki-firewall",
-      "vendor": "cisco",
-      "type": "ngfw",
-      "name": "Cisco Meraki Firewall",
-      "description": "Cisco Meraki Firewall logs include detailed records of network traffic, firewall rule actions, allowed and blocked connections, source and destination IPs, and timestamps, for security monitoring and troubleshooting.",
-      "pipeline_id": "cisco_meraki",
-      "status": "beta",
-      "disabled": false
-    },
-    "cisco_asa": {
-      "product": "cisco-asa",
-      "vendor": "cisco",
-      "type": "ngfw",
-      "name": "Cisco ASA Firewall",
-      "description": "Cisco ASA Firewall logs include detailed records of network traffic, security events, connection attempts, access control actions, and threat detections, for monitoring, and security analysis.",
-      "pipeline_id": "cisco_asa",
-      "status": "beta",
-      "disabled": true
-    },
-    "cisco_ftd": {
-      "product": "firepower-threat-defense",
-      "vendor": "cisco",
-      "cisco": "ngfw",
-      "name": "Cisco Firepower Threat Defense",
-      "description": "Cisco Firepower Threat Defense logs include detailed records of network traffic, security events, intrusion detections, firewall actions, and threats blocked, for monitoring, and analysis.",
-      "pipeline_id": "cisco_ftd",
-      "status": "beta",
-      "disabled": true
-    },
-    "sophos_xg": {
-      "product": "xg",
-      "vendor": "sophos",
-      "type": "ngfw",
-      "name": "Sophos XG Firewall",
-      "description": "Sophos XG Firewall logs include detailed records of network traffic, security events, threat detections, firewall rule actions, and connection attempts, for monitoring, troubleshooting, and security analysis.",
-      "pipeline_id": "sophos_xg",
-      "status": "beta",
-      "disabled": false
-    },
-    "fortinet_fortigate": {
-      "product": "fortigate",
-      "vendor": "fortinet",
-      "type": "ngfw",
-      "name": "Fortinet FortiGate Firewall",
-      "description": "Fortinet FortiGate logs include detailed records of network traffic, security events, firewall actions, threat detections, VPN connections.",
-      "pipeline_id": "fortinet_fortigate",
-      "status": "beta",
-      "disabled": false
-    },
-    "fortinet_analyzer": {
-      "product": "analyzer",
-      "vendor": "fortinet",
-      "type": "ngfw",
-      "name": "Fortinet FortiAnalyzer",
-      "description": "Fortinet FortiAnalyzer logs include detailed records of network traffic, security events, device performance, and threat detections, providing centralized visibility and analysis for Fortinet security devices.",
-      "pipeline_id": "fortinet_analyzer",
-      "status": "beta",
-      "disabled": true
-    },
-    "pfsense": {
-      "product": "firewall",
-      "vendor": "pfsense",
-      "type": "ngfw",
-      "name": "PfSense Firewall",
-      "description": "PfSense logs include detailed records of network traffic, firewall rule actions, VPN connections, system events, and security alerts.",
-      "pipeline_id": "pfsense",
-      "status": "beta",
-      "disabled": true
-    },
-    "sonicwall_firewall": {
-      "product": "firewall",
-      "vendor": "sonicwall",
-      "type": "ngfw",
-      "name": "SonicWall Firewall",
-      "description": "SonicWall Firewall logs include detailed records of network traffic, security events, firewall rule actions, intrusion attempts, and connection details.",
-      "pipeline_id": "sonicwall_firewall",
-      "status": "beta",
-      "disabled": true
-    },
-    "cloudgen_firewall": {
-      "product": "cloudgen",
-      "vendor": "baracuda",
-      "type": "ngfw",
-      "name": "Barracuda CloudGen Firewall",
-      "description": "Barracuda CloudGen Firewall logs include detailed records of network traffic, security events, firewall rule actions, VPN connections, and threat detections.",
-      "pipeline_id": "baracuda_cloudgen_firewall",
-      "status": "beta",
-      "disabled": true
-    },
-    "cradlepoint_firewall": {
-      "product": "firewall",
-      "vendor": "cradlepoint",
-      "type": "ngfw",
-      "name": "Cradlepoint Firewall",
-      "description": "Cradlepoint logs include detailed records of network traffic, device status, security events, VPN connections.",
-      "pipeline_id": "cradlepoint_firewall",
-      "status": "beta",
-      "disabled": true
-    },
-    "eagle_firewall": {
-      "product": "firewall",
-      "vendor": "eagle",
-      "type": "ngfw",
-      "name": "Eagle Firewall",
-      "description": "Eagle Firewall logs include detailed records of network traffic, security events, firewall rule actions, intrusion attempts, and connection details.",
-      "pipeline_id": "eagle_firewall",
-      "status": "beta",
-      "disabled": true
-    },
-    "watchguard_firebox": {
-      "product": "firebox",
-      "vendor": "watchguard",
-      "type": "ngfw",
-      "name": "WatchGuard Firebox Firewall",
-      "description": "WatchGuard Firebox logs include detailed records of network traffic, security events, firewall rule actions, threat detections, and connection attempts.",
-      "pipeline_id": "watchguard_firebox",
-      "status": "beta",
-      "disabled": true
-    },
-    "checkpoint_ngav": {
-      "product": "NGAV",
-      "vendor": "checkpoint",
-      "type": "epp",
-      "name": "Check Point NGAV",
-      "description": "Check Point NGAV (Next-Generation Antivirus) logs include detailed records of threat detections, malware activities, blocked attacks, file actions, and security events, for endpoint protection.",
-      "pipeline_id": "checkpoint_ngav",
-      "status": "beta",
-      "disabled": false
-    },
-    "sophos_central": {
-      "product": "central",
-      "vendor": "sophos",
-      "type": "epp",
-      "name": "Sophos Central",
-      "description": "Sophos Central events include detailed records of security events, threat detections, malware activities, firewall actions, and system status, for centralized monitoring.",
-      "pipeline_id": "sophos_central",
-      "status": "beta",
-      "disabled": true
-    },
-    "sophos_interceptx": {
-      "product": "intercept-x",
-      "vendor": "sophos",
-      "type": "epp",
-      "name": "Sophos InterceptX",
-      "description": "Sophos InterceptX logs include detailed records of threat detections, malware actions, exploit prevention events, file modifications, and security incidents, for advanced endpoint protection.",
-      "pipeline_id": "sophos_interceptx",
-      "status": "beta",
-      "disabled": false
-    },
-    "crowdstrike_falcon": {
-      "product": "falcon",
-      "vendor": "crowdstrike",
-      "type": "epp",
-      "name": "Crowdstrike Falcon",
-      "description": "CrowdStrike Falcon logs include detailed records of threat detections, endpoint activities, malware actions, security events, and system behaviors, for real-time threat hunting, incident response, and endpoint protection.",
-      "pipeline_id": "crowdstrike_falcon",
-      "status": "beta",
-      "disabled": false
-    },
-    "sentinel_one": {
-      "product": "sentinelone",
-      "vendor": "sentinelone",
-      "type": "epp",
-      "name": "SentinelOne Endpoint Protection",
-      "description": "SentinelOne logs include detailed records of threat detections, malware activities, behavioral analysis, endpoint security events, and remediation actions, for monitoring.",
-      "pipeline_id": "sentinel_one",
-      "status": "beta",
-      "disabled": false
-    },
-    "defender_endpoint": {
-      "product": "defender-endpoint",
-      "vendor": "microsoft",
-      "type": "epp",
-      "name": "Microsoft Defender Endpoint",
-      "description": "Microsoft Defender for Endpoint logs include detailed records of threat detections, security events, endpoint activities, malware actions, for monitoring and analysis.",
-      "pipeline_id": "defender_endpoint",
-      "status": "beta",
-      "disabled": true
-    },
-    "defender_cloud": {
-      "product": "defender-cloud",
-      "vendor": "microsoft",
-      "type": "epp",
-      "name": "Microsoft Defender Cloud",
-      "description": "Microsoft Defender for Cloud logs include detailed records of security assessments, threat detections, policy violations, and resource configurations, for monitoring, compliance, and incident response across cloud environments.",
-      "pipeline_id": "defender_cloud",
-      "status": "beta",
-      "disabled": true
-    },
-    "symantec_epp": {
-      "product": "epp",
-      "vendor": "symantec",
-      "type": "epp",
-      "name": "Symantec Endpoint Protection",
-      "description": "Symantec Endpoint Protection logs include detailed records of threat detections, malware activities, system behaviors, security events, and remediation actions, for monitoring and analysis.",
-      "pipeline_id": "symantec_epp",
-      "status": "beta",
-      "disabled": false
-    },
-    "trendmicro_apex_central": {
-      "product": "apex-central",
-      "vendor": "trendmicro",
-      "type": "epp",
-      "name": "Trend Micro Apex Central",
-      "description": "Trend Micro Apex Central logs include detailed records of threat detections, malware activities, security events, system alerts, and remediation actions, for centralized monitoring across endpoints and networks.",
-      "pipeline_id": "trendmicro_apex_central",
-      "status": "beta",
-      "disabled": true
-    },
-    "trendmicro_deep_security": {
-      "product": "deep-security",
-      "vendor": "trendmicro",
-      "type": "epp",
-      "name": "Trend Micro Deep Security",
-      "description": "Trend Micro Deep Security logs include detailed records of security events, threat detections, malware actions, firewall rule actions, and system alerts.",
-      "pipeline_id": "trendmicro_deep_security",
-      "status": "beta",
-      "disabled": true
-    },
-    "kaspersky_antivirus": {
-      "product": "antivirus",
-      "vendor": "kaspersky",
-      "type": "epp",
-      "name": "Kaspersky Antivirus",
-      "description": "Kaspersky Antivirus logs include detailed records of malware detections, security events, system scans, quarantine actions, and remediation activities.",
-      "pipeline_id": "kaspersky_antivirus",
-      "status": "beta",
-      "disabled": true
-    },
-    "seqrite_antivirus": {
-      "product": "antivirus",
-      "vendor": "seqrite",
-      "type": "epp",
-      "name": "Seqrite Antivirus",
-      "description": "Seqrite Antivirus logs include detailed records of malware detections, security events, system scans, quarantine actions, and remediation efforts, for endpoint protection.",
-      "pipeline_id": "seqrite_antivirus",
-      "status": "beta",
-      "disabled": true
-    },
-    "cyber20_it": {
-      "product": "cyber20-it",
-      "vendor": "cyber20",
-      "type": "epp",
-      "name": "Cyber20-IT",
-      "description": "Cyber20-IT logs include detailed records of network activities, security events, system alerts.",
-      "pipeline_id": "cyber20_it",
-      "status": "beta",
-      "disabled": true
-    },
-    "cisco_duo": {
-      "product": "duo",
-      "vendor": "cisco",
-      "type": "auth",
-      "name": "Cisco Duo",
-      "description": "Cisco Duo logs include detailed records of user authentication attempts, multi-factor authentication (MFA) events, login status, device information for monitoring and securing access to applications and resources.",
-      "pipeline_id": "cisco_duo",
-      "status": "beta",
-      "disabled": false
-    },
-    "onelogin": {
-      "product": "onelogin",
-      "vendor": "onelogin",
-      "type": "auth",
-      "name": "OneLogin",
-      "description": "OneLogin audit logs include detailed records of user logins, authentication attempts, access events, role changes, and administrative actions, for monitoring and securing identity and access management activities.",
-      "pipeline_id": "onelogin",
-      "status": "beta",
-      "disabled": true
-    },
-    "keycloak": {
-      "product": "keycloak",
-      "vendor": "keycloak",
-      "type": "auth",
-      "name": "Keycloak",
-      "description": "Keycloak Audit logs include detailed records of user authentication, authorization events, login attempts, role assignments, and administrative actions, for monitoring access control and security events within identity and access management.",
-      "pipeline_id": "keycloak",
-      "status": "beta",
-      "disabled": true
-    },
-    "okta": {
-      "product": "okta",
-      "vendor": "okta",
-      "type": "auth",
-      "name": "Okta",
-      "description": "Okta Identity logs include detailed records of user authentication, login attempts, application access, role changes, and administrative actions, for monitoring, auditing, and securing identity and access management.",
-      "pipeline_id": "okta",
-      "status": "beta",
-      "disabled": true
-    },
-    "cisco_ise": {
-      "product": "ise",
-      "vendor": "cisco",
-      "type": "nac",
-      "name": "Cisco Identity Services Engine (ISE)",
-      "description": "Cisco Identity Services Engine (ISE) logs include detailed records of authentication, authorization, accounting (AAA) events, device profiling, policy enforcement, and network access control actions.",
-      "pipeline_id": "cisco_ise",
-      "status": "beta",
-      "disabled": false
-    },
-    "mimecast_email_security": {
-      "product": "email-security",
-      "vendor": "mimecast",
-      "type": "proxy-mail",
-      "name": "Mimecast Email Security",
-      "description": "Mimecast Email Security logs include detailed records of email traffic, spam filtering actions, malware detections, policy enforcement, and security events.",
-      "pipeline_id": "mimecast_email_security",
-      "status": "beta",
-      "disabled": false
-    },
-    "cisco_secure_email_gateway": {
-      "product": "secure-email-gateway",
-      "vendor": "cisco",
-      "type": "proxy-mail",
-      "name": "Cisco Secure Email Gateway",
-      "description": "Cisco Secure Email Gateway logs include detailed records of inbound and outbound email traffic, spam filtering actions, malware detections, email delivery status, and security events.",
-      "pipeline_id": "cisco_secure_email_gateway",
-      "status": "beta",
-      "disabled": false
-    },
-    "forcepoint_web": {
-      "product": "web-security",
-      "vendor": "forcepoint",
-      "type": "proxy-web",
-      "name": "Forcepoint Web Security",
-      "description": "Forcepoint Web Security logs include detailed records of web traffic, user activities, URL filtering actions, security events, threat detections, and policy enforcement.",
-      "pipeline_id": "forcepoint_web",
-      "status": "beta",
-      "disabled": false
-    },
-    "zscaler_zia": {
-      "product": "zia",
-      "vendor": "zscaler",
-      "type": "proxy-web",
-      "name": "Zscaler Internet Access",
-      "description": "Zscaler Internet Access (ZIA) logs include detailed records of web traffic, user activities, and security events.",
-      "pipeline_id": "zscaler_zia",
-      "status": "beta",
-      "disabled": false
-    },
-    "cisco_umbrella": {
-      "product": "umbrella",
-      "vendor": "cisco",
-      "type": "dns",
-      "name": "Cisco Umbrella",
-      "description": "Cisco Umbrella logs include detailed records of DNS requests, web traffic, blocked domains, security events for monitoring and protecting against online threats and malicious activities.",
-      "pipeline_id": "cisco_umbrella",
-      "status": "beta",
-      "disabled": true
-    }
+  "winevtlogs": {
+    "product": "windows",
+    "vendor": "microsoft",
+    "type": "windows",
+    "name": "Microsoft Windows",
+    "description": "Microsoft Windows Events",
+    "pipeline_id": "winevtlogs",
+    "status": "beta",
+    "disabled": false
+  },
+  "microsoft_dns": {
+    "product": "dns",
+    "vendor": "microsoft",
+    "type": "dns",
+    "name": "Microsoft DNS Server",
+    "description": "Microsoft DNS Server logs",
+    "pipeline_id": "microsoft_dns",
+    "status": "beta",
+    "disabled": false
+  },
+  "microsoft_dhcp": {
+    "product": "dhcp",
+    "vendor": "microsoft",
+    "type": "dhcp",
+    "name": "Microsoft DHCP",
+    "description": "Microsoft DHCP logs",
+    "pipeline_id": "microsoft_dhcp",
+    "status": "beta",
+    "disabled": false
+  },
+  "microsoft_iis": {
+    "product": "iis",
+    "vendor": "microsoft",
+    "type": "webserver",
+    "name": "Microsoft IIS",
+    "description": "Microsoft IIS Logs",
+    "pipeline_id": "microsoft_iis",
+    "status": "beta",
+    "disabled": false
+  },
+  "auditd": {
+    "product": "auditd",
+    "vendor": "linux",
+    "type": "linux",
+    "name": "Linux",
+    "description": "Linux audit daemon logs include detailed records of system calls, file accesses, authentication attempts, and other security-relevant events for auditing and monitoring purposes.",
+    "pipeline_id": "auditd",
+    "status": "beta",
+    "disabled": false
+  },
+  "syslog": {
+    "product": "syslog",
+    "vendor": "linux",
+    "type": "linux",
+    "name": "Linux Syslog",
+    "description": "Linux syslog logs include system messages related to system processes, authentication events, and application logs.",
+    "pipeline_id": "syslog",
+    "status": "beta",
+    "disabled": false
+  },
+  "azure_auditlogs": {
+    "product": "auditlogs",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Azure Active-Directory Auditlogs",
+    "description": "Azure Audit logs include records of all changes made to AAD resources, such as user and group management activities, application updates, and directory configuration changes.",
+    "pipeline_id": "azure_auditlogs",
+    "status": "beta",
+    "disabled": false
+  },
+  "azure_signinlogs": {
+    "product": "signinlogs",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Azure Active-Directory Signinlogs",
+    "description": "Azure Sign-in logs include information about user sign-in activities, such as user identity, timestamp, sign-in status, IP address, client application used, and location.",
+    "pipeline_id": "azure_signinlogs",
+    "status": "beta",
+    "disabled": false
+  },
+  "azure_activitylogs": {
+    "product": "activitylogs",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Azure Active-Directory Activity logs",
+    "description": "Azure Activity logs include details on user, application usage, administrative activities, conditional access, and risk detections.",
+    "pipeline_id": "azure_activitylogs",
+    "status": "beta",
+    "disabled": false
+  },
+  "azure_provisioninglogs": {
+    "product": "provisioninglogs",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Azure Active-Directory Provisioning logs",
+    "description": "Azure Provisioning logs include detailed records of user and service provisioning activities, including resource creation, modification, status, and timestamps.",
+    "pipeline_id": "azure_provisioninglogs",
+    "status": "beta",
+    "disabled": false
+  },
+  "azure_firewall": {
+    "product": "firewall",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Azure Firewall",
+    "description": "Azure Firewall logs include detailed records of network traffic, including allowed and denied connections, source and destination IPs, ports, protocols, and timestamps for security monitoring and analysis.",
+    "pipeline_id": "azure_firewall",
+    "status": "beta",
+    "disabled": true
+  },
+  "azure_application_gateway": {
+    "product": "application-gateway",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Azure Application Gateway",
+    "description": "Azure Application Gateway logs include detailed records of web traffic, including request URLs, client IPs, response status, latency, for monitoring web applications.",
+    "pipeline_id": "azure_application_gateway",
+    "status": "beta",
+    "disabled": true
+  },
+  "azure_identity_protection": {
+    "product": "identity-protection",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Azure Identity Protection",
+    "description": "Azure Identity Protection logs include detailed records of risky sign-ins, user risk levels, detected vulnerabilities, and remediation actions to help secure user identities and prevent unauthorized access.",
+    "pipeline_id": "azure_identity_protection",
+    "status": "beta",
+    "disabled": true
+  },
+  "o365_audit": {
+    "product": "o365",
+    "vendor": "microsoft",
+    "type": "cloud-azure",
+    "name": "Office-365 Audit",
+    "description": "Microsoft 365 Audit logs include detailed records of user activities, such as login attempts, file accesses, email actions, and administrative changes.",
+    "pipeline_id": "o365_audit",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_cloudtrail": {
+    "product": "cloudtrail",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Cloudtrail",
+    "description": "Amazon CloudTrail logs provide detailed information on AWS API calls, including request parameters, timestamps, and user identities, for auditing and security analysis.",
+    "pipeline_id": "aws_cloudtrail",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_waf": {
+    "product": "waf",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Web Application Firewall (WAF)",
+    "description": "Amazon WAF logs provide detailed information on HTTP requests, blocked or allowed traffic, rule evaluations, and security events.",
+    "pipeline_id": "aws_waf",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_elb": {
+    "product": "elb",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS ElasticLoad Balancer",
+    "description": "Amazon ElasticLoad Balancer logs provide detailed information on HTTP/S request activities, including client IPs, request paths, response statuses, and latency metrics for monitoring and analysis.",
+    "pipeline_id": "aws_elb",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_vpcflow": {
+    "product": "vpcflow",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS VPCflow",
+    "description": "Amazon VPC-Flow logs capture and send detailed records of network traffic flow within and between VPCs, including source and destination IP addresses, ports, and traffic acceptance or rejection.",
+    "pipeline_id": "aws_vpcflow",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_guardduty": {
+    "product": "guardduty",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Guardduty",
+    "description": "Amazon Guardduty Logs include security findings related to suspicious activity, unauthorized access, and potential threats detected in AWS environments.",
+    "pipeline_id": "aws_guardduty",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_inspector": {
+    "product": "inspector",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Inspector",
+    "description": "Amazon Inspector logs include detailed findings of security vulnerabilities, configuration issues, and compliance violations identified during automated assessments of AWS resources.",
+    "pipeline_id": "aws_inspector",
+    "status": "beta",
+    "disabled": true
+  },
+  "aws_cloudwatch": {
+    "product": "cloudwatch",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Cloudwatch",
+    "description": "AWS CloudWatch logs include detailed records of system and application events, including performance metrics, error messages, and operational data for monitoring and troubleshooting AWS resources.",
+    "pipeline_id": "aws_cloudwatch",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_cloudfront": {
+    "product": "cloudfront",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Cloudfront",
+    "description": "AWS CloudFront logs include detailed records of HTTP/HTTPS requests made to CloudFront distributions, including requesters' IP addresses, requested URLs, response status.",
+    "pipeline_id": "aws_cloudfront",
+    "status": "beta",
+    "disabled": true
+  },
+  "aws_securityhub": {
+    "product": "securityhub",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Security Hub",
+    "description": "AWS Security Hub logs aggregate security findings, enabling efficient monitoring and response to threats across AWS environment.",
+    "pipeline_id": "aws_securityhub",
+    "status": "beta",
+    "disabled": true
+  },
+  "aws_s3access": {
+    "product": "s3access",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS S3 Access",
+    "description": "AWS S3 Access logs include detailed records of requests made to S3 buckets, such as requester information, request type, response status, and timestamps.",
+    "pipeline_id": "aws_s3access",
+    "status": "beta",
+    "disabled": true
+  },
+  "aws_route53": {
+    "product": "route53",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Route53",
+    "description": "AWS Route 53 logs include detailed records of DNS queries, including domain names queried, response types, and query timestamps for monitoring and analysis.",
+    "pipeline_id": "aws_route53",
+    "status": "beta",
+    "disabled": true
+  },
+  "checkpoint_firewall": {
+    "product": "firewall",
+    "vendor": "checkpoint",
+    "type": "ngfw",
+    "name": "Checkpoint Firewall",
+    "description": "Checkpoint Firewall logs include detailed records of network traffic, security events, allowed and blocked connections, source and destination IPs for security monitoring.",
+    "pipeline_id": "checkpoint_firewall",
+    "status": "beta",
+    "disabled": false
+  },
+  "paloalto_firewall": {
+    "product": "firewall",
+    "vendor": "paloalto",
+    "type": "ngfw",
+    "name": "PaloAlto Firewall",
+    "description": "Palo Alto Firewall logs include detailed records of network traffic, security events, allowed and blocked connections, threat detections, and timestamps, for monitoring and analyzing network security.",
+    "pipeline_id": "paloalto_firewall",
+    "status": "beta",
+    "disabled": false
+  },
+  "cisco_meraki": {
+    "product": "meraki-firewall",
+    "vendor": "cisco",
+    "type": "ngfw",
+    "name": "Cisco Meraki Firewall",
+    "description": "Cisco Meraki Firewall logs include detailed records of network traffic, firewall rule actions, allowed and blocked connections, source and destination IPs, and timestamps, for security monitoring and troubleshooting.",
+    "pipeline_id": "cisco_meraki",
+    "status": "beta",
+    "disabled": false
+  },
+  "cisco_asa": {
+    "product": "cisco-asa",
+    "vendor": "cisco",
+    "type": "ngfw",
+    "name": "Cisco ASA Firewall",
+    "description": "Cisco ASA Firewall logs include detailed records of network traffic, security events, connection attempts, access control actions, and threat detections, for monitoring, and security analysis.",
+    "pipeline_id": "cisco_asa",
+    "status": "beta",
+    "disabled": true
+  },
+  "cisco_ftd": {
+    "product": "firepower-threat-defense",
+    "vendor": "cisco",
+    "cisco": "ngfw",
+    "name": "Cisco Firepower Threat Defense",
+    "description": "Cisco Firepower Threat Defense logs include detailed records of network traffic, security events, intrusion detections, firewall actions, and threats blocked, for monitoring, and analysis.",
+    "pipeline_id": "cisco_ftd",
+    "status": "beta",
+    "disabled": true
+  },
+  "sophos_xg": {
+    "product": "xg",
+    "vendor": "sophos",
+    "type": "ngfw",
+    "name": "Sophos XG Firewall",
+    "description": "Sophos XG Firewall logs include detailed records of network traffic, security events, threat detections, firewall rule actions, and connection attempts, for monitoring, troubleshooting, and security analysis.",
+    "pipeline_id": "sophos_xg",
+    "status": "beta",
+    "disabled": false
+  },
+  "fortinet_fortigate": {
+    "product": "fortigate",
+    "vendor": "fortinet",
+    "type": "ngfw",
+    "name": "Fortinet FortiGate Firewall",
+    "description": "Fortinet FortiGate logs include detailed records of network traffic, security events, firewall actions, threat detections, VPN connections.",
+    "pipeline_id": "fortinet_fortigate",
+    "status": "beta",
+    "disabled": false
+  },
+  "fortinet_analyzer": {
+    "product": "analyzer",
+    "vendor": "fortinet",
+    "type": "ngfw",
+    "name": "Fortinet FortiAnalyzer",
+    "description": "Fortinet FortiAnalyzer logs include detailed records of network traffic, security events, device performance, and threat detections, providing centralized visibility and analysis for Fortinet security devices.",
+    "pipeline_id": "fortinet_analyzer",
+    "status": "beta",
+    "disabled": true
+  },
+  "pfsense": {
+    "product": "firewall",
+    "vendor": "pfsense",
+    "type": "ngfw",
+    "name": "PfSense Firewall",
+    "description": "PfSense logs include detailed records of network traffic, firewall rule actions, VPN connections, system events, and security alerts.",
+    "pipeline_id": "pfsense",
+    "status": "beta",
+    "disabled": true
+  },
+  "sonicwall_firewall": {
+    "product": "firewall",
+    "vendor": "sonicwall",
+    "type": "ngfw",
+    "name": "SonicWall Firewall",
+    "description": "SonicWall Firewall logs include detailed records of network traffic, security events, firewall rule actions, intrusion attempts, and connection details.",
+    "pipeline_id": "sonicwall_firewall",
+    "status": "beta",
+    "disabled": true
+  },
+  "cloudgen_firewall": {
+    "product": "cloudgen",
+    "vendor": "baracuda",
+    "type": "ngfw",
+    "name": "Barracuda CloudGen Firewall",
+    "description": "Barracuda CloudGen Firewall logs include detailed records of network traffic, security events, firewall rule actions, VPN connections, and threat detections.",
+    "pipeline_id": "baracuda_cloudgen_firewall",
+    "status": "beta",
+    "disabled": true
+  },
+  "cradlepoint_firewall": {
+    "product": "firewall",
+    "vendor": "cradlepoint",
+    "type": "ngfw",
+    "name": "Cradlepoint Firewall",
+    "description": "Cradlepoint logs include detailed records of network traffic, device status, security events, VPN connections.",
+    "pipeline_id": "cradlepoint_firewall",
+    "status": "beta",
+    "disabled": true
+  },
+  "eagle_firewall": {
+    "product": "firewall",
+    "vendor": "eagle",
+    "type": "ngfw",
+    "name": "Eagle Firewall",
+    "description": "Eagle Firewall logs include detailed records of network traffic, security events, firewall rule actions, intrusion attempts, and connection details.",
+    "pipeline_id": "eagle_firewall",
+    "status": "beta",
+    "disabled": true
+  },
+  "watchguard_firebox": {
+    "product": "firebox",
+    "vendor": "watchguard",
+    "type": "ngfw",
+    "name": "WatchGuard Firebox Firewall",
+    "description": "WatchGuard Firebox logs include detailed records of network traffic, security events, firewall rule actions, threat detections, and connection attempts.",
+    "pipeline_id": "watchguard_firebox",
+    "status": "beta",
+    "disabled": true
+  },
+  "checkpoint_ngav": {
+    "product": "ngav",
+    "vendor": "checkpoint",
+    "type": "epp",
+    "name": "Check Point NGAV",
+    "description": "Check Point NGAV (Next-Generation Antivirus) logs include detailed records of threat detections, malware activities, blocked attacks, file actions, and security events, for endpoint protection.",
+    "pipeline_id": "checkpoint_ngav",
+    "status": "beta",
+    "disabled": false
+  },
+  "checkpoint_harmony_endpoint": {
+    "product": "harmony-endpoint",
+    "vendor": "checkpoint",
+    "type": "epp",
+    "name": "Check Point Harmony Endpoint",
+    "description": "CheckPoint Harmony Endpoint logs include detailed records of threat detections, malware activities, security events, system behaviors, and remediation actions, for advanced endpoint protection.",
+    "pipeline_id": "checkpoint_harmony_endpoint",
+    "status": "beta",
+    "disabled": false
+  },
+  "sophos_central": {
+    "product": "central",
+    "vendor": "sophos",
+    "type": "epp",
+    "name": "Sophos Central",
+    "description": "Sophos Central events include detailed records of security events, threat detections, malware activities, firewall actions, and system status, for centralized monitoring.",
+    "pipeline_id": "sophos_central",
+    "status": "beta",
+    "disabled": true
+  },
+  "sophos_interceptx": {
+    "product": "intercept-x",
+    "vendor": "sophos",
+    "type": "epp",
+    "name": "Sophos InterceptX",
+    "description": "Sophos InterceptX logs include detailed records of threat detections, malware actions, exploit prevention events, file modifications, and security incidents, for advanced endpoint protection.",
+    "pipeline_id": "sophos_interceptx",
+    "status": "beta",
+    "disabled": false
+  },
+  "crowdstrike_falcon": {
+    "product": "falcon",
+    "vendor": "crowdstrike",
+    "type": "epp",
+    "name": "Crowdstrike Falcon",
+    "description": "CrowdStrike Falcon logs include detailed records of threat detections, endpoint activities, malware actions, security events, and system behaviors, for real-time threat hunting, incident response, and endpoint protection.",
+    "pipeline_id": "crowdstrike_falcon",
+    "status": "beta",
+    "disabled": false
+  },
+  "sentinel_one": {
+    "product": "sentinelone",
+    "vendor": "sentinelone",
+    "type": "epp",
+    "name": "SentinelOne Endpoint Protection",
+    "description": "SentinelOne logs include detailed records of threat detections, malware activities, behavioral analysis, endpoint security events, and remediation actions, for monitoring.",
+    "pipeline_id": "sentinel_one",
+    "status": "beta",
+    "disabled": false
+  },
+  "defender_endpoint": {
+    "product": "defender-endpoint",
+    "vendor": "microsoft",
+    "type": "epp",
+    "name": "Microsoft Defender Endpoint",
+    "description": "Microsoft Defender for Endpoint logs include detailed records of threat detections, security events, endpoint activities, malware actions, for monitoring and analysis.",
+    "pipeline_id": "defender_endpoint",
+    "status": "beta",
+    "disabled": true
+  },
+  "defender_cloud": {
+    "product": "defender-cloud",
+    "vendor": "microsoft",
+    "type": "epp",
+    "name": "Microsoft Defender Cloud",
+    "description": "Microsoft Defender for Cloud logs include detailed records of security assessments, threat detections, policy violations, and resource configurations, for monitoring, compliance, and incident response across cloud environments.",
+    "pipeline_id": "defender_cloud",
+    "status": "beta",
+    "disabled": true
+  },
+  "symantec_epp": {
+    "product": "epp",
+    "vendor": "symantec",
+    "type": "epp",
+    "name": "Symantec Endpoint Protection",
+    "description": "Symantec Endpoint Protection logs include detailed records of threat detections, malware activities, system behaviors, security events, and remediation actions, for monitoring and analysis.",
+    "pipeline_id": "symantec_epp",
+    "status": "beta",
+    "disabled": false
+  },
+  "trendmicro_apex_central": {
+    "product": "apex-central",
+    "vendor": "trendmicro",
+    "type": "epp",
+    "name": "Trend Micro Apex Central",
+    "description": "Trend Micro Apex Central logs include detailed records of threat detections, malware activities, security events, system alerts, and remediation actions, for centralized monitoring across endpoints and networks.",
+    "pipeline_id": "trendmicro_apex_central",
+    "status": "beta",
+    "disabled": true
+  },
+  "trendmicro_deep_security": {
+    "product": "deep-security",
+    "vendor": "trendmicro",
+    "type": "epp",
+    "name": "Trend Micro Deep Security",
+    "description": "Trend Micro Deep Security logs include detailed records of security events, threat detections, malware actions, firewall rule actions, and system alerts.",
+    "pipeline_id": "trendmicro_deep_security",
+    "status": "beta",
+    "disabled": true
+  },
+  "kaspersky_antivirus": {
+    "product": "antivirus",
+    "vendor": "kaspersky",
+    "type": "epp",
+    "name": "Kaspersky Antivirus",
+    "description": "Kaspersky Antivirus logs include detailed records of malware detections, security events, system scans, quarantine actions, and remediation activities.",
+    "pipeline_id": "kaspersky_antivirus",
+    "status": "beta",
+    "disabled": true
+  },
+  "seqrite_antivirus": {
+    "product": "antivirus",
+    "vendor": "seqrite",
+    "type": "epp",
+    "name": "Seqrite Antivirus",
+    "description": "Seqrite Antivirus logs include detailed records of malware detections, security events, system scans, quarantine actions, and remediation efforts, for endpoint protection.",
+    "pipeline_id": "seqrite_antivirus",
+    "status": "beta",
+    "disabled": true
+  },
+  "cyber20_it": {
+    "product": "cyber20-it",
+    "vendor": "cyber20",
+    "type": "epp",
+    "name": "Cyber20-IT",
+    "description": "Cyber20-IT logs include detailed records of network activities, security events, system alerts.",
+    "pipeline_id": "cyber20_it",
+    "status": "beta",
+    "disabled": true
+  },
+  "suricata": {
+    "product": "suricata",
+    "vendor": "suricata",
+    "type": "ips",
+    "name": "Suricata IDS/IPS",
+    "description": "Suricata logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
+    "pipeline_id": "suricata",
+    "status": "beta",
+    "disabled": false
+  },
+  "paf_alerts": {
+    "product": "paf",
+    "vendor": "blusapphire",
+    "type": "ips",
+    "name": "Packet Analysis Framework (PAF)",
+    "description": "Packet Analysis Framework (PAF) logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
+    "pipeline_id": "paf_alerts",
+    "status": "beta",
+    "disabled": false
+  },
+  "nbad": {
+    "product": "naf",
+    "vendor": "blusapphire",
+    "type": "nbad",
+    "name": "Network Behavior Anomaly Detection (NBAD)",
+    "description": "Network Behavior Anomaly Detection (NBAD) monitors network traffic to identify unusual patterns or behaviors that could indicate potential security threats.",
+    "pipeline_id": "nbad",
+    "status": "beta",
+    "disabled": false
+  },
+  "zeek": {
+    "product": "zeek",
+    "vendor": "zeek",
+    "type": "zeek",
+    "name": "Zeek",
+    "description": "Zeek monitors network traffic to identify unusual patterns or behaviors that could indicate potential security threats.",
+    "pipeline_id": "zeek",
+    "status": "beta",
+    "disabled": false
+  },
+  "netflow": {
+    "product": "flow",
+    "vendor": "blusapphire",
+    "type": "flow",
+    "name": "Netflow",
+    "description": "Netflow logs record network traffic flow data, including source and destination IPs, ports, protocols, for monitoring and analysis.",
+    "pipeline_id": "netflow",
+    "status": "beta",
+    "disabled": false
+  },
+  "cisco_duo": {
+    "product": "duo",
+    "vendor": "cisco",
+    "type": "auth",
+    "name": "Cisco Duo",
+    "description": "Cisco Duo logs include detailed records of user authentication attempts, multi-factor authentication (MFA) events, login status, device information for monitoring and securing access to applications and resources.",
+    "pipeline_id": "cisco_duo",
+    "status": "beta",
+    "disabled": false
+  },
+  "onelogin": {
+    "product": "onelogin",
+    "vendor": "onelogin",
+    "type": "auth",
+    "name": "OneLogin",
+    "description": "OneLogin audit logs include detailed records of user logins, authentication attempts, access events, role changes, and administrative actions, for monitoring and securing identity and access management activities.",
+    "pipeline_id": "onelogin",
+    "status": "beta",
+    "disabled": true
+  },
+  "keycloak": {
+    "product": "keycloak",
+    "vendor": "keycloak",
+    "type": "auth",
+    "name": "Keycloak",
+    "description": "Keycloak Audit logs include detailed records of user authentication, authorization events, login attempts, role assignments, and administrative actions, for monitoring access control and security events within identity and access management.",
+    "pipeline_id": "keycloak",
+    "status": "beta",
+    "disabled": true
+  },
+  "okta": {
+    "product": "okta",
+    "vendor": "okta",
+    "type": "auth",
+    "name": "Okta",
+    "description": "Okta Identity logs include detailed records of user authentication, login attempts, application access, role changes, and administrative actions, for monitoring, auditing, and securing identity and access management.",
+    "pipeline_id": "okta",
+    "status": "beta",
+    "disabled": true
+  },
+  "cisco_ise": {
+    "product": "ise",
+    "vendor": "cisco",
+    "type": "nac",
+    "name": "Cisco Identity Services Engine (ISE)",
+    "description": "Cisco Identity Services Engine (ISE) logs include detailed records of authentication, authorization, accounting (AAA) events, device profiling, policy enforcement, and network access control actions.",
+    "pipeline_id": "cisco_ise",
+    "status": "beta",
+    "disabled": false
+  },
+  "mimecast_email_security": {
+    "product": "email-security",
+    "vendor": "mimecast",
+    "type": "proxy-mail",
+    "name": "Mimecast Email Security",
+    "description": "Mimecast Email Security logs include detailed records of email traffic, spam filtering actions, malware detections, policy enforcement, and security events.",
+    "pipeline_id": "mimecast_email_security",
+    "status": "beta",
+    "disabled": false
+  },
+  "cisco_secure_email_gateway": {
+    "product": "secure-email-gateway",
+    "vendor": "cisco",
+    "type": "proxy-mail",
+    "name": "Cisco Secure Email Gateway",
+    "description": "Cisco Secure Email Gateway logs include detailed records of inbound and outbound email traffic, spam filtering actions, malware detections, email delivery status, and security events.",
+    "pipeline_id": "cisco_secure_email_gateway",
+    "status": "beta",
+    "disabled": false
+  },
+  "forcepoint_web": {
+    "product": "web-security",
+    "vendor": "forcepoint",
+    "type": "proxy-web",
+    "name": "Forcepoint Web Security",
+    "description": "Forcepoint Web Security logs include detailed records of web traffic, user activities, URL filtering actions, security events, threat detections, and policy enforcement.",
+    "pipeline_id": "forcepoint_web",
+    "status": "beta",
+    "disabled": false
+  },
+  "zscaler_zia": {
+    "product": "zia",
+    "vendor": "zscaler",
+    "type": "proxy-web",
+    "name": "Zscaler Internet Access",
+    "description": "Zscaler Internet Access (ZIA) logs include detailed records of web traffic, user activities, and security events.",
+    "pipeline_id": "zscaler_zia",
+    "status": "beta",
+    "disabled": false
+  },
+  "cisco_umbrella": {
+    "product": "umbrella",
+    "vendor": "cisco",
+    "type": "dns",
+    "name": "Cisco Umbrella",
+    "description": "Cisco Umbrella logs include detailed records of DNS requests, web traffic, blocked domains, security events for monitoring and protecting against online threats and malicious activities.",
+    "pipeline_id": "cisco_umbrella",
+    "status": "beta",
+    "disabled": true
+  },
+  "microsoft_sqlserver": {
+    "product": "sqlserver",
+    "vendor": "microsoft",
+    "type": "db",
+    "name": "Microsoft SQL Server",
+    "description": "Microsoft SQL Server logs capture auditing events from the specified Windows event log channel.",
+    "pipeline_id": "microsoft_sqlserver",
+    "status": "beta",
+    "disabled": true
+  },
+  "mysql_enterprise": {
+    "product": "mysql",
+    "vendor": "oracle",
+    "type": "db",
+    "name": "MySQL Enterprise",
+    "description": "MySQL Enterprise logs include database audit activities, user access.",
+    "pipeline_id": "mysql_enterprise",
+    "status": "beta",
+    "disabled": true
+  },
+  "hpe_esxi": {
+    "product": "esxi",
+    "vendor": "hpe",
+    "type": "virtual",
+    "name": "HPE ESXI",
+    "description": "HPE ESXi logs include system events, virtual machine activity, and hardware health for monitoring.",
+    "pipeline_id": "hpe_esxi",
+    "status": "beta",
+    "disabled": true
   }
-  
-
+}
