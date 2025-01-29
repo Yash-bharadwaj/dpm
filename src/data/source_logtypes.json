@@ -529,23 +529,13 @@
     "status": "beta",
     "disabled": true
   },
-  "suricata": {
-    "product": "suricata",
-    "vendor": "suricata",
-    "type": "ips",
-    "name": "Suricata IDS/IPS",
-    "description": "Suricata logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
-    "pipeline_id": "suricata",
-    "status": "beta",
-    "disabled": false
-  },
-  "paf_alerts": {
-    "product": "paf",
+  "netflow": {
+    "product": "flow",
     "vendor": "blusapphire",
-    "type": "ips",
-    "name": "Packet Analysis Framework (PAF)",
-    "description": "Packet Analysis Framework (PAF) logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
-    "pipeline_id": "paf_alerts",
+    "type": "flow",
+    "name": "Netflow",
+    "description": "Netflow logs record network traffic flow data, including source and destination IPs, ports, protocols, for monitoring and analysis.",
+    "pipeline_id": "netflow",
     "status": "beta",
     "disabled": false
   },
@@ -559,23 +549,23 @@
     "status": "beta",
     "disabled": false
   },
-  "zeek": {
-    "product": "zeek",
-    "vendor": "zeek",
-    "type": "zeek",
-    "name": "Zeek",
-    "description": "Zeek monitors network traffic to identify unusual patterns or behaviors that could indicate potential security threats.",
-    "pipeline_id": "zeek",
+  "paf_alerts": {
+    "product": "paf",
+    "vendor": "blusapphire",
+    "type": "ips",
+    "name": "Packet Analysis Framework (PAF)",
+    "description": "Packet Analysis Framework (PAF) logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
+    "pipeline_id": "paf_alerts",
     "status": "beta",
     "disabled": false
   },
-  "netflow": {
-    "product": "flow",
-    "vendor": "blusapphire",
-    "type": "flow",
-    "name": "Netflow",
-    "description": "Netflow logs record network traffic flow data, including source and destination IPs, ports, protocols, for monitoring and analysis.",
-    "pipeline_id": "netflow",
+  "suricata": {
+    "product": "suricata",
+    "vendor": "suricata",
+    "type": "ips",
+    "name": "Suricata IDS/IPS",
+    "description": "Suricata logs record network traffic, security events, intrusion attempts, threats, and system alerts for monitoring and analysis.",
+    "pipeline_id": "suricata",
     "status": "beta",
     "disabled": false
   },
@@ -698,6 +688,16 @@
     "pipeline_id": "mysql_enterprise",
     "status": "beta",
     "disabled": true
+  },
+  "postgresql_database": {
+    "product": "database",
+    "vendor": "PostgreSQL",
+    "type": "db",
+    "name": "PostgreSQL Database",
+    "description": "PostgreSQL Database logs",
+    "pipeline_id": "postgresql_database",
+    "status": "beta",
+    "disabled": false
   },
   "hpe_esxi": {
     "product": "esxi",

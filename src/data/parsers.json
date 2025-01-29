@@ -794,17 +794,19 @@
           "type": "db",
           "name": "Oracle Database",
           "description": "Oracle Database logs include database activities, user access, error.",
-          "pipeline_id": "mysql_enterprise",
+          "pipeline_id": "oracle_database",
           "status": "beta",
-          "disabled": false
+          "disabled": true
         },
         {
-          "name": "Oracle Database Logs",
-          "description": "Oracle Database logs",
-          "type": "db",
-          "vendor": "oracle",
           "product": "database",
-          "disabled": true
+          "vendor": "PostgreSQL",
+          "type": "db",
+          "name": "PostgreSQL Database",
+          "description": "PostgreSQL Database logs",
+          "pipeline_id": "postgresql_database",
+          "status": "beta",
+          "disabled": false
         }
       ],
       "input_sources": ["Filebeat", "Syslog-tcp", "Amazon S3"]
@@ -966,12 +968,14 @@
       "uuid": "netflow",
       "source": [
         {
-          "name": "Flow Data",
-          "description": "Flow logs encompass detailed records of network traffic, including source and destination IPs, ports, protocols, and traffic volume.",
+          "product": "flow",
+          "vendor": "blusapphire",
           "type": "flow",
-          "vendor": "flow",
-          "product": "ipfix",
-          "disabled": true
+          "name": "Netflow",
+          "description": "Netflow logs record network traffic flow data, including source and destination IPs, ports, protocols, for monitoring and analysis.",
+          "pipeline_id": "netflow",
+          "status": "beta",
+          "disabled": false
         }
       ],
       "input_sources": [
