@@ -111,6 +111,26 @@
           "disabled": true
         },
         {
+          "product": "securityhub",
+          "vendor": "aws",
+          "type": "cloud-aws",
+          "name": "AWS Security Hub",
+          "description": "AWS Security Hub logs aggregate security findings, enabling efficient monitoring and response to threats across AWS environment.",
+          "pipeline_id": "aws_securityhub",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "inspector",
+          "vendor": "aws",
+          "type": "cloud-aws",
+          "name": "AWS Inspector",
+          "description": "Amazon Inspector logs include detailed findings of security vulnerabilities, configuration issues, and compliance violations identified during automated assessments of AWS resources.",
+          "pipeline_id": "aws_inspector",
+          "status": "beta",
+          "disabled": true
+        },
+        {
           "product": "s3access",
           "vendor": "aws",
           "type": "cloud-aws",
@@ -127,16 +147,6 @@
           "name": "AWS Route53",
           "description": "AWS Route 53 logs include detailed records of DNS queries, including domain names queried, response types, and query timestamps for monitoring and analysis.",
           "pipeline_id": "aws_route53",
-          "status": "beta",
-          "disabled": false
-        },
-        {
-          "product": "inspector",
-          "vendor": "aws",
-          "type": "cloud-aws",
-          "name": "AWS Inspector",
-          "description": "Amazon Inspector logs include detailed findings of security vulnerabilities, configuration issues, and compliance violations identified during automated assessments of AWS resources.",
-          "pipeline_id": "aws_inspector",
           "status": "beta",
           "disabled": true
         }
@@ -195,7 +205,7 @@
           "description": "Azure Firewall logs include detailed records of network traffic, including allowed and denied connections, source and destination IPs, ports, protocols, and timestamps for security monitoring and analysis.",
           "pipeline_id": "azure_firewall",
           "status": "beta",
-          "disabled": true
+          "disabled": false
         },
         {
           "product": "application-gateway",
@@ -205,7 +215,7 @@
           "description": "Azure Application Gateway logs include detailed records of web traffic, including request URLs, client IPs, response status, latency, for monitoring web applications.",
           "pipeline_id": "azure_application_gateway",
           "status": "beta",
-          "disabled": true
+          "disabled": false
         },
         {
           "product": "identity-protection",
@@ -279,7 +289,7 @@
           "description": "Cisco ASA Firewall logs include detailed records of network traffic, security events, connection attempts, access control actions, and threat detections, for monitoring, and security analysis.",
           "pipeline_id": "cisco_asa",
           "status": "beta",
-          "disabled": true
+          "disabled": false
         },
         {
           "product": "firepower-threat-defense",
@@ -289,7 +299,7 @@
           "description": "Cisco Firepower Threat Defense logs include detailed records of network traffic, security events, intrusion detections, firewall actions, and threats blocked, for monitoring, and analysis.",
           "pipeline_id": "cisco_ftd",
           "status": "beta",
-          "disabled": true
+          "disabled": false
         },
         {
           "product": "xg",
@@ -395,12 +405,22 @@
       "uuid": "epp",
       "source": [
         {
-          "product": "NGAV",
+          "product": "ngav",
           "vendor": "checkpoint",
           "type": "epp",
           "name": "Check Point NGAV",
           "description": "Check Point NGAV (Next-Generation Antivirus) logs include detailed records of threat detections, malware activities, blocked attacks, file actions, and security events, for endpoint protection.",
           "pipeline_id": "checkpoint_ngav",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "harmony-endpoint",
+          "vendor": "checkpoint",
+          "type": "epp",
+          "name": "Check Point Harmony Endpoint",
+          "description": "CheckPoint Harmony Endpoint logs include detailed records of threat detections, malware activities, security events, system behaviors, and remediation actions, for advanced endpoint protection.",
+          "pipeline_id": "checkpoint_harmony_endpoint",
           "status": "beta",
           "disabled": false
         },
@@ -680,7 +700,7 @@
       ]
     },
     {
-      "label": "Email Proxies",
+      "label": "Email Proxy",
       "uuid": "email",
       "source": [
         {
@@ -715,7 +735,7 @@
       ]
     },
     {
-      "label": "Web Proxies",
+      "label": "Web Proxy",
       "uuid": "web",
       "source": [
         {
@@ -1045,32 +1065,74 @@
       ]
     },
     {
+      "label": "Deception",
+      "uuid": "deception",
+      "source": [
+        {
+          "product": "deception",
+          "vendor": "zscaler",
+          "type": "network",
+          "name": "Zscaler Deception",
+          "description": "Zscaler Deception logs provide insights into attacker activities, decoy interactions, and attempted lateral movements for threat detection.",
+          "pipeline_id": "zscaler_deception",
+          "status": "beta",
+          "disabled": false            
+        },
+        {
+          "product": "ads",
+          "vendor": "blusapphire",
+          "type": "network",
+          "name": "Active-Defense-Services",
+          "description": "Active-Defense-Services(ADS) logs provide insights into attacker activities, decoy interactions.",
+          "pipeline_id": "blusapphire_ads",
+          "status": "beta",
+          "disabled": false            
+        }        
+      ]
+    },
+    {
       "label": "Network Devices",
       "uuid": "networkswitches",
       "source": [
         {
-          "name": "HPE Aruba Switch",
-          "description": "HPE Aruba Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "product": "ios",
+          "vendor": "cisco",
           "type": "network",
-          "vendor": "hp",
-          "product": "aruba_switch",
+          "name": "Cisco IOS Devices (Router, Switch)",
+          "description": "Cisco IOS Devices (Router, Switch) logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "pipeline_id": "cisco_ios",
+          "status": "beta",
           "disabled": false
         },
         {
-          "name": "Brocade Switch",
-          "description": "Brocade Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "product": "aruba_switch",
+          "vendor": "hpe",
           "type": "network",
-          "vendor": "brocade",
-          "product": "switch",
-          "disabled": true
+          "name": "HPE Aruba Switch",
+          "description": "HPE Aruba Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "pipeline_id": "aruba_switch",
+          "status": "beta",
+          "disabled": false
         },
         {
-          "name": "Ruckus Switch",
-          "description": "Ruckus Switch logs include details on network traffic, port status, configuration changes, and system events.",
-          "type": "network",
-          "vendor": "ruckus",
           "product": "switch",
-          "disabled": true
+          "vendor": "brocade",
+          "type": "network",
+          "name": "Brocade Switch",
+          "description": "Brocade Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "pipeline_id": "brocade_switch",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "switch",
+          "vendor": "ruckus",
+          "type": "network",
+          "name": "Ruckus Switch",
+          "description": "Ruckus Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "pipeline_id": "ruckus_switch",
+          "status": "beta",
+          "disabled": false
         }
       ],
       "input_sources": [

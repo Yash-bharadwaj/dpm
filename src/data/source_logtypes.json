@@ -3,8 +3,8 @@
     "product": "windows",
     "vendor": "microsoft",
     "type": "windows",
-    "name": "Microsoft Windows",
-    "description": "Microsoft Windows Events",
+    "name": "Microsoft Windows Events",
+    "description": "Microsoft Windows endpoint logs include detailed records of system events, security incidents, application activities, and user actions on an endpoint device",
     "pipeline_id": "winevtlogs",
     "status": "beta",
     "disabled": false
@@ -107,7 +107,7 @@
     "description": "Azure Firewall logs include detailed records of network traffic, including allowed and denied connections, source and destination IPs, ports, protocols, and timestamps for security monitoring and analysis.",
     "pipeline_id": "azure_firewall",
     "status": "beta",
-    "disabled": true
+    "disabled": false
   },
   "azure_application_gateway": {
     "product": "application-gateway",
@@ -117,7 +117,7 @@
     "description": "Azure Application Gateway logs include detailed records of web traffic, including request URLs, client IPs, response status, latency, for monitoring web applications.",
     "pipeline_id": "azure_application_gateway",
     "status": "beta",
-    "disabled": true
+    "disabled": false
   },
   "azure_identity_protection": {
     "product": "identity-protection",
@@ -189,16 +189,6 @@
     "status": "beta",
     "disabled": false
   },
-  "aws_inspector": {
-    "product": "inspector",
-    "vendor": "aws",
-    "type": "cloud-aws",
-    "name": "AWS Inspector",
-    "description": "Amazon Inspector logs include detailed findings of security vulnerabilities, configuration issues, and compliance violations identified during automated assessments of AWS resources.",
-    "pipeline_id": "aws_inspector",
-    "status": "beta",
-    "disabled": true
-  },
   "aws_cloudwatch": {
     "product": "cloudwatch",
     "vendor": "aws",
@@ -226,6 +216,16 @@
     "name": "AWS Security Hub",
     "description": "AWS Security Hub logs aggregate security findings, enabling efficient monitoring and response to threats across AWS environment.",
     "pipeline_id": "aws_securityhub",
+    "status": "beta",
+    "disabled": false
+  },
+  "aws_inspector": {
+    "product": "inspector",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Inspector",
+    "description": "Amazon Inspector logs include detailed findings of security vulnerabilities, configuration issues, and compliance violations identified during automated assessments of AWS resources.",
+    "pipeline_id": "aws_inspector",
     "status": "beta",
     "disabled": true
   },
@@ -287,7 +287,7 @@
     "description": "Cisco ASA Firewall logs include detailed records of network traffic, security events, connection attempts, access control actions, and threat detections, for monitoring, and security analysis.",
     "pipeline_id": "cisco_asa",
     "status": "beta",
-    "disabled": true
+    "disabled": false
   },
   "cisco_ftd": {
     "product": "firepower-threat-defense",
@@ -297,7 +297,7 @@
     "description": "Cisco Firepower Threat Defense logs include detailed records of network traffic, security events, intrusion detections, firewall actions, and threats blocked, for monitoring, and analysis.",
     "pipeline_id": "cisco_ftd",
     "status": "beta",
-    "disabled": true
+    "disabled": false
   },
   "sophos_xg": {
     "product": "xg",
@@ -659,6 +659,26 @@
     "status": "beta",
     "disabled": false
   },
+  "zscaler_deception": {
+    "product": "deception",
+    "vendor": "zscaler",
+    "type": "network",
+    "name": "Zscaler Deception",
+    "description": "Zscaler Deception logs provide insights into attacker activities, decoy interactions, and attempted lateral movements for threat detection.",
+    "pipeline_id": "zscaler_deception",
+    "status": "beta",
+    "disabled": false
+  },
+  "blusapphire_ads": {
+    "product": "ads",
+    "vendor": "blusapphire",
+    "type": "network",
+    "name": "Active-Defense-Services",
+    "description": "Active-Defense-Services(ADS) logs provide insights into attacker activities, decoy interactions.",
+    "pipeline_id": "blusapphire_ads",
+    "status": "beta",
+    "disabled": false
+  },
   "cisco_umbrella": {
     "product": "umbrella",
     "vendor": "cisco",
@@ -708,5 +728,45 @@
     "pipeline_id": "hpe_esxi",
     "status": "beta",
     "disabled": true
+  },
+  "cisco_ios": {
+    "product": "ios",
+    "vendor": "cisco",
+    "type": "network",
+    "name": "Cisco IOS Devices (Router, Switch)",
+    "description": "Cisco IOS Devices (Router, Switch) logs include details on network traffic, switch port activity, configuration changes, and system events.",
+    "pipeline_id": "cisco_ios",
+    "status": "beta",
+    "disabled": false
+  },
+  "aruba_switch": {
+    "product": "aruba_switch",
+    "vendor": "hpe",
+    "type": "network",
+    "name": "HPE Aruba Switch",
+    "description": "HPE Aruba Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+    "pipeline_id": "aruba_switch",
+    "status": "beta",
+    "disabled": false
+  },
+  "brocade_switch": {
+    "product": "switch",
+    "vendor": "brocade",
+    "type": "network",
+    "name": "Brocade Switch",
+    "description": "Brocade Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+    "pipeline_id": "brocade_switch",
+    "status": "beta",
+    "disabled": false
+  },
+  "ruckus_switch": {
+    "product": "switch",
+    "vendor": "ruckus",
+    "type": "network",
+    "name": "Ruckus Switch",
+    "description": "Ruckus Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
+    "pipeline_id": "ruckus_switch",
+    "status": "beta",
+    "disabled": false
   }
 }
