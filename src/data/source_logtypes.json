@@ -319,16 +319,16 @@
     "status": "beta",
     "disabled": false
   },
-  "fortinet_analyzer": {
-    "product": "analyzer",
+  "fortinet_fortimanager": {
+    "product": "fortimanager",
     "vendor": "fortinet",
     "type": "ngfw",
-    "name": "Fortinet FortiAnalyzer",
-    "description": "Fortinet FortiAnalyzer logs include detailed records of network traffic, security events, device performance, and threat detections, providing centralized visibility and analysis for Fortinet security devices.",
-    "pipeline_id": "fortinet_analyzer",
+    "name": "Fortinet FortiManager, FortiAnalyzer",
+    "description": "Fortinet FortiManager, FortiAnalyzer logs include detailed records of network traffic, security events, device performance, and threat detections, providing centralized visibility and analysis for Fortinet security devices.",
+    "pipeline_id": "fortinet_fortimanager",
     "status": "beta",
-    "disabled": true
-  },
+    "disabled": false
+  },  
   "pfsense": {
     "product": "firewall",
     "vendor": "pfsense",
