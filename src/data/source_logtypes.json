@@ -328,7 +328,7 @@
     "pipeline_id": "fortinet_fortimanager",
     "status": "beta",
     "disabled": false
-  },  
+  },
   "pfsense": {
     "product": "firewall",
     "vendor": "pfsense",
@@ -736,6 +736,16 @@
     "name": "Cisco IOS Devices (Router, Switch)",
     "description": "Cisco IOS Devices (Router, Switch) logs include details on network traffic, switch port activity, configuration changes, and system events.",
     "pipeline_id": "cisco_ios",
+    "status": "beta",
+    "disabled": false
+  },
+  "cisco_fabric_controller": {
+    "product": "fabric_controller",
+    "vendor": "cisco",
+    "type": "network",
+    "name": "Cisco Fabric Controller (NX-OS)",
+    "description": "Cisco Fabric Controller (NX-OS) logs include details on network traffic, switch port activity, configuration changes, and system events.",
+    "pipeline_id": "cisco_fabric_controller",
     "status": "beta",
     "disabled": false
   },

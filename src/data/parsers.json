@@ -1071,7 +1071,7 @@
         {
           "product": "deception",
           "vendor": "zscaler",
-          "type": "network",
+          "type": "deception",
           "name": "Zscaler Deception",
           "description": "Zscaler Deception logs provide insights into attacker activities, decoy interactions, and attempted lateral movements for threat detection.",
           "pipeline_id": "zscaler_deception",
@@ -1081,7 +1081,7 @@
         {
           "product": "ads",
           "vendor": "blusapphire",
-          "type": "network",
+          "type": "deception",
           "name": "Active-Defense-Services",
           "description": "Active-Defense-Services(ADS) logs provide insights into attacker activities, decoy interactions.",
           "pipeline_id": "blusapphire_ads",
@@ -1101,6 +1101,16 @@
           "name": "Cisco IOS Devices (Router, Switch)",
           "description": "Cisco IOS Devices (Router, Switch) logs include details on network traffic, switch port activity, configuration changes, and system events.",
           "pipeline_id": "cisco_ios",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "fabric_controller",
+          "vendor": "cisco",
+          "type": "network",
+          "name": "Cisco Fabric Controller (NX-OS)",
+          "description": "Cisco Fabric Controller (NX-OS) logs include details on network traffic, switch port activity, configuration changes, and system events.",
+          "pipeline_id": "cisco_fabric_controller",
           "status": "beta",
           "disabled": false
         },
