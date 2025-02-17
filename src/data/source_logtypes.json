@@ -323,9 +323,19 @@
     "product": "fortimanager",
     "vendor": "fortinet",
     "type": "ngfw",
-    "name": "Fortinet FortiManager, FortiAnalyzer",
-    "description": "Fortinet FortiManager, FortiAnalyzer logs include detailed records of network traffic, security events, device performance, and threat detections, providing centralized visibility and analysis for Fortinet security devices.",
+    "name": "Fortinet FortiManager",
+    "description": "FortiManager logs include detailed records of device configurations, policy changes, network traffic, and security events, providing centralized management, monitoring, and analysis for Fortinet security devices.",
     "pipeline_id": "fortinet_fortimanager",
+    "status": "beta",
+    "disabled": false
+  },
+  "fortinet_fortianalyzer": {
+    "product": "fortianalyzer",
+    "vendor": "fortinet",
+    "type": "ngfw",
+    "name": "Fortinet FortiAnalyzer",
+    "description": "FortiAnalyzer logs include detailed records of network traffic, security events, threat detections, and system activities, providing centralized visibility and analysis for Fortinet security devices.",
+    "pipeline_id": "fortinet_fortianalyzer",
     "status": "beta",
     "disabled": false
   },
