@@ -294,7 +294,7 @@
         {
           "product": "firepower-threat-defense",
           "vendor": "cisco",
-          "cisco": "ngfw",
+          "type": "ngfw",
           "name": "Cisco Firepower Threat Defense",
           "description": "Cisco Firepower Threat Defense logs include detailed records of network traffic, security events, intrusion detections, firewall actions, and threats blocked, for monitoring, and analysis.",
           "pipeline_id": "cisco_ftd",
@@ -849,9 +849,9 @@
           "product": "auditd",
           "vendor": "linux",
           "type": "linux",
-          "name": "Linux",
+          "name": "Linux Auditd",
           "description": "Linux audit daemon logs include detailed records of system calls, file accesses, authentication attempts, and other security-relevant events for auditing and monitoring purposes.",
-          "pipeline_id": "auditd",
+          "pipeline_id": "linux_auditd",
           "status": "beta",
           "disabled": false
         },
@@ -861,7 +861,7 @@
           "type": "linux",
           "name": "Linux Syslog",
           "description": "Linux syslog logs include system messages related to system processes, authentication events, and application logs.",
-          "pipeline_id": "syslog",
+          "pipeline_id": "linux_syslog",
           "status": "beta",
           "disabled": false
         }
@@ -956,12 +956,32 @@
       "uuid": "remoteaccess",
       "source": [
         {
-          "name": "Citrix NetScaler Logs",
+          "name": "Citrix NetScaler",
           "description": "Citrix NetScaler logs include system events, traffic data, error messages, and performance metrics related to the operation of the NetScaler appliance.",
           "type": "ra",
           "vendor": "citrix",
           "product": "netscaler",
           "disabled": true
+        },
+        {
+          "product": "pulse-secure-connect",
+          "vendor": "pulse-secure",
+          "type": "ra",
+          "name": "Pulse Secure Connect",
+          "description": "Collects and processes VPN access and security logs from Pulse Secure Connect for monitoring and analysis.",
+          "pipeline_id": "pulse_secure",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "openvpn",
+          "vendor": "openvpn",
+          "type": "ra",
+          "name": "OpenVPN",
+          "description": "Collects and processes VPN access and security logs from OpenVPN for monitoring and analysis.",
+          "pipeline_id": "openvpn",
+          "status": "beta",
+          "disabled": false
         }
       ],
       "input_sources": [
