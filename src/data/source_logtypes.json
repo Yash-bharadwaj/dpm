@@ -418,7 +418,7 @@
     "pipeline_id": "openvpn",
     "status": "beta",
     "disabled": false
-  },  
+  },
   "checkpoint_ngav": {
     "product": "ngav",
     "vendor": "checkpoint",
@@ -676,6 +676,16 @@
     "name": "Forcepoint Web Security",
     "description": "Forcepoint Web Security logs include detailed records of web traffic, user activities, URL filtering actions, security events, threat detections, and policy enforcement.",
     "pipeline_id": "forcepoint_web",
+    "status": "beta",
+    "disabled": false
+  },
+  "barracuda_waf": {
+    "product": "waf",
+    "vendor": "barracuda",
+    "type": "proxy-web",
+    "name": "Barracuda Web Application Firewall",
+    "description": "Barracuda WAF logs provide detailed insights into HTTP/S traffic, blocked or allowed requests, security rule evaluations, and web application threats.",
+    "pipeline_id": "barracuda_waf",
     "status": "beta",
     "disabled": false
   },
