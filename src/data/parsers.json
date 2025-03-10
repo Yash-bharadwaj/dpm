@@ -767,6 +767,16 @@
           "pipeline_id": "zscaler_zia",
           "status": "beta",
           "disabled": false
+        },
+        {
+          "product": "waf",
+          "vendor": "barracuda",
+          "type": "proxy-web",
+          "name": "Barracuda Web Application Firewall",
+          "description": "Barracuda WAF logs provide detailed insights into HTTP/S traffic, blocked or allowed requests, security rule evaluations, and web application threats.",
+          "pipeline_id": "barracuda_waf",
+          "status": "beta",
+          "disabled": false
         }
       ],
       "input_sources": ["Amazon S3", "Amazon SQS", "Filebeat", "Syslog-tcp"]
@@ -789,7 +799,7 @@
           "type": "webserver",
           "vendor": "liferay",
           "product": "cms",
-          "disabled": true
+          "disabled": false
         }
       ],
       "input_sources": ["Amazon S3", "Amazon SQS", "Filebeat", "Syslog-tcp"]
