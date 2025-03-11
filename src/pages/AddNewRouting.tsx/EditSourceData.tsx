@@ -44,7 +44,7 @@ const EditSourceData = ({
 }: any) => {
   const params = useParams();
   const orgCode = params.orgcode;
-
+  const [searchInput, setSearchInput] = useState('');
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
   const [topics, setTopics] = useState([""]);
@@ -320,6 +320,26 @@ const EditSourceData = ({
     validateOnBlur: true,
     validateOnChange: true,
   });
+
+  // Add this useEffect to handle clicking outside the dropdown
+useEffect(() => {
+  function handleClickOutside(event) {
+    const dropdown = document.querySelector('.dropdown');
+    if (dropdown && !dropdown.contains(event.target)) {
+      dropdown.classList.remove('show');
+      const menu = document.getElementById('source-type-dropdown');
+      if (menu) menu.classList.remove('show');
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
+
+
+// 1. Initialize sourceTypes (keep this first)
 // 1. Initialize sourceTypes (keep this first)
 useEffect(() => {
   const types = Object.entries(source_logtypes).map(([key, value]) => ({
@@ -328,6 +348,8 @@ useEffect(() => {
   }));
   setSourceTypes(types);
 }, []);
+
+
 
 // 2. Handle initial node data loading and showSourceFields state
 useEffect(() => {
@@ -342,12 +364,17 @@ useEffect(() => {
     const { source_type, source_name, schema, format } = selectedNode.data.nodeData.log;
     
     // Only set if values exist in node data
-    if (source_type) formik.setFieldValue("log.source_type", source_type, false);
+    if (source_type) {
+      formik.setFieldValue("log.source_type", source_type, false);
+      // Also set the display value for the dropdown
+      const sourceTypeLabel = sourceTypes.find(t => t.value === source_type)?.label || '';
+      setSearchInput(sourceTypeLabel);
+    }
     if (source_name) formik.setFieldValue("log.source_name", source_name, false);
     if (schema) formik.setFieldValue("log.schema", schema, false);
     if (format) formik.setFieldValue("log.format", format, false);
   }
-}, [selectedNode, formik.setFieldValue]);
+}, [selectedNode, formik.setFieldValue, sourceTypes]);
 
 // 3. Handle showSourceFields toggle
 useEffect(() => {
@@ -365,9 +392,13 @@ useEffect(() => {
     // Store in component state for potential restoration
     setSourceName(currentValues.sourceName || "");
   } else {
-    // When toggle is turned on, restore values if they exist
-    formik.setFieldValue("log.schema", formik.values["log.schema"] || "raw", false);
-    formik.setFieldValue("log.format", formik.values["log.format"] || "json", false);
+    // When toggle is turned on, only set default values if they don't already exist
+    if (!formik.values["log.schema"]) {
+      formik.setFieldValue("log.schema", "raw", false);
+    }
+    if (!formik.values["log.format"]) {
+      formik.setFieldValue("log.format", "json", false);
+    }
   }
 }, [showSourceFields]);
 
@@ -375,7 +406,7 @@ useEffect(() => {
 useEffect(() => {
   const currentFormValues = formik.values;
   
-  // Ensure default values are set
+  // Ensure default values are set only if they're empty
   if (!currentFormValues["log.schema"]) {
     formik.setFieldValue("log.schema", "raw", false);
   }
@@ -392,7 +423,7 @@ useEffect(() => {
       formik.setFieldValue("log.source_name", currentFormValues["log.source_name"], false);
     }
   }
-}, [formik.values["log.source_type"], formik.values["log.source_name"], showSourceFields]);
+}, [formik.values["log.source_type"], formik.values["log.source_name"]]);
 
 
   const onTabSelect = (tab: string) => {
@@ -1242,28 +1273,79 @@ useEffect(() => {
               defaultChecked={field.default}
               onChange={formik.handleChange}
             />
-          ) : field.label === "log.source_type" ? (
-            <Form.Select
-              aria-label="Select Log Source Type"
-              className="mb-3"
-              size="sm"
-              id={field.label}
-              onChange={formik.handleChange}
-              value={
-                formik.values.log
-                  ? formik.values.log.source_type
-                  : formik.values["log.source_type"]
-              }
-            >
-              <option value="" hidden>
-                Select Log Source Type
-              </option>
-              {sourceTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </Form.Select>
+          ) :field.label === "log.source_type" ? (
+            <div className="mb-3 position-relative">
+              <div className="dropdown">
+              <Form.Control
+  aria-label="Search Log Source Type"
+  className="form-control-sm dropdown-toggle"
+  type="text"
+  id={field.label}
+  placeholder="Select or search log source type"
+  onClick={(e) => {
+    e.currentTarget.parentElement.classList.toggle('show');
+    document.getElementById('source-type-dropdown').classList.toggle('show');
+  }}
+  onChange={(e) => {
+    // Set the search input value
+    const searchTerm = e.target.value;
+    setSearchInput(searchTerm);
+    
+    // Filter dropdown options based on search input
+    const filteredTypes = Object.entries(source_logtypes)
+      .map(([key, value]) => ({
+        value: key,
+        label: `${key} (${value.name})`
+      }))
+      .filter(type => 
+        type.label.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    
+    setSourceTypes(filteredTypes.length > 0 ? filteredTypes : []);
+    
+    // Show dropdown if not already shown
+    e.currentTarget.parentElement.classList.add('show');
+    document.getElementById('source-type-dropdown').classList.add('show');
+  }}
+  value={searchInput}
+/>
+                <div 
+                  className="dropdown-menu" 
+                  id="source-type-dropdown"
+                  style={{width: '100%', maxHeight: '200px', overflowY: 'auto'}}
+                >
+                  {sourceTypes.map((type) => (
+                    <button 
+                      key={type.value}
+                      className="dropdown-item" 
+                      type="button"
+                      onClick={() => {
+                        // Set the formik value
+                        formik.setFieldValue(
+                          formik.values.log ? "log.source_type" : field.label,
+                          type.value,
+                          true
+                        );
+                        
+                        // Set the search input to display the selected item's label
+                        setSearchInput(type.label);
+                        
+                        // Hide dropdown
+                        document.querySelector('.dropdown').classList.remove('show');
+                        document.getElementById('source-type-dropdown').classList.remove('show');
+                      }}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                  {sourceTypes.length === 0 && (
+                    <button className="dropdown-item" type="button" disabled>
+                      No matches found
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           ) : (
             <Form.Select
               aria-label="Select Log Schema"
