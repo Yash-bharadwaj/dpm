@@ -44,6 +44,7 @@ const EditSourceData = ({
 }: any) => {
   const params = useParams();
   const orgCode = params.orgcode;
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
@@ -322,21 +323,19 @@ const EditSourceData = ({
   });
 
   // Add this useEffect to handle clicking outside the dropdown
-useEffect(() => {
-  function handleClickOutside(event) {
-    const dropdown = document.querySelector('.dropdown');
-    if (dropdown && !dropdown.contains(event.target)) {
-      dropdown.classList.remove('show');
-      const menu = document.getElementById('source-type-dropdown');
-      if (menu) menu.classList.remove('show');
+  useEffect(() => {
+    function handleClickOutside(event) {
+      const dropdown = document.querySelector('.dropdown');
+      if (dropdown && !dropdown.contains(event.target)) {
+        setDropdownOpen(false);
+      }
     }
-  }
-
-  document.addEventListener('mousedown', handleClickOutside);
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutside);
-  };
-}, []);
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
 
 // 1. Initialize sourceTypes (keep this first)
@@ -349,9 +348,68 @@ useEffect(() => {
   setSourceTypes(types);
 }, []);
 
+// Handle search input changes
+useEffect(() => {
+  if (searchInput === '') {
+    // If input is cleared, reset the form value
+    formik.setFieldValue("log.source_type", "", false);
+    
+    // Reset the dropdown to show all options
+    const allTypes = Object.entries(source_logtypes).map(([key, value]) => ({
+      value: key,
+      label: `${key} (${value.name})`
+    }));
+    setSourceTypes(allTypes);
+  } else {
+    // Filter source types based on search input
+    const filteredTypes = Object.entries(source_logtypes)
+      .map(([key, value]) => ({
+        value: key,
+        label: `${key} (${value.name})`
+      }))
+      .filter(type => 
+        type.label.toLowerCase().includes(searchInput.toLowerCase())
+      );
+    
+    setSourceTypes(filteredTypes);
+    
+    // Check if the search input exactly matches a type label
+    const matchingType = filteredTypes.find(type => type.label === searchInput);
+    if (matchingType) {
+      formik.setFieldValue("log.source_type", matchingType.value, false);
+    }
+  }
+}, [searchInput]);
+
+// Sync the form value with the displayed search input
+// Handle showSourceFields toggle
+useEffect(() => {
+  if (!showSourceFields) {
+    // Store current values before clearing
+    const currentSourceType = formik.values["log.source_type"];
+    const currentSourceName = formik.values["log.source_name"];
+    
+    // Clear values when toggle is off
+    formik.setFieldValue("log.source_type", "", false);
+    formik.setFieldValue("log.source_name", "", false);
+    setSearchInput('');
+    
+    // Store in state for potential restoration
+    setSourceName(currentSourceName || "");
+  } else {
+    // When toggle is turned on, only set default values if they don't already exist
+    if (!formik.values["log.schema"]) {
+      formik.setFieldValue("log.schema", "raw", false);
+    }
+    if (!formik.values["log.format"]) {
+      formik.setFieldValue("log.format", "json", false);
+    }
+  }
+}, [showSourceFields]);
 
 
 // 2. Handle initial node data loading and showSourceFields state
+// Handle initial node data loading and showSourceFields state
 useEffect(() => {
   if (selectedNode?.data.nodeData?.log) {
     const hasSourceInfo = !!(
@@ -366,15 +424,23 @@ useEffect(() => {
     // Only set if values exist in node data
     if (source_type) {
       formik.setFieldValue("log.source_type", source_type, false);
-      // Also set the display value for the dropdown
-      const sourceTypeLabel = sourceTypes.find(t => t.value === source_type)?.label || '';
-      setSearchInput(sourceTypeLabel);
+      
+      // Find and set the corresponding display label
+      const sourceTypeObj = Object.entries(source_logtypes).find(
+        ([key]) => key === source_type
+      );
+      
+      if (sourceTypeObj) {
+        const label = `${sourceTypeObj[0]} (${sourceTypeObj[1].name})`;
+        setSearchInput(label);
+      }
     }
+    
     if (source_name) formik.setFieldValue("log.source_name", source_name, false);
     if (schema) formik.setFieldValue("log.schema", schema, false);
     if (format) formik.setFieldValue("log.format", format, false);
   }
-}, [selectedNode, formik.setFieldValue, sourceTypes]);
+}, [selectedNode]);
 
 // 3. Handle showSourceFields toggle
 useEffect(() => {
@@ -1276,72 +1342,77 @@ useEffect(() => {
           ) :field.label === "log.source_type" ? (
             <div className="mb-3 position-relative">
               <div className="dropdown">
-              <Form.Control
-  aria-label="Search Log Source Type"
-  className="form-control-sm dropdown-toggle"
-  type="text"
-  id={field.label}
-  placeholder="Select or search log source type"
-  onClick={(e) => {
-    e.currentTarget.parentElement.classList.toggle('show');
-    document.getElementById('source-type-dropdown').classList.toggle('show');
-  }}
-  onChange={(e) => {
-    // Set the search input value
-    const searchTerm = e.target.value;
-    setSearchInput(searchTerm);
-    
-    // Filter dropdown options based on search input
-    const filteredTypes = Object.entries(source_logtypes)
-      .map(([key, value]) => ({
-        value: key,
-        label: `${key} (${value.name})`
-      }))
-      .filter(type => 
-        type.label.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    
-    setSourceTypes(filteredTypes.length > 0 ? filteredTypes : []);
-    
-    // Show dropdown if not already shown
-    e.currentTarget.parentElement.classList.add('show');
-    document.getElementById('source-type-dropdown').classList.add('show');
-  }}
-  value={searchInput}
-/>
+                <div className="position-relative">
+                  <Form.Control
+                    aria-label="Search Log Source Type"
+                    className="form-control-sm dropdown-toggle"
+                    type="text"
+                    id={field.label}
+                    placeholder="Select or search log source type"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setDropdownOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setDropdownOpen(false);
+                      } else if (e.key === 'Enter' && sourceTypes.length > 0) {
+                        e.preventDefault();
+                        const firstType = sourceTypes[0];
+                        formik.setFieldValue("log.source_type", firstType.value, true);
+                        setSearchInput(firstType.label);
+                        setDropdownOpen(false);
+                      }
+                    }}
+                    value={searchInput}
+                  />
+                  
+                  {searchInput && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      style={{
+                        position: 'absolute',
+                        right: '5px',
+                        top: '0px',
+                        zIndex: 10,
+                        padding: '4px',
+                        backgroundColor: 'transparent'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSearchInput('');
+                        formik.setFieldValue("log.source_type", "", true);
+                      }}
+                    >
+                      ×
+                    </Button>
+                  )}
+                </div>
+                
                 <div 
-                  className="dropdown-menu" 
+                  className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}
                   id="source-type-dropdown"
                   style={{width: '100%', maxHeight: '200px', overflowY: 'auto'}}
                 >
-                  {sourceTypes.map((type) => (
-                    <button 
-                      key={type.value}
-                      className="dropdown-item" 
-                      type="button"
-                      onClick={() => {
-                        // Set the formik value
-                        formik.setFieldValue(
-                          formik.values.log ? "log.source_type" : field.label,
-                          type.value,
-                          true
-                        );
-                        
-                        // Set the search input to display the selected item's label
-                        setSearchInput(type.label);
-                        
-                        // Hide dropdown
-                        document.querySelector('.dropdown').classList.remove('show');
-                        document.getElementById('source-type-dropdown').classList.remove('show');
-                      }}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                  {sourceTypes.length === 0 && (
-                    <button className="dropdown-item" type="button" disabled>
+                  {sourceTypes.length > 0 ? (
+                    sourceTypes.map((type) => (
+                      <button 
+                        key={type.value}
+                        className="dropdown-item" 
+                        type="button"
+                        onClick={() => {
+                          formik.setFieldValue("log.source_type", type.value, true);
+                          setSearchInput(type.label);
+                          setDropdownOpen(false);
+                        }}
+                      >
+                        {type.label}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="dropdown-item text-muted" style={{pointerEvents: 'none'}}>
                       No matches found
-                    </button>
+                    </div>
                   )}
                 </div>
               </div>
