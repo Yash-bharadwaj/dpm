@@ -800,6 +800,26 @@
           "vendor": "liferay",
           "product": "cms",
           "disabled": false
+        },
+        {
+          "product": "apache",
+          "vendor": "apache",
+          "type": "webserver",
+          "name": "Apache Access",
+          "description": "Apache Webserver Logs",
+          "pipeline_id": "apache_access",
+          "status": "beta",
+          "disabled": false
+        },
+        {
+          "product": "nginx",
+          "vendor": "nginx",
+          "type": "webserver",
+          "name": "Nginx Access",
+          "description": "Nginx Webserver Logs",
+          "pipeline_id": "nginx_access",
+          "status": "beta",
+          "disabled": false
         }
       ],
       "input_sources": ["Amazon S3", "Amazon SQS", "Filebeat", "Syslog-tcp"]
@@ -855,6 +875,16 @@
       "label": "Linux Servers",
       "uuid": "linux",
       "source": [
+        {
+          "product": "auditbeat",
+          "vendor": "linux",
+          "type": "linux",
+          "name": "Linux Auditbeat",
+          "description": "Auditbeat collects Linux audit framework data to track file integrity, user activity, and process events in real time.",
+          "pipeline_id": "linux_auditbeat",
+          "status": "beta",
+          "disabled": false
+        },
         {
           "product": "auditd",
           "vendor": "linux",
@@ -1229,6 +1259,25 @@
         "Syslog-tcp",
         "Syslog-tcp"
       ]
+    },
+    {
+      "label": "Pass-Through",
+      "uuid": "passthru",
+      "source": [
+        {
+          "product": "passthru",
+          "vendor": "passthru",
+          "type": "passthru",
+          "name": "Pass-Through",
+          "description": "Pass-Through pipeline enables forwarding of received logs to the configured destination without parsing",
+          "pipeline_id": "passthru",
+          "status": "beta",
+          "disabled": false
+        }
+      ]
     }
   ]
 }
+
+
+

@@ -39,6 +39,16 @@
     "status": "beta",
     "disabled": false
   },
+  "linux_auditbeat": {
+    "product": "auditbeat",
+    "vendor": "linux",
+    "type": "linux",
+    "name": "Linux Auditbeat",
+    "description": "Auditbeat collects Linux audit framework data to track file integrity, user activity, and process events in real time.",
+    "pipeline_id": "linux_auditbeat",
+    "status": "beta",
+    "disabled": false
+  },
   "linux_auditd": {
     "product": "auditd",
     "vendor": "linux",
@@ -816,6 +826,36 @@
     "name": "Ruckus Switch",
     "description": "Ruckus Switch logs include details on network traffic, switch port activity, configuration changes, and system events.",
     "pipeline_id": "ruckus_switch",
+    "status": "beta",
+    "disabled": false
+  },
+  "apache_access": {
+    "product": "apache",
+    "vendor": "apache",
+    "type": "webserver",
+    "name": "Apache Access",
+    "description": "Apache Webserver Logs",
+    "pipeline_id": "apache_access",
+    "status": "beta",
+    "disabled": false
+  },
+  "nginx_access": {
+    "product": "nginx",
+    "vendor": "nginx",
+    "type": "webserver",
+    "name": "Nginx Access",
+    "description": "Nginx Webserver Logs",
+    "pipeline_id": "nginx_access",
+    "status": "beta",
+    "disabled": false
+  },
+  "passthru": {
+    "product": "passthru",
+    "vendor": "passthru",
+    "type": "passthru",
+    "name": "Pass-Through",
+    "description": "Pass-Through pipeline enables forwarding of received logs to the configured destination without parsing",
+    "pipeline_id": "passthru",
     "status": "beta",
     "disabled": false
   }
