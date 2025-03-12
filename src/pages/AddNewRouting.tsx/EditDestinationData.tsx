@@ -378,9 +378,13 @@ const EditDestinationData = ({
           } else if (item === "address") {
             sourceValues["address"] =
               formik.values["address"] + ":" + formik.values["port"].toString();
-          } else if (item === "codec" || item === "tls") {
+          } else if (item === "codec" || item === "tls" || item === "encoding") {
             if (item === "tls") {
               sourceValues["tls"] = { enabled: formik.values["tls"] };
+            } else if (item === "encoding") {
+              sourceValues["encoding"] = {
+                codec: formik.values["encoding"],
+              };
             } else {
               sourceValues["encoding"] = {
                 codec: formik.values["codec"],
