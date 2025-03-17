@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useContext, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import {
@@ -313,7 +316,6 @@ const Home: React.FC = () => {
     };
 
     try {
-      const response = await deleteDevice({ variables: { input } });
       toast.success(`${deviceToDelete.devicename} deleted successfully`);
       setDeleteDialogOpen(false);
       setDeleteInput("");

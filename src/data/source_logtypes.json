@@ -189,6 +189,16 @@
     "status": "beta",
     "disabled": false
   },
+  "aws_transitgateway": {
+    "product": "transit-gateway",
+    "vendor": "aws",
+    "type": "cloud-aws",
+    "name": "AWS Transit Gateway",
+    "description": "Amazon Transit Gateway Logs capture and send detailed records of network traffic traversing the Transit Gateway, including source and destination IPs, ports, and traffic acceptance or rejection.",
+    "pipeline_id": "aws_transitgateway",
+    "status": "beta",
+    "disabled": false
+  },
   "aws_guardduty": {
     "product": "guardduty",
     "vendor": "aws",

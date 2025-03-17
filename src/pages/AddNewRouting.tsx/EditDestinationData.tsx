@@ -55,13 +55,16 @@ const EditDestinationData = ({
     } else {
       if (selectedNode !== undefined && selectedNode?.data.nodeData?.address) {
         let address = selectedNode?.data.nodeData?.address.split(":");
-
+  
         if (setting.name === "address") {
           destInitialValues["address"] = address[0];
         }
         if (setting.name === "port") {
           destInitialValues["port"] = address[1];
         }
+      } else if (setting.name === "encoding" && selectedNode !== undefined) {
+        destInitialValues[setting.name] =
+          selectedNode?.data.nodeData["encoding"]?.codec || setting.default || "";
       } else {
         destInitialValues[setting.name] =
           selectedNode?.data.nodeData[setting.name] || setting.default || "";
