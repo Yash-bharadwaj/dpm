@@ -76,12 +76,6 @@ interface PackageStatus {
   comment: string;
 }
 
-interface PackageVersion {
-  lastmodified: string;
-  comment: string;
-  status: string;
-  versionid: string;
-}
 
 const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClose, device, heartbeatStatus }) => {
   const navigate = useNavigate();
@@ -135,7 +129,6 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
     if (!device) return;
     
     setLoading(true);
-    setPackageStatus(null); // Reset package status when starting a new check
     
     try {
       // Step 1: Call deployPackage API
@@ -259,25 +252,8 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <Box p={2.5} width="500px" role="presentation" style={{ borderTop: '10px solid #11a1cd' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <Typography variant="h6" style={{ fontWeight: '600' }}>
-            Device Details:
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCheckDeviceStatus}
-            disabled={loading || !device}
-            style={{ 
-              backgroundColor: '#11a1cd',
-              fontSize: '13px',
-              fontWeight: '600',
-              height: '35px'
-            }}
-          >
-            {loading ? <CircularProgress size={20} color="inherit" /> : 'UPLOAD DEVICE'}
-          </Button>
-        </div>
+        <Typography variant="h6" style={{ fontWeight: '600' }}>Device Details:</Typography>
+        
         {device && (
           <>
             <TableContainer component={Paper}>
@@ -336,18 +312,35 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
               </Table>
             </TableContainer>
             
-            {/* Package Status Section */}
-            {packageStatus && (
-              <Box mt={3}>
+            {/* Package Status Section - Always shown */}
+            <Box mt={3}>
+              <div style={{display:'flex', justifyContent:'space-between'}}>
                 <Typography variant="h6" style={{ fontWeight: '600', marginBottom: '10px' }}>
-                  Package Status:
+                  Package Details:
                 </Typography>
-                <TableContainer component={Paper}>
-                  <Table style={{ boxShadow: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px' }}>
-                    <TableBody>
-                      <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                        <TableCell><strong>Status:</strong></TableCell>
-                        <TableCell>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleCheckDeviceStatus}
+                  disabled={loading || !device}
+                  style={{ 
+                    backgroundColor: '#11a1cd',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    height: '35px'
+                  }}
+                >
+                  {loading ? <CircularProgress size={20} color="inherit" /> : 'CHECK UPDATE'}
+                </Button>
+              </div>
+              
+              <TableContainer component={Paper}>
+                <Table style={{ boxShadow: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px' }}>
+                  <TableBody>
+                    <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                      <TableCell><strong>Status:</strong></TableCell>
+                      <TableCell>
+                        {packageStatus ? (
                           <Button
                             variant="contained"
                             style={{
@@ -363,35 +356,19 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                           >
                             {packageStatus.packagestatus}
                           </Button>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><strong>Version ID:</strong></TableCell>
-                        <TableCell>{packageStatus.versionid}</TableCell>
-                      </TableRow>
-                      <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                        <TableCell><strong>Comment:</strong></TableCell>
-                        <TableCell>{packageStatus.comment || 'No comment'}</TableCell>
-                      </TableRow>
-                      
-                      {/* Package Tags */}
-                      {packageStatus.packagetags && packageStatus.packagetags.length > 0 ? (
-                        packageStatus.packagetags.map((tag, index) => (
-                          <TableRow key={tag.tagkey} style={{ backgroundColor: index % 2 === 0 ? '#fbfbfb' : 'white' }}>
-                            <TableCell><strong>{tag.tagkey.replace('timestamp_', '').replace(/-/g, ' ').charAt(0).toUpperCase() + tag.tagkey.replace('timestamp_', '').replace(/-/g, ' ').slice(1)}:</strong></TableCell>
-                            <TableCell>{tag.tagvalue}</TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={2} style={{ textAlign: 'center' }}>No tags available</TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-            )}
+                        ) : (
+                          'N/A'
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell><strong>Version ID:</strong></TableCell>
+                      <TableCell>{packageStatus ? packageStatus.versionid : 'N/A'}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
           </>
         )}
       </Box>

@@ -789,6 +789,26 @@
     "status": "beta",
     "disabled": true
   },
+  "vmware_vcenter": {
+    "product": "vcenter",
+    "vendor": "vmware",
+    "type": "virtual",
+    "name": "Vcenter",
+    "description": "Vcenter is a centralized management platform that allows administrators to manage and orchestrate virtualized environments.",
+    "pipeline_id": "vmware_vcenter",
+    "status": "beta",
+    "disabled": false
+  },
+  "cisco_dnac": {
+    "product": "catalyst_center",
+    "vendor": "cisco",
+    "type": "wireless",
+    "name": "Cisco DNAC Logs",
+    "description": "A Cisco DNAC log is a record of events and actions related to the management and operation of a network infrastructure, providing insights into network performance, configuration changes, and troubleshooting activities.",
+    "pipeline_id": "cisco_dnac",
+    "status": "beta",
+    "disabled": false
+  },
   "cisco_ios": {
     "product": "ios",
     "vendor": "cisco",

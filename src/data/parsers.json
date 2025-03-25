@@ -1066,8 +1066,8 @@
       ]
     },
     {
-      "label": "Hyper-Converged Infrastructure (HCI)",
-      "uuid": "hci",
+      "label": "Virtualization",
+      "uuid": "virtual",
       "source": [
         {
           "name": "Nutanix HCI Logs",
@@ -1076,6 +1076,16 @@
           "vendor": "nutanix",
           "product": "hci",
           "disabled": true
+        },
+        {
+          "name": "Vcenter",
+          "description": "Vcenter is a centralized management platform that allows administrators to manage and orchestrate virtualized environments",
+          "pipeline_id": "vmware_vcenter",
+          "type": "virtual",
+          "vendor": "vmware",
+          "product": "vcenter",
+          "status": "beta",
+          "disabled": false
         }
       ],
       "input_sources": [
@@ -1281,8 +1291,19 @@
           "description": "HPE Aruba Wireless logs include detailed records of wireless network activity, including access points' status, client connections, authentication events, and system events.",
           "type": "wireless",
           "vendor": "hp",
+          "status": "beta",
           "product": "aruba_wireless",
           "disabled": true
+        },
+        {
+          "name": "Cisco DNAC Logs",
+          "description": "A Cisco DNAC log is a record of events and actions related to the management and operation of a network infrastructure, providing insights into network performance, configuration changes, and troubleshooting activities.",
+          "pipeline_id": "cisco_dnac",
+          "type": "wireless",
+          "vendor": "cisco",
+          "status": "beta",
+          "product": "catalyst_center",
+          "disabled": false
         }
       ],
       "input_sources": [
