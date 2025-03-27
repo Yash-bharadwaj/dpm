@@ -1,14 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React, { useState } from 'react';
-import { Drawer, Typography, Box, Table, TableBody, TableCell, TableRow, Paper, TableContainer, Button, Snackbar, Alert, CircularProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Drawer, Typography, Box, Table, TableBody, TableCell, TableRow, Paper, TableContainer, Button, Snackbar, Alert, CircularProgress, Tooltip, IconButton } from '@mui/material';
 import LaunchIcon from '@mui/icons-material/Launch';
+import { Icon } from '@iconify/react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useLazyQuery } from '@apollo/client';
 import { gql } from '@apollo/client';
-
-//@ts-ignore
-import { HeartbeatStatuses } from '../hooks/HeartBeatStatus'; // Adjust the import path
 
 // Define GraphQL mutations and queries
 const DEPLOY_PACKAGE = gql`
@@ -60,7 +59,7 @@ interface DeviceDetailsSidebarProps {
   open: boolean;
   onClose: () => void;
   device: Device | null;
-  heartbeatStatus: HeartbeatStatuses;
+  heartbeatStatus: any; // Accept any type for heartbeat status to match structure from Home component
 }
 
 interface PackageTag {
@@ -79,28 +78,26 @@ interface PackageStatus {
 
 const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClose, device, heartbeatStatus }) => {
   const navigate = useNavigate();
-  const deviceHeartbeat = device ? heartbeatStatus[device.devicecode] : {};
+  const deviceHeartbeat = heartbeatStatus;
   
-  // State for deploy snackbar
+  // Single snackbar state
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   
-  // State for package status snackbar
-  const [statusSnackbarOpen, setStatusSnackbarOpen] = useState(false);
-  const [statusSnackbarMessage, setStatusSnackbarMessage] = useState('');
-  const [statusSnackbarSeverity, setStatusSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info');
-  
-  // State for package version snackbar
-  const [versionSnackbarOpen, setVersionSnackbarOpen] = useState(false);
-  const [versionSnackbarMessage, setVersionSnackbarMessage] = useState('');
-  const [versionSnackbarSeverity, setVersionSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info');
-  
   // State for package status
   const [packageStatus, setPackageStatus] = useState<PackageStatus | null>(null);
   
-  // State for loading
-  const [loading, setLoading] = useState(false);
+  // State for loading specific fields
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [loadingVersion, setLoadingVersion] = useState(false);
+  
+  // State for deploy message
+  const [deployMessage, setDeployMessage] = useState<string | null>(null);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  
+  // State to track if APIs have been called initially
+  const [initialApiCallsMade, setInitialApiCallsMade] = useState(false);
 
   // Mutations and lazy queries
   const [deployPackage] = useMutation(DEPLOY_PACKAGE);
@@ -117,18 +114,20 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
     setSnackbarOpen(false);
   };
 
-  const handleStatusSnackbarClose = () => {
-    setStatusSnackbarOpen(false);
-  };
-
-  const handleVersionSnackbarClose = () => {
-    setVersionSnackbarOpen(false);
-  };
+  // Effect to automatically call APIs when the sidebar is opened
+  useEffect(() => {
+    if (open && device && !initialApiCallsMade) {
+      handleCheckDeviceStatus();
+      setInitialApiCallsMade(true);
+    }
+  }, [device, initialApiCallsMade]);
+  
 
   const handleCheckDeviceStatus = async () => {
     if (!device) return;
     
-    setLoading(true);
+    setLoadingStatus(true);
+    setLoadingVersion(true);
     
     try {
       // Step 1: Call deployPackage API
@@ -143,14 +142,9 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
       
       const deployData = deployResult.data.deployPackage;
       
-      // Show success/error message based on responsestatus
-      const message = deployData.responsestatus 
-        ? 'Device deployed successfully' 
-        : `Deploy unsuccessful: ${deployData.message || 'Unknown error'}`;
-        
-      setSnackbarMessage(message);
-      setSnackbarSeverity(deployData.responsestatus ? 'success' : 'error');
-      setSnackbarOpen(true);
+      // Set deploy message based on response status
+      setDeployMessage(deployData.message);
+      setUpdateAvailable(deployData.responsestatus);
       
       // Step 2: Call getPackageVersion API regardless of deploy success/failure
       try {
@@ -171,11 +165,7 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
           
           if (versionResult.data.getPackageVersion.length > 0) {
             const latestVersionId = versionResult.data.getPackageVersion[0].versionid;
-            
-            // Show version success message
-            setVersionSnackbarMessage(`Latest version found: ${latestVersionId}`);
-            setVersionSnackbarSeverity('success');
-            setVersionSnackbarOpen(true);
+            setLoadingVersion(false);
             
             // Step 3: Call getPackageStatus API with the latest versionId
             try {
@@ -194,50 +184,45 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                 const packageStatusData = statusResult.data.getPackageStatus;
                 setPackageStatus(packageStatusData);
                 
-                // Show package status in a separate snackbar
-                setStatusSnackbarMessage(`Package Status: ${packageStatusData.packagestatus}`);
-                
-                // Set severity based on package status
-                let severity: 'success' | 'error' | 'info' | 'warning' = 'info';
-                if (packageStatusData.packagestatus === 'deployed') {
-                  severity = 'success';
-                } else if (packageStatusData.packagestatus === 'failed') {
-                  severity = 'error';
-                } else if (packageStatusData.packagestatus === 'pending') {
-                  severity = 'warning';
+                // Set snackbar message based on deployPackage response
+                if (updateAvailable) {
+                  setSnackbarMessage("Update Available, will be deployed in next 10mins");
+                  setSnackbarSeverity('success');
+                } else {
+                  setSnackbarMessage(deployMessage || "Update Available, will be deployed in next 10mins");
+                  setSnackbarSeverity('success');
                 }
                 
-                setStatusSnackbarSeverity(severity);
-                setStatusSnackbarOpen(true);
+                setSnackbarOpen(true);
               } else {
                 // Handle case where getPackageStatus returns empty or invalid data
-                setStatusSnackbarMessage('Could not retrieve package status information');
-                setStatusSnackbarSeverity('warning');
-                setStatusSnackbarOpen(true);
+                setSnackbarMessage('Could not retrieve package status information');
+                setSnackbarSeverity('warning');
+                setSnackbarOpen(true);
               }
             } catch (statusError) {
               console.error('Error getting package status:', statusError);
-              setStatusSnackbarMessage('Failed to retrieve package status');
-              setStatusSnackbarSeverity('error');
-              setStatusSnackbarOpen(true);
+              setSnackbarMessage('Failed to retrieve package status');
+              setSnackbarSeverity('error');
+              setSnackbarOpen(true);
             }
           } else {
             // Handle empty version list
-            setVersionSnackbarMessage('No versions found for this device');
-            setVersionSnackbarSeverity('warning');
-            setVersionSnackbarOpen(true);
+            setSnackbarMessage('No versions found for this device');
+            setSnackbarSeverity('warning');
+            setSnackbarOpen(true);
           }
         } else {
           // Handle invalid version result
-          setVersionSnackbarMessage('Invalid package version data received');
-          setVersionSnackbarSeverity('error');
-          setVersionSnackbarOpen(true);
+          setSnackbarMessage('Invalid package version data received');
+          setSnackbarSeverity('error');
+          setSnackbarOpen(true);
         }
       } catch (versionError) {
         console.error('Error getting package version:', versionError);
-        setVersionSnackbarMessage('Failed to retrieve package version information');
-        setVersionSnackbarSeverity('error');
-        setVersionSnackbarOpen(true);
+        setSnackbarMessage('Failed to retrieve package version information');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
       }
     } catch (error) {
       console.error('Error deploying package:', error);
@@ -245,7 +230,8 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
-      setLoading(false);
+      setLoadingStatus(false);
+      setLoadingVersion(false);
     }
   };
 
@@ -294,7 +280,7 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>IP Address:</strong></TableCell>
-                    <TableCell>{deviceHeartbeat?.systemInfo?.ipAddress || 'N/A'}</TableCell>
+                    <TableCell>{deviceHeartbeat?.ipAddress || 'N/A'}</TableCell>
                   </TableRow>
                   <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                     <TableCell><strong>Hostname:</strong></TableCell>
@@ -307,6 +293,14 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                     <TableCell><strong>Memory:</strong></TableCell>
                     <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || '0'} / {deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'} ( {deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'} )</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell><strong>Last Seen:</strong></TableCell>
+                    <TableCell>{deviceHeartbeat?.lastSeen || 'N/A'}</TableCell>
+                  </TableRow>
+                  <TableRow style={{ backgroundColor: '#fbfbfb' }}>
+                    <TableCell><strong>Service Status:</strong></TableCell>
+                    <TableCell>{deviceHeartbeat?.serviceStatus || 'N/A'}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -322,15 +316,16 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                   variant="contained"
                   color="primary"
                   onClick={handleCheckDeviceStatus}
-                  disabled={loading || !device}
+                  disabled={!device}
                   style={{ 
                     backgroundColor: '#11a1cd',
                     fontSize: '13px',
                     fontWeight: '600',
                     height: '35px'
                   }}
+                  startIcon={<Icon icon="material-symbols:deployed-code-update-outline-sharp" width="20" height="20" />}
                 >
-                  {loading ? <CircularProgress size={20} color="inherit" /> : 'CHECK UPDATE'}
+                  CHECK UPDATE
                 </Button>
               </div>
               
@@ -340,7 +335,9 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                     <TableRow style={{ backgroundColor: '#fbfbfb' }}>
                       <TableCell><strong>Status:</strong></TableCell>
                       <TableCell>
-                        {packageStatus ? (
+                        {loadingStatus ? (
+                          <CircularProgress size={20} color="primary" />
+                        ) : packageStatus ? (
                           <Button
                             variant="contained"
                             style={{
@@ -363,8 +360,15 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
                     </TableRow>
                     <TableRow>
                       <TableCell><strong>Version ID:</strong></TableCell>
-                      <TableCell>{packageStatus ? packageStatus.versionid : 'N/A'}</TableCell>
+                      <TableCell>
+                        {loadingVersion ? (
+                          <CircularProgress size={20} color="primary" />
+                        ) : (
+                          packageStatus ? packageStatus.versionid : (deviceHeartbeat?.configVersion?.versionId || 'N/A')
+                        )}
+                      </TableCell>
                     </TableRow>
+                   
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -373,39 +377,16 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
         )}
       </Box>
       
-      {/* Deploy Snackbar */}
+      {/* Single Snackbar */}
       <Snackbar 
         open={snackbarOpen} 
-        autoHideDuration={6000} 
+        autoHideDuration={5000} 
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ zIndex: 1500 }}  // Higher z-index than the default drawer
       >
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* Version Snackbar */}
-      <Snackbar 
-        open={versionSnackbarOpen} 
-        autoHideDuration={6000} 
-        onClose={handleVersionSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <Alert onClose={handleVersionSnackbarClose} severity={versionSnackbarSeverity} sx={{ width: '100%' }}>
-          {versionSnackbarMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* Status Snackbar */}
-      <Snackbar 
-        open={statusSnackbarOpen} 
-        autoHideDuration={6000} 
-        onClose={handleStatusSnackbarClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleStatusSnackbarClose} severity={statusSnackbarSeverity} sx={{ width: '100%' }}>
-          {statusSnackbarMessage}
         </Alert>
       </Snackbar>
     </Drawer>
