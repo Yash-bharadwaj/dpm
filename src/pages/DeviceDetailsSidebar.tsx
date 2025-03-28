@@ -96,8 +96,8 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
   const [deployMessage, setDeployMessage] = useState<string | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   
-  // State to track if APIs have been called initially
-  const [initialApiCallsMade, setInitialApiCallsMade] = useState(false);
+  // State to track the current device ID to detect changes
+  const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
 
   // Mutations and lazy queries
   const [deployPackage] = useMutation(DEPLOY_PACKAGE);
@@ -114,23 +114,48 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
     setSnackbarOpen(false);
   };
 
-  // Effect to automatically call APIs when the sidebar is opened
-  useEffect(() => {
-    if (open && device && !initialApiCallsMade) {
-      handleCheckDeviceStatus();
-      setInitialApiCallsMade(true);
-    }
-  }, [device, initialApiCallsMade]);
-  
+  // Reset states when device changes
+  const resetStates = () => {
+    setPackageStatus(null);
+    setDeployMessage(null);
+    setUpdateAvailable(false);
+    setLoadingStatus(false);
+    setLoadingVersion(false);
+  };
 
-  const handleCheckDeviceStatus = async () => {
+  // Effect to detect device changes and reset states
+  useEffect(() => {
+    if (device && device.deviceid !== currentDeviceId) {
+      // Device has changed, reset all package-related states
+      resetStates();
+      setCurrentDeviceId(device.deviceid);
+      
+      // Load data for the new device if sidebar is open
+      if (open) {
+        handleCheckDeviceStatusSilently();
+      }
+    }
+  }, [device, open]);
+
+  // Effect to load data when sidebar opens (if device is already set)
+  useEffect(() => {
+    if (open && device && currentDeviceId === device.deviceid) {
+      // Only fetch if we haven't already loaded data for this device
+      if (!packageStatus) {
+        handleCheckDeviceStatusSilently();
+      }
+    }
+  }, [open, device]);
+  
+  // Silently check status without showing snackbar (for initial load)
+  const handleCheckDeviceStatusSilently = async () => {
     if (!device) return;
     
     setLoadingStatus(true);
     setLoadingVersion(true);
     
     try {
-      // Step 1: Call deployPackage API
+      // Call deployPackage API
       const deployResult = await deployPackage({
         variables: {
           input: {
@@ -146,87 +171,100 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
       setDeployMessage(deployData.message);
       setUpdateAvailable(deployData.responsestatus);
       
-      // Step 2: Call getPackageVersion API regardless of deploy success/failure
-      try {
-        const versionResult = await getPackageVersion({
-          variables: {
-            input: {
-              devicecode: device.devicecode,
-              orgcode: device.orgcode,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-            }
-          }
-        });
-        
-        // Check if the version result is empty
-        if (versionResult.data && 
-            versionResult.data.getPackageVersion && 
-            Array.isArray(versionResult.data.getPackageVersion)) {
-          
-          if (versionResult.data.getPackageVersion.length > 0) {
-            const latestVersionId = versionResult.data.getPackageVersion[0].versionid;
-            setLoadingVersion(false);
-            
-            // Step 3: Call getPackageStatus API with the latest versionId
-            try {
-              const statusResult = await getPackageStatus({
-                variables: {
-                  input: {
-                    devicecode: device.devicecode,
-                    orgcode: device.orgcode,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    versionid: latestVersionId
-                  }
-                }
-              });
-              
-              if (statusResult.data && statusResult.data.getPackageStatus) {
-                const packageStatusData = statusResult.data.getPackageStatus;
-                setPackageStatus(packageStatusData);
-                
-                // Set snackbar message based on deployPackage response
-                if (updateAvailable) {
-                  setSnackbarMessage("Update Available, will be deployed in next 10mins");
-                  setSnackbarSeverity('success');
-                } else {
-                  setSnackbarMessage(deployMessage || "Update Available, will be deployed in next 10mins");
-                  setSnackbarSeverity('success');
-                }
-                
-                setSnackbarOpen(true);
-              } else {
-                // Handle case where getPackageStatus returns empty or invalid data
-                setSnackbarMessage('Could not retrieve package status information');
-                setSnackbarSeverity('warning');
-                setSnackbarOpen(true);
-              }
-            } catch (statusError) {
-              console.error('Error getting package status:', statusError);
-              setSnackbarMessage('Failed to retrieve package status');
-              setSnackbarSeverity('error');
-              setSnackbarOpen(true);
-            }
-          } else {
-            // Handle empty version list
-            setSnackbarMessage('No versions found for this device');
-            setSnackbarSeverity('warning');
-            setSnackbarOpen(true);
-          }
-        } else {
-          // Handle invalid version result
-          setSnackbarMessage('Invalid package version data received');
-          setSnackbarSeverity('error');
-          setSnackbarOpen(true);
-        }
-      } catch (versionError) {
-        console.error('Error getting package version:', versionError);
-        setSnackbarMessage('Failed to retrieve package version information');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
-      }
+      await fetchPackageInfo();
     } catch (error) {
       console.error('Error deploying package:', error);
-      setSnackbarMessage('Failed to deploy package. Please try again.');
+    } finally {
+      setLoadingStatus(false);
+      setLoadingVersion(false);
+    }
+  };
+
+  // Function to fetch package info (version and status)
+  const fetchPackageInfo = async () => {
+    if (!device) return;
+    
+    try {
+      // Call getPackageVersion API
+      const versionResult = await getPackageVersion({
+        variables: {
+          input: {
+            devicecode: device.devicecode,
+            orgcode: device.orgcode,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          }
+        }
+      });
+      
+      // Check if the version result contains data
+      if (versionResult.data && 
+          versionResult.data.getPackageVersion && 
+          Array.isArray(versionResult.data.getPackageVersion)) {
+        
+        if (versionResult.data.getPackageVersion.length > 0) {
+          const latestVersionId = versionResult.data.getPackageVersion[0].versionid;
+          setLoadingVersion(false);
+          
+          // Call getPackageStatus API with the latest versionId
+          try {
+            const statusResult = await getPackageStatus({
+              variables: {
+                input: {
+                  devicecode: device.devicecode,
+                  orgcode: device.orgcode,
+                  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                  versionid: latestVersionId
+                }
+              }
+            });
+            
+            if (statusResult.data && statusResult.data.getPackageStatus) {
+              const packageStatusData = statusResult.data.getPackageStatus;
+              setPackageStatus(packageStatusData);
+            }
+          } catch (statusError) {
+            console.error('Error getting package status:', statusError);
+          }
+        }
+      }
+    } catch (versionError) {
+      console.error('Error getting package version:', versionError);
+    }
+  };
+
+  // Handle check update button click - shows snackbar
+  const handleCheckDeviceStatus = async () => {
+    if (!device) return;
+    
+    setLoadingStatus(true);
+    setLoadingVersion(true);
+    
+    try {
+      // Call deployPackage API
+      const deployResult = await deployPackage({
+        variables: {
+          input: {
+            devicecode: device.devicecode,
+            orgcode: device.orgcode
+          }
+        }
+      });
+      
+      const deployData = deployResult.data.deployPackage;
+      
+      // Set deploy message based on response status
+      setDeployMessage(deployData.message);
+      setUpdateAvailable(deployData.responsestatus);
+      
+      // Display snackbar with message from API
+      setSnackbarMessage(deployData.message);
+      setSnackbarSeverity(deployData.responsestatus ? 'success' : 'info');
+      setSnackbarOpen(true);
+      
+      await fetchPackageInfo();
+    } catch (error) {
+      console.error('Error deploying package:', error);
+      setSnackbarMessage('Failed to check for updates. Please try again.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
@@ -377,18 +415,33 @@ const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClo
         )}
       </Box>
       
-      {/* Single Snackbar */}
       <Snackbar 
-        open={snackbarOpen} 
-        autoHideDuration={5000} 
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ zIndex: 1500 }}  // Higher z-index than the default drawer
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+  open={snackbarOpen} 
+  autoHideDuration={5000} 
+  onClose={handleSnackbarClose}
+  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+  sx={{ 
+    zIndex: 1500,
+    '& .MuiSnackbarContent-root': {
+      padding: 0,
+      minWidth: 'unset',
+      boxShadow: '0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)'
+    }
+  }}
+>
+  <div
+    style={{
+      backgroundColor: '#4CAF50',
+      color: 'white',
+      padding: '8px 13px',
+      borderRadius: '4px',
+      fontWeight: 500, 
+      fontSize:'14.5px'
+    }}
+  >
+    {snackbarMessage}
+  </div>
+</Snackbar>
     </Drawer>
   );
 };
