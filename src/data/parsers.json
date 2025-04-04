@@ -378,7 +378,7 @@
           "description": "SonicWall Firewall logs include detailed records of network traffic, security events, firewall rule actions, intrusion attempts, and connection details.",
           "pipeline_id": "sonicwall_firewall",
           "status": "beta",
-          "disabled": true
+          "disabled": false
         },
         {
           "product": "cloudgen",
