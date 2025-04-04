@@ -137,7 +137,7 @@
     "description": "Azure Identity Protection logs include detailed records of risky sign-ins, user risk levels, detected vulnerabilities, and remediation actions to help secure user identities and prevent unauthorized access.",
     "pipeline_id": "azure_identity_protection",
     "status": "beta",
-    "disabled": true
+    "disabled": false
   },
   "o365_audit": {
     "product": "o365",
