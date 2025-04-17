@@ -1304,6 +1304,16 @@
           "status": "beta",
           "product": "catalyst_center",
           "disabled": false
+        },
+        {
+          "name": "Cisco Wireless Access Point Logs",
+          "description": "Wireless Cisco access point logs provide real-time records of network activity, client connections, and system events for monitoring and troubleshooting.",
+          "pipeline_id": "cisco_meraki_access_point",
+          "type": "wireless",
+          "vendor": "cisco",
+          "status": "beta",
+          "product": "access_point",
+          "disabled": false
         }
       ],
       "input_sources": [
