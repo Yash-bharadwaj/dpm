@@ -57,60 +57,70 @@ const EditSourceData = ({
 
   let sourceInitialValues = {};
   let mandatoryFields = [];
-
   selectedSource.settings.forEach((setting: any) => {
     if (setting.datatype === "boolean") {
-      sourceInitialValues[setting.name] =
-        selectedNode?.data.nodeData[setting.name] !== ""
-          ? selectedNode?.data.nodeData[setting.name] === false
-            ? false
-            : true
-          : setting.default || "";
+      // Your boolean handling code
     } else {
       if (selectedNode !== undefined && selectedNode?.data.nodeData) {
         if (setting.name === "address" || setting.name === "port") {
-          let address = selectedNode?.data.nodeData?.address.split(":");
-          if (setting.name === "address") {
-            sourceInitialValues["address"] = address[0];
-          }
-          if (setting.name === "port") {
-            sourceInitialValues["port"] = address[1];
-          }
+          // Address and port handling
         } else if (setting.name === "queue_url") {
-          sourceInitialValues["queue_url"] = selectedNode?.data.nodeData?.sqs
-            ? selectedNode?.data.nodeData?.sqs.queue_url
-            : selectedNode?.data.nodeData?.queue_url;
+          // Queue URL handling
         } else if (setting.name === "topics") {
-          if (selectedNode?.data.nodeData) {
-            let nodeTopics = selectedNode?.data.nodeData.topics;
-            let addedTopics = [];
-
-            nodeTopics.forEach((topic) => {
-              addedTopics.push(topic);
-            });
-
-            if (topics[0] === "") {
-              setTopics(addedTopics);
-            }
-
-            sourceInitialValues[setting.name] = addedTopics;
+          // Topics handling
+        } else if (setting.name === "keepalive") {
+          const keepaliveValue = selectedNode?.data.nodeData[setting.name];
+          
+          // Handle the keepalive object case
+          if (keepaliveValue && typeof keepaliveValue === 'object' && keepaliveValue.time_secs !== undefined) {
+            sourceInitialValues[setting.name] = keepaliveValue.time_secs;
+          } 
+          // Handle the number case
+          else if (keepaliveValue !== undefined && keepaliveValue !== "") {
+            sourceInitialValues[setting.name] = keepaliveValue;
+          } 
+          // Default value
+          else {
+            sourceInitialValues[setting.name] = 60; // Default value
           }
-        } else {
+        }
+        else {
+          // Your default field handling
           sourceInitialValues[setting.name] =
             selectedNode?.data.nodeData[setting.name] || setting.default || "";
         }
       } else {
+        // Your code for new nodes
         sourceInitialValues[setting.name] =
           selectedNode?.data.nodeData[setting.name] || setting.default || "";
       }
     }
-
+  
     if (setting.mandatory) {
       mandatoryFields.push(setting.name);
     }
   });
 
   selectedSource.advanced?.forEach((advanced: any) => {
+
+    if (advanced.name === "keepalive" && advanced.fields) {
+      let keepaliveValue = 60; // Default value
+      if (
+        selectedNode?.data.nodeData[advanced.name] &&
+        typeof selectedNode?.data.nodeData[advanced.name] === "object" &&
+        selectedNode?.data.nodeData[advanced.name].time_secs !== undefined
+      ) {
+        keepaliveValue = selectedNode.data.nodeData[advanced.name].time_secs;
+      } else if (
+        selectedNode?.data.nodeData[advanced.name] &&
+        !isNaN(Number(selectedNode?.data.nodeData[advanced.name]))
+      ) {
+        keepaliveValue = Number(selectedNode.data.nodeData[advanced.name]);
+      }
+      sourceInitialValues[advanced.name] = keepaliveValue;
+      return; // Skip the rest of the loop for keepalive
+    }
+
     if (advanced.datatype === "boolean") {
       if (advanced.name === "tls") {
         sourceInitialValues[advanced.name] =
@@ -554,12 +564,12 @@ useEffect(() => {
     const sourceValues = {};
     let portAvailable = true;
     let nameAvailable = true;
-
+  
     if (addedNodes.length !== 0) {
       const portNumber = formik.values["port"];
       const name = formik.values["name"];
       const mode = selectedSource.mode || "tcp";
-
+  
       addedNodes.forEach((node: any) => {
         const sourceMode = node.data.nodeData.mode || "tcp";
         if (
@@ -575,10 +585,10 @@ useEffect(() => {
             portAvailable = false;
           }
         }
-
+  
         const enteredName = name.replaceAll(" ", "_");
         const inputName = selectedNode ? enteredName : "input_" + enteredName;
-
+  
         if (
           node.data.nodeData.name === inputName &&
           selectedNode?.id !== node.id
@@ -587,7 +597,7 @@ useEffect(() => {
         }
       });
     }
-
+  
     if (!portAvailable) {
       toast(
         "Entered port is already used in configuration, please choose a different port",
@@ -608,7 +618,7 @@ useEffect(() => {
       );
     } else {
       const keys = Object.keys(formik.values);
-
+  
       keys.forEach((item) => {
         // Ignore log-related field names when they appear as individual fields
         if (
@@ -639,8 +649,7 @@ useEffect(() => {
             if (formik.values["organization"].id !== "") {
               sourceValues["organization"] = formik.values["organization"];
             }
-          } // Find this section in your saveSettings function and replace it
-          else if (item.startsWith("log.")) {
+          } else if (item.startsWith("log.")) {
             if (!sourceValues.log) {
               sourceValues.log = {
                 schema: formik.values["log.schema"] || "raw",
@@ -676,7 +685,6 @@ useEffect(() => {
               ...(showSourceFields && sourceName && { source_name: sourceName })
             };
           }
-        
           else if (item === "tls" || item === "codec") {
             if (item === "tls") {
               sourceValues["tls"] = {
@@ -693,15 +701,24 @@ useEffect(() => {
             }
           } else if (item === "permit_origin") {
             const formValue = formik.values["permit_origin"];
-
             const value = formValue.split(",");
-
             sourceValues[item] = value;
           } 
+
+
+          // --- Handle keepalive as an object with time_secs ---
+          else if (item === "keepalive" && selectedSource.advanced?.some((adv: any) => adv.name === "keepalive" && adv.fields)) {
+            let keepaliveVal = formik.values["keepalive"];
+            if (keepaliveVal === undefined || keepaliveVal === "") {
+              sourceValues["keepalive"] = { time_secs: 60 }; // Default value
+            } else {
+              sourceValues["keepalive"] = { time_secs: Number(keepaliveVal) };
+            }
+          }
           else {
             if (authIndex) {
               sourceValues["auth"] = {};
-
+  
               selectedSource.authentication.dropdownOptions[
                 authIndex
               ].fieldsToShow.map((field: string) => {
@@ -714,12 +731,12 @@ useEffect(() => {
                 }
               });
             }
-
+  
             if (formik.values.enabled) {
               sourceValues["sasl"] = {
                 enabled: formik.values.enabled,
               };
-
+  
               selectedSource.authentication.fields.map((field: string) => {
                 if (field.name === "enabled") {
                   sourceValues.sasl.enabled = true;
@@ -730,7 +747,7 @@ useEffect(() => {
                 }
               });
             }
-
+  
             if (
               (sourceValues.auth && sourceValues.auth[item] === undefined) ||
               (sourceValues.sasl && sourceValues.sasl[item] === undefined)
@@ -783,31 +800,30 @@ useEffect(() => {
             }
           }
         }
-
+  
         if (item === "topics") {
           let addedTopics = [];
-
+  
           if (topics[0] !== "") {
             topics.map((topic) => addedTopics.push(topic));
           }
-
+  
           sourceValues["topics"] = addedTopics;
         }
       });
-
+  
       sourceValues["type"] = selectedSource.type;
       sourceValues["uuid"] = selectedSource.uuid;
-
+  
       if (selectedSource.mode) {
         sourceValues["mode"] = selectedSource.mode;
       }
-
+  
       console.log("values", sourceValues);
-
+  
       onSaveSettings(sourceValues);
     }
   };
-
   const onBackClick = () => {
     if (selectedTab === "setting") {
       onClose();

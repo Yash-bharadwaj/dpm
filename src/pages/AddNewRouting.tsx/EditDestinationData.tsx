@@ -304,192 +304,211 @@ const EditDestinationData = ({
         setSelectedTab("auth");
       } else if (selectedDestination.advanced) {
         setSelectedTab("advanced");
-      } else {
-        setSelectedTab("processing");
-      }
-    }
-
-    if (selectedTab === "advanced") {
-      if (selectedDestination["processing-settings"]) {
-        setSelectedTab("processing");
-      } else {
-        saveSettings();
-      }
-    }
-
-    if (selectedTab === "auth") {
-      if (selectedDestination.advanced) {
-        setSelectedTab("advanced");
+      } else if (selectedDestination.batch_buffer) {
+        setSelectedTab("batch_buffer");
       } else if (selectedDestination["processing-settings"]) {
         setSelectedTab("processing");
       } else {
         saveSettings();
       }
-    }
-
-    if (selectedTab === "processing") {
+    } else if (selectedTab === "auth") {
+      if (selectedDestination.advanced) {
+        setSelectedTab("advanced");
+      } else if (selectedDestination.batch_buffer) {
+        setSelectedTab("batch_buffer");
+      } else if (selectedDestination["processing-settings"]) {
+        setSelectedTab("processing");
+      } else {
+        saveSettings();
+      }
+    } else if (selectedTab === "advanced") {
+      if (selectedDestination.batch_buffer) {
+        setSelectedTab("batch_buffer");
+      } else if (selectedDestination["processing-settings"]) {
+        setSelectedTab("processing");
+      } else {
+        saveSettings();
+      }
+    } else if (selectedTab === "batch_buffer") {
+      if (selectedDestination["processing-settings"]) {
+        setSelectedTab("processing");
+      } else {
+        saveSettings();
+      }
+    } else if (selectedTab === "processing") {
       saveSettings();
     }
   };
+ 
+const saveSettings = () => {
+  const destValues: any = {};
 
-  const saveSettings = () => {
-    const sourceValues = {};
+  let nameAvailable = true;
 
-    let nameAvailable = true;
+  if (addedNodes.length !== 0) {
+    const name = formik.values["name"];
+    addedNodes.forEach((node: any) => {
+      const enteredName = name.replaceAll(" ", "_");
+      const inputName = selectedNode ? enteredName : "output_" + enteredName;
+      if (
+        node.data.nodeData.name === inputName &&
+        selectedNode?.id !== node.id
+      ) {
+        nameAvailable = false;
+      }
+    });
+  }
 
-    if (addedNodes.length !== 0) {
-      const name = formik.values["name"];
+  if (!nameAvailable) {
+    toast(
+      "Destination name is already used in configuration, please enter a different name.",
+      {
+        position: "top-right",
+        zIndex: 9999,
+        theme: "failure",
+      }
+    );
+    return;
+  }
 
-      addedNodes.forEach((node: any) => {
-        const enteredName = name.replaceAll(" ", "_");
-        const inputName = selectedNode ? enteredName : "output_" + enteredName;
+  const keys = Object.keys(formik.values);
 
-        if (
-          node.data.nodeData.name === inputName &&
-          selectedNode?.id !== node.id
-        ) {
-          nameAvailable = false;
+  keys.forEach((item) => {
+    if (
+      formik.values[item] !== "" ||
+      item === "tls" ||
+      item === "enabled"
+    ) {
+      if (item === "name") {
+        const name = formik.values.name.replaceAll(" ", "_");
+        if (selectedNode === undefined) {
+          destValues.name = "output_" + name;
+        } else {
+          destValues.name = name;
         }
-      });
-    }
-
-    if (!nameAvailable) {
-      toast(
-        "Destination name is already used in configuration, please enter a different name.",
-        {
-          position: "top-right",
-          zIndex: 9999,
-          theme: "failure",
+      } else if (item === "address") {
+        destValues["address"] =
+          formik.values["address"] + ":" + formik.values["port"].toString();
+      } else if (item === "codec" || item === "tls" || item === "encoding") {
+        if (item === "tls") {
+          destValues["tls"] = { enabled: formik.values["tls"] };
+        } else if (item === "encoding") {
+          destValues["encoding"] = {
+            codec: formik.values["encoding"],
+          };
+        } else {
+          destValues["encoding"] = {
+            codec: formik.values["codec"],
+          };
         }
-      );
-    } else {
-      const keys = Object.keys(formik.values);
-
-      keys.forEach((item) => {
-        if (
-          formik.values[item] !== "" ||
-          item === "tls" ||
-          item === "enabled"
-        ) {
-          if (item === "name") {
-            const name = formik.values.name.replaceAll(" ", "_");
-            if (selectedNode === undefined) {
-              sourceValues.name = "output_" + name;
-            } else {
-              sourceValues.name = name;
-            }
-          } else if (item === "address") {
-            sourceValues["address"] =
-              formik.values["address"] + ":" + formik.values["port"].toString();
-          } else if (item === "codec" || item === "tls" || item === "encoding") {
-            if (item === "tls") {
-              sourceValues["tls"] = { enabled: formik.values["tls"] };
-            } else if (item === "encoding") {
-              sourceValues["encoding"] = {
-                codec: formik.values["encoding"],
-              };
-            } else {
-              sourceValues["encoding"] = {
-                codec: formik.values["codec"],
-              };
-            }
-          } else if (item === "inputs") {
-            sourceValues[item] = [];
-          } else if (item === "compression") {
-            if (Array.isArray(formik.values["compression"])) {
-              if (formik.values["compression"][0] === "on") {
-                sourceValues["compression"] = true;
-              } else {
-                sourceValues["compression"] = false;
-              }
-            } else {
-              sourceValues["compression"] = formik.values["compression"];
-            }
-          } else if (item === "healthcheck") {
-            sourceValues.healthcheck = {
-              enabled: formik.values["healthcheck"],
-            };
-          } else if (item === "framing" || item === "method") {
-            if (formik.values["method"]) {
-              sourceValues.framing = {
-                method: formik.values["method"] || "",
-              };
-            }
+      } else if (item === "inputs") {
+        destValues[item] = [];
+      } else if (item === "compression") {
+        if (Array.isArray(formik.values["compression"])) {
+          if (formik.values["compression"][0] === "on") {
+            destValues["compression"] = true;
           } else {
-            if (authIndex) {
-              sourceValues["auth"] = {};
-
-              selectedDestination.authentication.dropdownOptions[
-                authIndex
-              ].fieldsToShow.map((field: string) => {
-                if (field.name === "auth_region") {
-                  if (formik.values[field.name] !== "") {
-                    sourceValues.auth["region"] = formik.values[field.name];
-                  }
-                } else {
-                  sourceValues.auth[field.name] = formik.values[field.name];
-                }
-              });
-            }
-
-            if (formik.values.enabled) {
-              sourceValues["sasl"] = {
-                enabled: formik.values.enabled,
-              };
-
-              selectedDestination.authentication.fields.map((field: string) => {
-                if (field.name === "enabled") {
-                  sourceValues.sasl.enabled = true;
-                } else {
-                  if (formik.values[field.name] !== "") {
-                    sourceValues.sasl[field.name] = formik.values[field.name];
-                  }
-                }
-              });
-            }
-
-            if (
-              (sourceValues.auth && sourceValues.auth[item] === undefined) ||
-              (sourceValues.sasl && sourceValues.sasl[item] === undefined)
-            ) {
-              if (
-                item !== "enabled" &&
-                item !== "assume_role" &&
-                item !== "access_key_id" &&
-                item !== "secret_access_key" &&
-                item !== "auth_region" &&
-                item !== "mechanism" &&
-                item !== "username" &&
-                item !== "password" &&
-                item !== "port"
-              ) {
-                sourceValues[item] = formik.values[item];
+            destValues["compression"] = false;
+          }
+        } else {
+          destValues["compression"] = formik.values["compression"];
+        }
+      } else if (item === "healthcheck") {
+        destValues.healthcheck = {
+          enabled: formik.values["healthcheck"],
+        };
+      } else if (item === "framing" || item === "method") {
+        if (formik.values["method"]) {
+          destValues.framing = {
+            method: formik.values["method"] || "",
+          };
+        }
+      } else {
+        // Handle authentication fields
+        if (authIndex !== null && selectedDestination.authentication?.dropdownOptions) {
+          destValues["auth"] = {};
+          selectedDestination.authentication.dropdownOptions[authIndex].fieldsToShow.forEach((field: any) => {
+            if (field.name === "auth_region") {
+              if (formik.values[field.name] !== "") {
+                destValues.auth["region"] = formik.values[field.name];
               }
             } else {
-              if (
-                item !== "enabled" &&
-                item !== "assume_role" &&
-                item !== "access_key_id" &&
-                item !== "secret_access_key" &&
-                item !== "auth_region" &&
-                item !== "mechanism" &&
-                item !== "username" &&
-                item !== "password" &&
-                item !== "port"
-              ) {
-                sourceValues[item] = formik.values[item];
+              destValues.auth[field.name] = formik.values[field.name];
+            }
+          });
+        }
+
+        if (formik.values.enabled && selectedDestination.authentication?.name === "sasl") {
+          destValues["sasl"] = {
+            enabled: formik.values.enabled,
+          };
+          selectedDestination.authentication.fields.forEach((field: any) => {
+            if (field.name === "enabled") {
+              destValues.sasl.enabled = true;
+            } else {
+              if (formik.values[field.name] !== "") {
+                destValues.sasl[field.name] = formik.values[field.name];
               }
             }
+          });
+        }
+
+        // Only add if not already handled by auth/sasl
+        if (
+          (!destValues.auth || destValues.auth[item] === undefined) &&
+          (!destValues.sasl || destValues.sasl[item] === undefined)
+        ) {
+          if (
+            item !== "enabled" &&
+            item !== "assume_role" &&
+            item !== "access_key_id" &&
+            item !== "secret_access_key" &&
+            item !== "auth_region" &&
+            item !== "mechanism" &&
+            item !== "username" &&
+            item !== "password" &&
+            item !== "port"
+          ) {
+            destValues[item] = formik.values[item];
           }
         }
-      });
-
-      sourceValues["type"] = selectedDestination.type;
-      sourceValues["uuid"] = selectedDestination.uuid;
-
-      onSaveSettings(sourceValues);
+      }
     }
-  };
+  });
+
+  // --- Batch & Buffer Section ---
+  if (selectedDestination.batch_buffer) {
+    selectedDestination.batch_buffer.forEach((section: any) => {
+      if (section.name === "batch" || section.name === "buffer") {
+        const sectionObj: any = {};
+        section.fields.forEach((field: any) => {
+          let value = formik.values[field.name];
+          if (value === "" || value === undefined) {
+            value = field.default;
+          }
+          if (field.datatype === "integer") {
+            sectionObj[field.name] = value !== undefined ? Number(value) : undefined;
+          } else {
+            sectionObj[field.name] = value;
+          }
+        });
+        destValues[section.name] = sectionObj;
+      }
+    });
+  }
+
+  // --- Processing Settings Section ---
+  if (selectedDestination["processing-settings"]) {
+    selectedDestination["processing-settings"].forEach((setting: any) => {
+      destValues[setting.name] = formik.values[setting.name];
+    });
+  }
+
+  destValues["type"] = selectedDestination.type;
+  destValues["uuid"] = selectedDestination.uuid;
+
+  onSaveSettings(destValues);
+};
 
   const onBackClick = () => {
     if (selectedTab === "setting") {
@@ -725,19 +744,24 @@ const EditDestinationData = ({
                 Advanced Settings
               </div>
             )}
+          {selectedDestination.batch_buffer && (
+  <div
+    className={`settings-menu pointer ${selectedTab === "batch_buffer" && `settings-selected-menu`}`}
+    onClick={() => { setSelectedTab("batch_buffer"); }}
+  >
+    Batch & Buffer Settings
+  </div>
+)}
+{selectedDestination["processing-settings"] && (
+  <div
+    className={`settings-menu pointer ${selectedTab === "processing" && `settings-selected-menu`}`}
+    onClick={() => { setSelectedTab("processing"); }}
+  >
+    Processing Settings
+  </div>
+)}
 
-            {selectedDestination["processing-settings"] && (
-              <div
-                className={`settings-menu pointer ${
-                  selectedTab === "processing" && `settings-selected-menu`
-                }`}
-                onClick={() => {
-                  onTabSelect("processing");
-                }}
-              >
-                Processing Settings
-              </div>
-            )}
+
           </Col>
 
           <Col lg={8}>
@@ -1017,7 +1041,7 @@ const EditDestinationData = ({
                       {setting.label}{" "}
                       {setting.tooltip && (
                         <OverlayTrigger
-                          placement="left"
+                          placement="right"
                           overlay={
                             <Tooltip id="button-tooltip-2">
                               {setting.tooltip}
@@ -1037,7 +1061,7 @@ const EditDestinationData = ({
                           {setting.label}{" "}
                           {setting.tooltip && (
                             <OverlayTrigger
-                              placement="left"
+                              placement="right"
                               overlay={
                                 <Tooltip id="button-tooltip-2">
                                   {setting.tooltip}
@@ -1090,7 +1114,7 @@ const EditDestinationData = ({
                                     {option.label}{" "}
                                     {option.tooltip && (
                                       <OverlayTrigger
-                                        placement="left"
+                                        placement="right"
                                         overlay={
                                           <Tooltip id="button-tooltip-2">
                                             {option.tooltip}
@@ -1175,7 +1199,59 @@ const EditDestinationData = ({
                   )}
                 </>
               ))
-            ) : selectedDestination.authentication &&
+            ) 
+            
+         
+            : selectedTab === "batch_buffer" ? (
+              // Render Batch & Buffer Settings tab
+              selectedDestination.batch_buffer?.map((section: any) => (
+                <div key={section.name}>
+                  <h5>{section.label}</h5>
+                  {section.fields.map((field: any) => (
+                    <Form.Group key={field.name} className="mb-3">
+                      <Form.Label>
+                        {field.label}{" "}
+                        {field.tooltip && (
+                          <OverlayTrigger
+                            placement="right"
+                            overlay={
+                              <Tooltip id={`tooltip-${field.name}`}>
+                                {field.tooltip}
+                              </Tooltip>
+                            }
+                          >
+                            <QuestionCircle size={14} />
+                          </OverlayTrigger>
+                        )}
+                      </Form.Label>
+                      {field.datatype === "dropdown" ? (
+                        <Form.Select
+                          aria-label={field.label}
+                          id={field.name}
+                          value={formik.values[field.name] || field.default}
+                          onChange={formik.handleChange}
+                        >
+                          {field.options.map((option: string) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      ) : (
+                        <Form.Control
+                          type={field.datatype === "integer" ? "number" : "text"}
+                          id={field.name}
+                          value={formik.values[field.name] || field.default}
+                          onChange={formik.handleChange}
+                          placeholder={`Enter ${field.label}`}
+                        />
+                      )}
+                    </Form.Group>
+                  ))}
+                </div>
+              ))
+          )
+            : selectedDestination.authentication &&
               selectedDestination.authentication.dropdownOptions ? (
               <Form>
                 <Form.Label htmlFor={"auth"}>
@@ -1427,27 +1503,92 @@ const EditDestinationData = ({
               </Button>
 
               <Button
-                variant="primary"
-                size="sm"
-                onClick={onNextClick}
-                disabled={
-                  selectedTab === "setting" ||
-                  selectedTab === "auth" ||
-                  (selectedTab === "advanced" &&
-                    selectedDestination["processing-settings"])
-                    ? checkTabValues("")
-                    : checkFormValid(formik.values) || checkTabValues("all")
-                }
-              >
-                {selectedTab === "setting" ||
-                selectedTab === "auth" ||
-                (selectedTab === "advanced" &&
-                  selectedDestination["processing-settings"])
-                  ? "Next"
-                  : selectedNode !== undefined
-                  ? "Update"
-                  : "Save"}
-              </Button>
+  variant="primary"
+  size="sm"
+  onClick={onNextClick}
+  disabled={
+    // Disable if not on last tab and validation fails for current tab,
+    // or if on last tab and form is invalid
+    (() => {
+      // Determine if this is the last tab
+      let isLastTab = false;
+      if (selectedTab === "processing") {
+        isLastTab = true;
+      } else if (
+        !selectedDestination["processing-settings"] &&
+        selectedTab === "batch_buffer"
+      ) {
+        isLastTab = true;
+      } else if (
+        !selectedDestination["processing-settings"] &&
+        !selectedDestination.batch_buffer &&
+        selectedTab === "advanced"
+      ) {
+        isLastTab = true;
+      } else if (
+        !selectedDestination["processing-settings"] &&
+        !selectedDestination.batch_buffer &&
+        !selectedDestination.advanced &&
+        selectedTab === "auth"
+      ) {
+        isLastTab = true;
+      } else if (
+        !selectedDestination["processing-settings"] &&
+        !selectedDestination.batch_buffer &&
+        !selectedDestination.advanced &&
+        !selectedDestination.authentication &&
+        selectedTab === "setting"
+      ) {
+        isLastTab = true;
+      }
+      if (!isLastTab) {
+        // Not last tab: validate current tab only
+        return checkTabValues("");
+      } else {
+        // Last tab: validate all
+        return checkFormValid(formik.values) || checkTabValues("all");
+      }
+    })()
+  }
+>
+  {(() => {
+    // Determine if this is the last tab
+    let isLastTab = false;
+    if (selectedTab === "processing") {
+      isLastTab = true;
+    } else if (
+      !selectedDestination["processing-settings"] &&
+      selectedTab === "batch_buffer"
+    ) {
+      isLastTab = true;
+    } else if (
+      !selectedDestination["processing-settings"] &&
+      !selectedDestination.batch_buffer &&
+      selectedTab === "advanced"
+    ) {
+      isLastTab = true;
+    } else if (
+      !selectedDestination["processing-settings"] &&
+      !selectedDestination.batch_buffer &&
+      !selectedDestination.advanced &&
+      selectedTab === "auth"
+    ) {
+      isLastTab = true;
+    } else if (
+      !selectedDestination["processing-settings"] &&
+      !selectedDestination.batch_buffer &&
+      !selectedDestination.advanced &&
+      !selectedDestination.authentication &&
+      selectedTab === "setting"
+    ) {
+      isLastTab = true;
+    }
+    if (isLastTab) {
+      return selectedNode !== undefined ? "Update" : "Save";
+    }
+    return "Next";
+  })()}
+</Button>
             </div>
           </Col>
         </Row>

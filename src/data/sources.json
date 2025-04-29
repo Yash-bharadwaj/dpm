@@ -44,6 +44,27 @@
           "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
+        },
+        {
+          "name": "connection_limit",
+          "label": "Connection Limit",
+          "tooltip": "Maximum number of simultaneous connections permitted.",
+          "datatype": "integer",
+          "default": 2000
+        },
+        {
+          "name": "keepalive",
+          "label": "Keepalive",
+          "tooltip": "Keepalive settings.",
+          "fields": [
+            {
+              "name": "time_secs",
+              "label": "Keepalive (seconds)",
+              "tooltip": "Time (in seconds) to wait before sending keepalive probes.",
+              "datatype": "integer",
+              "default": 60
+            }
+          ]
         }
       ]
     },
@@ -139,6 +160,27 @@
           "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
+        },
+        {
+          "name": "connection_limit",
+          "label": "Connection Limit",
+          "tooltip": "Maximum number of simultaneous connections permitted.",
+          "datatype": "integer",
+          "default": 2000
+        },
+        {
+          "name": "keepalive",
+          "label": "Keepalive",
+          "tooltip": "Keepalive settings.",
+          "fields": [
+            {
+              "name": "time_secs",
+              "label": "Keepalive (seconds)",
+              "tooltip": "Time (in seconds) to wait before sending keepalive probes.",
+              "datatype": "integer",
+              "default": 60
+            }
+          ]
         }
       ]
     },
@@ -288,6 +330,27 @@
           "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
+        },
+        {
+          "name": "connection_limit",
+          "label": "Connection Limit",
+          "tooltip": "Maximum number of simultaneous connections permitted.",
+          "datatype": "integer",
+          "default": 2000
+        },
+        {
+          "name": "keepalive",
+          "label": "Keepalive",
+          "tooltip": "Keepalive settings.",
+          "fields": [
+            {
+              "name": "time_secs",
+              "label": "Keepalive (seconds)",
+              "tooltip": "Time (in seconds) to wait before sending keepalive probes.",
+              "datatype": "integer",
+              "default": 60
+            }
+          ]
         }
       ]
     },
@@ -335,6 +398,27 @@
           "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
+        },
+        {
+          "name": "connection_limit",
+          "label": "Connection Limit",
+          "tooltip": "Maximum number of simultaneous connections permitted.",
+          "datatype": "integer",
+          "default": 2000
+        },
+        {
+          "name": "keepalive",
+          "label": "Keepalive",
+          "tooltip": "Keepalive settings.",
+          "fields": [
+            {
+              "name": "time_secs",
+              "label": "Keepalive (seconds)",
+              "tooltip": "Time (in seconds) to wait before sending keepalive probes.",
+              "datatype": "integer",
+              "default": 60
+            }
+          ]
         }
       ]
     },
@@ -387,8 +471,23 @@
         {
           "name": "connection_limit",
           "label": "Connection Limit",
-          "tooltip": "Maximum number of simultaneous TCP connections permitted.",
-          "datatype": "integer"
+          "tooltip": "Maximum number of simultaneous connections permitted.",
+          "datatype": "integer",
+          "default": 2000
+        },
+        {
+          "name": "keepalive",
+          "label": "Keepalive",
+          "tooltip": "Keepalive settings.",
+          "fields": [
+            {
+              "name": "time_secs",
+              "label": "Keepalive (seconds)",
+              "tooltip": "Time (in seconds) to wait before sending keepalive probes.",
+              "datatype": "integer",
+              "default": 60
+            }
+          ]
         }
       ]
     },
@@ -470,6 +569,7 @@
           "name": "keepalive",
           "label": "Keep Alive",
           "tooltip": "Settings to keep socket connections active.",
+          "default": 60,
           "fields": [
             {
               "name": "time_secs",
@@ -509,6 +609,27 @@
           "tooltip": "List of allowed IP addresses in CIDR format (e.g., 192.168.1.0/24).",
           "datatype": "ipcidr",
           "maxChar": 180
+        },
+        {
+          "name": "connection_limit",
+          "label": "Connection Limit",
+          "tooltip": "Maximum number of simultaneous connections permitted.",
+          "datatype": "integer",
+          "default": 2000
+        },
+        {
+          "name": "keepalive",
+          "label": "Keepalive",
+          "tooltip": "Keepalive settings.",
+          "fields": [
+            {
+              "name": "time_secs",
+              "label": "Keepalive (seconds)",
+              "tooltip": "Time (in seconds) to wait before sending keepalive probes.",
+              "datatype": "integer",
+              "default": 60
+            }
+          ]
         },
         {
           "name": "decoding",
@@ -608,6 +729,7 @@
       "status": "beta",
       "log.format": "json",
       "log.schema": "raw",
+
       "settings": [
         {
           "name": "name",
@@ -1447,7 +1569,65 @@
       "image": "amazon_s3.svg",
       "tooltip": "Send events to Amazon S3 Bucket",
       "disabled": false,
-      "status": "beta",
+      "status": "beta","batch_buffer": [
+  {
+    "name": "batch",
+    "label": "Batch Settings",
+    "fields": [
+      {
+        "name": "max_bytes",
+        "label": "Batch Max Bytes",
+        "tooltip": "Maximum number of bytes per batch.",
+        "datatype": "integer",
+        "default": 30000000
+      },
+      {
+        "name": "max_events",
+        "label": "Batch Max Events",
+        "tooltip": "Maximum number of events per batch.",
+        "datatype": "integer",
+        "default": 30000
+      },
+      {
+        "name": "timeout_secs",
+        "label": "Batch Timeout (secs)",
+        "tooltip": "Timeout in seconds for batching.",
+        "datatype": "integer",
+        "default": 60
+      }
+    ]
+  },
+  {
+    "name": "buffer",
+    "label": "Buffer Settings",
+    "fields": [
+      {
+        "name": "type",
+        "label": "Buffer Type",
+        "tooltip": "Type of buffer to use.",
+        "datatype": "dropdown",
+        "options": ["disk", "memory"],
+        "default": "disk"
+      },
+      {
+        "name": "max_size",
+        "label": "Buffer Max Size",
+        "tooltip": "Maximum buffer size (relevant when type is disk).",
+        "datatype": "integer",
+        "default": 3221225472
+      },
+      {
+        "name": "when_full",
+        "label": "Buffer When Full",
+        "tooltip": "Behavior when buffer is full.",
+        "datatype": "dropdown",
+        "options": ["block", "drop_newest"],
+        "default": "block"
+      }
+    ]
+  }
+],
+      
       "settings": [
         {
           "name": "name",
@@ -1707,6 +1887,67 @@
       "image": "blusapphire_sdl.svg",
       "disabled": false,
       "status": "beta",
+"batch_buffer": [
+  {
+    "name": "batch",
+    "label": "Batch Settings",
+    "fields": [
+      {
+        "name": "max_bytes",
+        "label": "Batch Max Bytes",
+        "tooltip": "Maximum number of bytes per batch.",
+        "datatype": "integer",
+        "default": 30000000
+      },
+      {
+        "name": "max_events",
+        "label": "Batch Max Events",
+        "tooltip": "Maximum number of events per batch.",
+        "datatype": "integer",
+        "default": 30000
+      },
+      {
+        "name": "timeout_secs",
+        "label": "Batch Timeout (secs)",
+        "tooltip": "Timeout in seconds for batching.",
+        "datatype": "integer",
+        "default": 60
+      }
+    ]
+  },
+  {
+    "name": "buffer",
+    "label": "Buffer Settings",
+    "fields": [
+      {
+        "name": "type",
+        "label": "Buffer Type",
+        "tooltip": "Type of buffer to use.",
+        "datatype": "dropdown",
+        "options": ["disk", "memory"],
+        "default": "disk"
+      },
+      {
+        "name": "max_size",
+        "label": "Buffer Max Size",
+        "tooltip": "Maximum buffer size (relevant when type is disk).",
+        "datatype": "integer",
+        "default": 3221225472
+      },
+      
+      {
+        "name": "when_full",
+        "label": "Buffer When Full",
+        "tooltip": "Behavior when buffer is full.",
+        "datatype": "dropdown",
+        "options": ["block", "drop_newest"],
+        "default": "block"
+      }
+    ]
+  }
+],
+
+
       "settings": [
         {
           "name": "name",
@@ -1736,11 +1977,13 @@
           "tooltip": "Prefix to be added to the keys of objects while uploading data to an S3 bucket, act like directory path for organizing your objects in a bucket. If using a prefix for this purpose, it must end in / to act as a directory path. A trailing / is not automatically added E.g. \"year=%Y/month=%m/day=%d\"",
           "datatype": "text-special",
           "maxChar": 200,
-          "default": "logs/{{ .organization.id }}/{{ .sensor.id }}/",
+          "default": "logs/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/hour=%H/",
           "options": [
-            "logs/{{ .organization.id }}/{{ .sensor.id }}/",
-            "logs/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/",
-            "staging/{{ .organization.id }}/{{ .sensor.id }}/"
+          "logs/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/hour=%H/",
+          "logs/{{ .organization.id }}/{{ .sensor.id }}/{{ .observer.type }}/%Y/%m/%d/hour=%H/",
+          "logs/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/",
+          "staging/{{ .organization.id }}/{{ .sensor.id }}/%Y/%m/%d/hour=%H/"
+
           ],
           "mandatory": true
         },
