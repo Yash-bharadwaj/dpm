@@ -419,6 +419,16 @@
     "status": "beta",
     "disabled": true
   },
+  "tacitine_firewall": {
+    "product": "firewall",
+    "vendor": "tacitine",
+    "type": "ngfw",
+    "name": "Tacitine EN6200",
+    "description": "Tacitine EN6200 firewall logs capture detailed information about packet-level traffic, interface activity, NAT actions, dropped or accepted connections, and protocol-specific metadata such as MAC addresses, IPs, ports, and TCP flags.",
+    "pipeline_id": "tacitine_firewall",
+    "status": "beta",
+    "disabled": false
+  },
   "pulse_secure": {
     "product": "pulse-secure-connect",
     "vendor": "pulse-secure",

@@ -1611,7 +1611,7 @@
       },
       {
         "name": "max_size",
-        "label": "Buffer Max Size",
+        "label": "Buffer Max Size (Bytes)",
         "tooltip": "Maximum buffer size (relevant when type is disk).",
         "datatype": "integer",
         "default": 3221225472
@@ -1929,7 +1929,7 @@
       },
       {
         "name": "max_size",
-        "label": "Buffer Max Size",
+        "label": "Buffer Max Size (Bytes)",
         "tooltip": "Maximum buffer size (relevant when type is disk).",
         "datatype": "integer",
         "default": 3221225472
