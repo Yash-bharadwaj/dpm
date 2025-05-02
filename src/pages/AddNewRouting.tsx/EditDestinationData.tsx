@@ -39,6 +39,7 @@ const EditDestinationData = ({
   selectedNode,
   addedNodes,
 }: any) => {
+  console.log("EditDestinationData - selectedNode:", JSON.stringify(selectedNode, null, 2));
   const [selectedTab, setSelectedTab] = useState("setting");
   const [authIndex, setAuthIndex] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -151,12 +152,20 @@ const EditDestinationData = ({
             } else {
               if (fields.name === "auth_region") {
                 destInitialValues[fields.name] =
-                  selectedNode?.data.nodeData.auth["region"] ||
+                  selectedNode?.data.nodeData?.auth?.region ||
                   fields.default ||
                   "";
+                console.log("Loading region value:", selectedNode?.data.nodeData?.auth?.region);
+              } else if (fields.name === "region") {
+                // Fix: Always get from selectedNode?.data.nodeData.region for general region
+                destInitialValues[fields.name] =
+                  selectedNode?.data.nodeData?.region ||
+                  fields.default ||
+                  "";
+                console.log("Loading general region value:", selectedNode?.data.nodeData?.region);
               } else {
                 destInitialValues[fields.name] =
-                  selectedNode?.data.nodeData[authType][fields.name] ||
+                  selectedNode?.data.nodeData[authType]?.[fields.name] ||
                   fields.default ||
                   "";
               }
@@ -237,6 +246,8 @@ const EditDestinationData = ({
       }
     });
   }
+
+  console.log("EditDestinationData - destInitialValues:", JSON.stringify(destInitialValues, null, 2));
 
   const [checkMandatoryFields, setMandatoryFields] = useState(mandatoryFields);
 
@@ -340,175 +351,249 @@ const EditDestinationData = ({
     }
   };
  
-const saveSettings = () => {
-  const destValues: any = {};
+  const saveSettings = () => {
+    const destValues: any = {};
 
-  let nameAvailable = true;
+    let nameAvailable = true;
 
-  if (addedNodes.length !== 0) {
-    const name = formik.values["name"];
-    addedNodes.forEach((node: any) => {
-      const enteredName = name.replaceAll(" ", "_");
-      const inputName = selectedNode ? enteredName : "output_" + enteredName;
-      if (
-        node.data.nodeData.name === inputName &&
-        selectedNode?.id !== node.id
-      ) {
-        nameAvailable = false;
-      }
-    });
-  }
-
-  if (!nameAvailable) {
-    toast(
-      "Destination name is already used in configuration, please enter a different name.",
-      {
-        position: "top-right",
-        zIndex: 9999,
-        theme: "failure",
-      }
-    );
-    return;
-  }
-
-  const keys = Object.keys(formik.values);
-
-  keys.forEach((item) => {
-    if (
-      formik.values[item] !== "" ||
-      item === "tls" ||
-      item === "enabled"
-    ) {
-      if (item === "name") {
-        const name = formik.values.name.replaceAll(" ", "_");
-        if (selectedNode === undefined) {
-          destValues.name = "output_" + name;
-        } else {
-          destValues.name = name;
-        }
-      } else if (item === "address") {
-        destValues["address"] =
-          formik.values["address"] + ":" + formik.values["port"].toString();
-      } else if (item === "codec" || item === "tls" || item === "encoding") {
-        if (item === "tls") {
-          destValues["tls"] = { enabled: formik.values["tls"] };
-        } else if (item === "encoding") {
-          destValues["encoding"] = {
-            codec: formik.values["encoding"],
-          };
-        } else {
-          destValues["encoding"] = {
-            codec: formik.values["codec"],
-          };
-        }
-      } else if (item === "inputs") {
-        destValues[item] = [];
-      } else if (item === "compression") {
-        if (Array.isArray(formik.values["compression"])) {
-          if (formik.values["compression"][0] === "on") {
-            destValues["compression"] = true;
-          } else {
-            destValues["compression"] = false;
-          }
-        } else {
-          destValues["compression"] = formik.values["compression"];
-        }
-      } else if (item === "healthcheck") {
-        destValues.healthcheck = {
-          enabled: formik.values["healthcheck"],
-        };
-      } else if (item === "framing" || item === "method") {
-        if (formik.values["method"]) {
-          destValues.framing = {
-            method: formik.values["method"] || "",
-          };
-        }
-      } else {
-        // Handle authentication fields
-        if (authIndex !== null && selectedDestination.authentication?.dropdownOptions) {
-          destValues["auth"] = {};
-          selectedDestination.authentication.dropdownOptions[authIndex].fieldsToShow.forEach((field: any) => {
-            if (field.name === "auth_region") {
-              if (formik.values[field.name] !== "") {
-                destValues.auth["region"] = formik.values[field.name];
-              }
-            } else {
-              destValues.auth[field.name] = formik.values[field.name];
-            }
-          });
-        }
-
-        if (formik.values.enabled && selectedDestination.authentication?.name === "sasl") {
-          destValues["sasl"] = {
-            enabled: formik.values.enabled,
-          };
-          selectedDestination.authentication.fields.forEach((field: any) => {
-            if (field.name === "enabled") {
-              destValues.sasl.enabled = true;
-            } else {
-              if (formik.values[field.name] !== "") {
-                destValues.sasl[field.name] = formik.values[field.name];
-              }
-            }
-          });
-        }
-
-        // Only add if not already handled by auth/sasl
+    if (addedNodes.length !== 0) {
+      const name = formik.values["name"];
+      addedNodes.forEach((node: any) => {
+        const enteredName = name.replaceAll(" ", "_");
+        const inputName = selectedNode ? enteredName : "output_" + enteredName;
         if (
-          (!destValues.auth || destValues.auth[item] === undefined) &&
-          (!destValues.sasl || destValues.sasl[item] === undefined)
+          node.data.nodeData.name === inputName &&
+          selectedNode?.id !== node.id
         ) {
-          if (
-            item !== "enabled" &&
-            item !== "assume_role" &&
-            item !== "access_key_id" &&
-            item !== "secret_access_key" &&
-            item !== "auth_region" &&
-            item !== "mechanism" &&
-            item !== "username" &&
-            item !== "password" &&
-            item !== "port"
-          ) {
-            destValues[item] = formik.values[item];
+          nameAvailable = false;
+        }
+      });
+    }
+
+    if (!nameAvailable) {
+      toast(
+        "Destination name is already used in configuration, please enter a different name.",
+        {
+          position: "top-right",
+          zIndex: 9999,
+          theme: "failure",
+        }
+      );
+      return;
+    }
+
+    const keys = Object.keys(formik.values);
+
+    keys.forEach((item) => {
+      // Process only if the value is not empty, or if it's a specific field like 'tls' or 'enabled' that might need saving even if empty/false
+      // Also process if the item is part of batch/buffer fields, as we need defaults
+      const isBatchBufferField = selectedDestination.batch_buffer?.some((section: any) =>
+        section.fields.some((field: any) => field.name === item)
+      );
+
+      if (
+        formik.values[item] !== "" ||
+        item === "tls" ||
+        item === "enabled" ||
+        typeof formik.values[item] === 'boolean' || // Ensure booleans (like healthcheck) are processed even if false
+        isBatchBufferField // Ensure batch/buffer fields are processed even if empty to get defaults
+      ) {
+        // --- Handle specific fields first ---
+        if (item === "name") {
+          const name = formik.values.name.replaceAll(" ", "_");
+          destValues.name = selectedNode === undefined ? "output_" + name : name;
+        } else if (item === "address") {
+           // Combine address and port only if both have values
+           if (formik.values["address"] && formik.values["port"]) {
+              destValues["address"] = formik.values["address"] + ":" + formik.values["port"].toString();
+           } else if (formik.values["address"]) {
+               // Handle case where only address might be provided (e.g., some destination types)
+               destValues["address"] = formik.values["address"];
+           }
+           // Port is handled implicitly here or ignored if not applicable/empty
+        } else if (item === "port") {
+           // Port is handled along with address, so skip explicit handling here
+        } else if (item === "codec" || item === "tls" || item === "encoding") {
+          if (item === "tls") {
+            // Save TLS setting only if it's explicitly provided in formik values
+            if (formik.values["tls"] !== undefined) {
+               destValues["tls"] = { enabled: formik.values["tls"] };
+            }
+          } else if (item === "encoding") {
+             // Check if encoding field exists and has a value
+             if (formik.values["encoding"] !== undefined && formik.values["encoding"] !== "") {
+                destValues["encoding"] = { codec: formik.values["encoding"] };
+             }
+          } else if (item === "codec") {
+             // Check if codec field exists and has a value (might be redundant if encoding is primary)
+             if (formik.values["codec"] !== undefined && formik.values["codec"] !== "") {
+                // Ensure encoding object exists before adding codec
+                destValues["encoding"] = destValues["encoding"] || {};
+                destValues["encoding"]["codec"] = formik.values["codec"];
+             }
+          }
+        } else if (item === "inputs") {
+          // Assuming inputs are handled elsewhere or start empty for destinations
+          destValues[item] = destValues[item] || []; // Initialize if not already set
+        } else if (item === "compression") {
+          // Handle boolean checkbox array or direct boolean/string value
+          let compressionValue = formik.values["compression"];
+          if (Array.isArray(compressionValue)) {
+            destValues["compression"] = compressionValue[0] === "on";
+          } else if (compressionValue !== undefined && compressionValue !== "") {
+             // Handle cases where it might be a string like 'gzip' or a boolean
+             destValues["compression"] = compressionValue;
+          }
+        } else if (item === "healthcheck") {
+           // Save healthcheck setting only if it's explicitly provided
+           if (formik.values["healthcheck"] !== undefined) {
+              destValues.healthcheck = { enabled: formik.values["healthcheck"] };
+           }
+        } else if (item === "framing" || item === "method") {
+          // Handle framing method
+          if (item === "method" && formik.values["method"]) {
+            destValues.framing = { method: formik.values["method"] };
+          } else if (item === "framing" && typeof formik.values["framing"] === 'object') {
+             // If framing is already an object (less likely from formik direct values)
+             destValues.framing = formik.values["framing"];
+          }
+          // Avoid setting empty framing object if method is empty
+        } else {
+          // --- Handle Authentication Fields ---
+          let handledByAuthOrSasl = false;
+
+          // AWS Auth (dropdown based)
+          if (authIndex !== null && selectedDestination.authentication?.dropdownOptions) {
+            const selectedAuthOption = selectedDestination.authentication.dropdownOptions[authIndex];
+            if (selectedAuthOption.fieldsToShow.some((f: any) => f.name === item)) {
+              handledByAuthOrSasl = true;
+              destValues["auth"] = destValues["auth"] || {}; // Initialize auth if needed
+              if (item === "auth_region") {
+                if (formik.values[item] !== "") {
+                  destValues.auth["region"] = formik.values[item];
+                  console.log("Saving auth region value:", formik.values[item]);
+                }
+              } else {
+                // Save other auth fields if they have a value
+                if (formik.values[item] !== "" && formik.values[item] !== undefined) {
+                   destValues.auth[item] = formik.values[item];
+                }
+              }
+            }
+          }
+
+          // SASL Auth (Kafka specific)
+          if (selectedDestination.authentication?.name === "sasl") {
+             if (selectedDestination.authentication.fields.some((f: any) => f.name === item) || item === 'enabled') {
+                handledByAuthOrSasl = true;
+                // Only create sasl object if 'enabled' is true OR other sasl fields have values
+                if (formik.values.enabled || (formik.values[item] !== "" && formik.values[item] !== undefined && item !== 'enabled')) {
+                   destValues["sasl"] = destValues["sasl"] || {}; // Initialize sasl if needed
+                   if (item === "enabled") {
+                      destValues.sasl.enabled = formik.values.enabled; // Use the actual boolean value
+                   } else if (formik.values[item] !== "" && formik.values[item] !== undefined) {
+                      destValues.sasl[item] = formik.values[item];
+                   }
+                }
+             }
+          }
+
+          // --- Handle General Fields (if not handled above and not batch/buffer) ---
+          if (!handledByAuthOrSasl && !isBatchBufferField) {
+             // Check against a list of known specific fields already handled
+             const specificallyHandled = ['name', 'address', 'port', 'codec', 'tls', 'encoding', 'inputs', 'compression', 'healthcheck', 'framing', 'method'];
+             if (!specificallyHandled.includes(item)) {
+                // Save the general field if it has a value
+                if (formik.values[item] !== "" && formik.values[item] !== undefined) {
+                   destValues[item] = formik.values[item];
+                   if (item === "region") {
+                      console.log("Saving general region value to root:", formik.values[item]);
+                   }
+                }
+             }
           }
         }
       }
+    });
+
+     // --- Clean up empty Auth/SASL objects ---
+     if (destValues.auth && Object.keys(destValues.auth).length === 0) {
+        delete destValues.auth;
+     }
+     if (destValues.sasl) {
+        // Delete sasl if it only contains 'enabled: false' or is empty
+        if ((Object.keys(destValues.sasl).length === 1 && destValues.sasl.enabled === false) || Object.keys(destValues.sasl).length === 0) {
+           delete destValues.sasl;
+        }
+     }
+
+
+    // --- Batch & Buffer Section ---
+    if (selectedDestination.batch_buffer) {
+      selectedDestination.batch_buffer.forEach((section: any) => {
+        if (section.name === "batch" || section.name === "buffer") {
+          const sectionObj: any = {};
+          // No need for hasValue check anymore
+          section.fields.forEach((field: any) => {
+            let value = formik.values[field.name];
+
+            // Use default value if the form value is empty or undefined
+            if (value === "" || value === undefined) {
+               value = field.default;
+            }
+
+            // Add the value to the section object if it's defined (even if it's the default)
+            // Exclude completely undefined values (e.g., fields not applicable/rendered)
+            if (value !== undefined) {
+               if (field.datatype === "integer") {
+                  const numValue = Number(value);
+                  // Add only if it's a valid number
+                  if (!isNaN(numValue)) {
+                     sectionObj[field.name] = numValue;
+                  } else {
+                     // Handle potential default values that might not be numbers initially
+                     // Or decide if a non-numeric default for an integer field is an error
+                     // For now, let's assign the default directly if conversion fails
+                     const defaultNum = field.default !== undefined ? Number(field.default) : undefined;
+                     sectionObj[field.name] = !isNaN(defaultNum) ? defaultNum : undefined;
+                  }
+               } else {
+                  sectionObj[field.name] = value;
+               }
+            }
+          });
+          // Always add the batch/buffer object, populated with form values or defaults
+          // Filter out any keys that ended up with undefined values
+          const finalSectionObj = Object.entries(sectionObj)
+             .filter(([_, val]) => val !== undefined)
+             .reduce((acc, [key, val]) => ({ ...acc, [key]: val }), {});
+
+          // Only add the section if it's not completely empty after filtering undefined
+          if (Object.keys(finalSectionObj).length > 0) {
+             destValues[section.name] = finalSectionObj;
+          }
+        }
+      });
     }
-  });
 
-  // --- Batch & Buffer Section ---
-  if (selectedDestination.batch_buffer) {
-    selectedDestination.batch_buffer.forEach((section: any) => {
-      if (section.name === "batch" || section.name === "buffer") {
-        const sectionObj: any = {};
-        section.fields.forEach((field: any) => {
-          let value = formik.values[field.name];
-          if (value === "" || value === undefined) {
-            value = field.default;
-          }
-          if (field.datatype === "integer") {
-            sectionObj[field.name] = value !== undefined ? Number(value) : undefined;
-          } else {
-            sectionObj[field.name] = value;
-          }
-        });
-        destValues[section.name] = sectionObj;
-      }
-    });
-  }
+    // --- Processing Settings Section ---
+    if (selectedDestination["processing-settings"]) {
+      selectedDestination["processing-settings"].forEach((setting: any) => {
+        // Save only if the value exists in formik and is not empty
+        if (formik.values[setting.name] !== "" && formik.values[setting.name] !== undefined) {
+           destValues[setting.name] = formik.values[setting.name];
+        }
+      });
+    }
 
-  // --- Processing Settings Section ---
-  if (selectedDestination["processing-settings"]) {
-    selectedDestination["processing-settings"].forEach((setting: any) => {
-      destValues[setting.name] = formik.values[setting.name];
-    });
-  }
+    // --- Final assignments ---
+    destValues["type"] = selectedDestination.type;
+    destValues["uuid"] = selectedDestination.uuid;
 
-  destValues["type"] = selectedDestination.type;
-  destValues["uuid"] = selectedDestination.uuid;
+    console.log("Final destValues being saved:", JSON.stringify(destValues, null, 2)); // Log final object
+    onSaveSettings(destValues);
+  };
 
-  onSaveSettings(destValues);
-};
 
   const onBackClick = () => {
     if (selectedTab === "setting") {

@@ -1569,7 +1569,9 @@
       "image": "amazon_s3.svg",
       "tooltip": "Send events to Amazon S3 Bucket",
       "disabled": false,
-      "status": "beta","batch_buffer": [
+      "status": "beta",
+      
+      "batch_buffer": [
   {
     "name": "batch",
     "label": "Batch Settings",
@@ -1673,6 +1675,9 @@
           "name": "encoding",
           "label": "Encoding",
           "tooltip": "Configures how events are encoded into raw bytes",
+          "options": ["json", "raw_message"],
+          "default": "json",
+          "datatype": "text",
           "fields": [
             {
               "name": "codec",
