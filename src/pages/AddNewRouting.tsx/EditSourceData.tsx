@@ -63,7 +63,18 @@ const EditSourceData = ({
     } else {
       if (selectedNode !== undefined && selectedNode?.data.nodeData) {
         if (setting.name === "address" || setting.name === "port") {
-          // Address and port handling
+          // Handle address and port fields
+          if (selectedNode?.data.nodeData?.address) {
+            const addressParts = selectedNode.data.nodeData.address.split(":");
+            if (setting.name === "address") {
+              sourceInitialValues["address"] = addressParts[0];
+            }
+            if (setting.name === "port") {
+              sourceInitialValues["port"] = addressParts[1];
+            }
+          } else {
+            sourceInitialValues[setting.name] = setting.default || "";
+          }
         } else if (setting.name === "queue_url") {
           // Queue URL handling
         } else if (setting.name === "topics") {
