@@ -1,247 +1,268 @@
-import React from 'react';
-import { colors, borders, shadows, typography } from '../../theme/theme';
+import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
+import { FaUpload, FaEye, FaCode, FaClone, FaBolt } from 'react-icons/fa';
+import Badge from '../common/Badge';
+import { colors, shadows, borders, spacing } from '../../theme/theme';
 
-// Types for different pipeline nodes
-export type NodeData = {
-  label: string;
-  icon?: React.ReactNode;
-  description?: string;
-  status?: 'active' | 'inactive' | 'error' | 'warning';
-  info?: Record<string, any>;
-};
-
-// Base styles for all nodes
-const nodeBaseStyle = {
-  padding: '10px 12px',
-  borderRadius: borders.radiusMd,
-  boxShadow: shadows.sm,
-  fontSize: typography.fontSizes.sm,
-  fontWeight: typography.fontWeights.medium,
-  width: '180px',
-  display: 'flex',
-  flexDirection: 'column' as const,
-  transition: 'all 0.2s ease',
-};
-
-// Status indicator styles
-const statusIndicatorStyle = (status?: string) => {
-  const statusColors = {
-    active: colors.status.success,
-    inactive: colors.neutral.gray,
-    error: colors.status.error,
-    warning: colors.status.warning,
-  };
-
-  return {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: status ? statusColors[status as keyof typeof statusColors] : statusColors.inactive,
-    marginRight: '6px',
-  };
-};
-
-// Common header style for nodes
-const nodeHeaderStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  marginBottom: '6px',
-};
-
-// Title style for nodes
-const nodeTitleStyle = {
-  margin: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap' as const,
-  flex: 1,
-};
-
-// Description style for nodes
-const descriptionStyle = {
-  fontSize: typography.fontSizes.xs,
-  color: colors.neutral.darkGray,
-  margin: '4px 0 0 0',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  display: '-webkit-box',
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: 'vertical' as const,
-};
-
-// Icon container style
-const iconStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginRight: '8px',
-  fontSize: '14px',
-};
-
-// Handle styles for connections
-const handleStyle = {
-  background: colors.primary.main,
-  width: '8px',
-  height: '8px',
-  borderRadius: '50%',
-  border: `2px solid ${colors.neutral.white}`,
-};
-
-// Source Node (starting point of the pipeline)
-export const SourceNode: React.FC<NodeProps<NodeData>> = ({ data, selected }) => {
-  return (
-    <div
-      style={{
-        ...nodeBaseStyle,
-        backgroundColor: colors.pipeline.source + '10',
-        borderColor: colors.pipeline.source,
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderLeftWidth: '4px',
-        transform: selected ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: selected ? shadows.md : shadows.sm,
-      }}
-    >
-      <div style={nodeHeaderStyle}>
-        {data.icon && <div style={iconStyle}>{data.icon}</div>}
-        <div style={statusIndicatorStyle(data.status)} />
-        <h4 style={nodeTitleStyle}>{data.label}</h4>
-      </div>
-      {data.description && <p style={descriptionStyle}>{data.description}</p>}
-      
-      <Handle
-        type="source"
-        position={Position.Right}
-        style={handleStyle}
-        id="source-right"
-      />
-    </div>
-  );
-};
-
-// Destination Node (endpoint of the pipeline)
-export const DestinationNode: React.FC<NodeProps<NodeData>> = ({ data, selected }) => {
-  return (
-    <div
-      style={{
-        ...nodeBaseStyle,
-        backgroundColor: colors.pipeline.destination + '10',
-        borderColor: colors.pipeline.destination,
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderLeftWidth: '4px',
-        transform: selected ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: selected ? shadows.md : shadows.sm,
-      }}
-    >
-      <div style={nodeHeaderStyle}>
-        {data.icon && <div style={iconStyle}>{data.icon}</div>}
-        <div style={statusIndicatorStyle(data.status)} />
-        <h4 style={nodeTitleStyle}>{data.label}</h4>
-      </div>
-      {data.description && <p style={descriptionStyle}>{data.description}</p>}
-      
-      <Handle
-        type="target"
-        position={Position.Left}
-        style={handleStyle}
-        id="target-left"
-      />
-    </div>
-  );
-};
-
-// Transform Node (transformation processes in the pipeline)
-export const TransformNode: React.FC<NodeProps<NodeData>> = ({ data, selected }) => {
-  return (
-    <div
-      style={{
-        ...nodeBaseStyle,
-        backgroundColor: colors.pipeline.transform + '10',
-        borderColor: colors.pipeline.transform,
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderLeftWidth: '4px',
-        transform: selected ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: selected ? shadows.md : shadows.sm,
-      }}
-    >
-      <div style={nodeHeaderStyle}>
-        {data.icon && <div style={iconStyle}>{data.icon}</div>}
-        <div style={statusIndicatorStyle(data.status)} />
-        <h4 style={nodeTitleStyle}>{data.label}</h4>
-      </div>
-      {data.description && <p style={descriptionStyle}>{data.description}</p>}
-      
-      <Handle
-        type="target"
-        position={Position.Left}
-        style={handleStyle}
-        id="target-left"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        style={handleStyle}
-        id="source-right"
-      />
-    </div>
-  );
-};
-
-// Function Node (for processing data with functions)
-export const FunctionNode: React.FC<NodeProps<NodeData>> = ({ data, selected }) => {
-  return (
-    <div
-      style={{
-        ...nodeBaseStyle,
-        backgroundColor: colors.pipeline.function + '10',
-        borderColor: colors.pipeline.function,
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderLeftWidth: '4px',
-        transform: selected ? 'scale(1.02)' : 'scale(1)',
-        boxShadow: selected ? shadows.md : shadows.sm,
-      }}
-    >
-      <div style={nodeHeaderStyle}>
-        {data.icon && <div style={iconStyle}>{data.icon}</div>}
-        <div style={statusIndicatorStyle(data.status)} />
-        <h4 style={nodeTitleStyle}>{data.label}</h4>
-      </div>
-      {data.description && <p style={descriptionStyle}>{data.description}</p>}
-      
-      <Handle
-        type="target"
-        position={Position.Left}
-        style={handleStyle}
-        id="target-left"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        style={handleStyle}
-        id="source-right"
-      />
-    </div>
-  );
-};
-
-// Edge styles for connections
+// Edge styles
 export const customEdgeStyle = {
-  stroke: colors.pipeline.connection,
+  stroke: colors.neutral.darkGray,
   strokeWidth: 2,
-  transition: 'stroke 0.3s, stroke-width 0.3s',
+  opacity: 0.75,
+  transition: 'all 0.3s ease',
 };
 
 export const selectedEdgeStyle = {
-  ...customEdgeStyle,
-  stroke: colors.pipeline.highlightedEdge,
+  stroke: colors.primary.main,
   strokeWidth: 3,
+  opacity: 1,
+  filter: `drop-shadow(0 0 5px ${colors.primary.main}80)`,
 };
 
-// Export node types mapping for React Flow
+// Base Node Style
+const baseNodeStyle = {
+  padding: `${spacing.md}px`,
+  borderRadius: borders.radiusMd,
+  width: 180,
+  fontSize: '14px',
+  boxShadow: shadows.md,
+  color: colors.neutral.darkerGray,
+  transition: 'all 0.3s ease',
+  cursor: 'pointer',
+  border: 'none',
+};
+
+// Node styles for different node types
+const sourceNodeStyle = {
+  ...baseNodeStyle,
+  backgroundColor: colors.pipeline.source,
+  borderLeft: `4px solid ${colors.primary.dark}`,
+};
+
+const destinationNodeStyle = {
+  ...baseNodeStyle,
+  backgroundColor: colors.pipeline.destination,
+  borderLeft: `4px solid ${colors.status.success}`,
+};
+
+const transformNodeStyle = {
+  ...baseNodeStyle,
+  backgroundColor: colors.pipeline.transform,
+  borderLeft: `4px solid ${colors.status.info}`,
+};
+
+const functionNodeStyle = {
+  ...baseNodeStyle,
+  backgroundColor: colors.pipeline.function,
+  borderLeft: `4px solid ${colors.status.warning}`,
+};
+
+// Handle common styling
+const handleStyle = {
+  width: 8,
+  height: 8,
+  borderRadius: '50%',
+  background: colors.neutral.white,
+  border: `1px solid ${colors.neutral.darkGray}`,
+};
+
+// Source Node Component
+const SourceNode = memo(({ data, selected }: NodeProps) => {
+  const style = {
+    ...sourceNodeStyle,
+    boxShadow: selected ? `0 0 0 2px ${colors.primary.main}, ${shadows.md}` : shadows.md,
+    transform: selected ? 'translateY(-2px)' : 'none',
+  };
+
+  return (
+    <div style={style} className="node-container">
+      <div className="node-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="node-icon" style={{ 
+            backgroundColor: colors.primary.dark, 
+            padding: '6px', 
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: colors.neutral.white,
+          }}>
+            <FaUpload size={12} />
+          </div>
+          <strong>{data.label}</strong>
+        </div>
+        <Badge 
+          variant={data.status === 'active' ? 'success' : 'light'} 
+          size="sm" 
+          pill
+        >
+          {data.status}
+        </Badge>
+      </div>
+      <div className="node-content" style={{ fontSize: '12px', color: colors.neutral.darkGray }}>
+        {data.description || 'Data source node'}
+      </div>
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={handleStyle}
+        isConnectable={true}
+      />
+    </div>
+  );
+});
+
+// Destination Node Component
+const DestinationNode = memo(({ data, selected }: NodeProps) => {
+  const style = {
+    ...destinationNodeStyle,
+    boxShadow: selected ? `0 0 0 2px ${colors.primary.main}, ${shadows.md}` : shadows.md,
+    transform: selected ? 'translateY(-2px)' : 'none',
+  };
+
+  return (
+    <div style={style} className="node-container">
+      <div className="node-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="node-icon" style={{ 
+            backgroundColor: colors.status.success, 
+            padding: '6px', 
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: colors.neutral.white,
+          }}>
+            <FaEye size={12} />
+          </div>
+          <strong>{data.label}</strong>
+        </div>
+        <Badge 
+          variant={data.status === 'active' ? 'success' : 'light'} 
+          size="sm" 
+          pill
+        >
+          {data.status}
+        </Badge>
+      </div>
+      <div className="node-content" style={{ fontSize: '12px', color: colors.neutral.darkGray }}>
+        {data.description || 'Data destination node'}
+      </div>
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={handleStyle}
+        isConnectable={true}
+      />
+    </div>
+  );
+});
+
+// Transform Node Component
+const TransformNode = memo(({ data, selected }: NodeProps) => {
+  const style = {
+    ...transformNodeStyle,
+    boxShadow: selected ? `0 0 0 2px ${colors.primary.main}, ${shadows.md}` : shadows.md,
+    transform: selected ? 'translateY(-2px)' : 'none',
+  };
+
+  return (
+    <div style={style} className="node-container">
+      <div className="node-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="node-icon" style={{ 
+            backgroundColor: colors.status.info, 
+            padding: '6px', 
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: colors.neutral.white,
+          }}>
+            <FaCode size={12} />
+          </div>
+          <strong>{data.label}</strong>
+        </div>
+        <Badge 
+          variant={data.status === 'active' ? 'success' : 'light'} 
+          size="sm" 
+          pill
+        >
+          {data.status}
+        </Badge>
+      </div>
+      <div className="node-content" style={{ fontSize: '12px', color: colors.neutral.darkGray }}>
+        {data.description || 'Data transformation node'}
+      </div>
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={handleStyle}
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={handleStyle}
+        isConnectable={true}
+      />
+    </div>
+  );
+});
+
+// Function Node Component
+const FunctionNode = memo(({ data, selected }: NodeProps) => {
+  const style = {
+    ...functionNodeStyle,
+    boxShadow: selected ? `0 0 0 2px ${colors.primary.main}, ${shadows.md}` : shadows.md,
+    transform: selected ? 'translateY(-2px)' : 'none',
+  };
+
+  return (
+    <div style={style} className="node-container">
+      <div className="node-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="node-icon" style={{ 
+            backgroundColor: colors.status.warning, 
+            padding: '6px', 
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: colors.neutral.darkerGray,
+          }}>
+            <FaClone size={12} />
+          </div>
+          <strong>{data.label}</strong>
+        </div>
+        <Badge 
+          variant={data.status === 'active' ? 'success' : 'light'} 
+          size="sm" 
+          pill
+        >
+          {data.status}
+        </Badge>
+      </div>
+      <div className="node-content" style={{ fontSize: '12px', color: colors.neutral.darkGray }}>
+        {data.description || 'Data processing function'}
+      </div>
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={handleStyle}
+        isConnectable={true}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={handleStyle}
+        isConnectable={true}
+      />
+    </div>
+  );
+});
+
+// Export the node types for ReactFlow
 export const nodeTypes = {
   source: SourceNode,
   destination: DestinationNode,

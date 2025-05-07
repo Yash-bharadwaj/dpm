@@ -12,11 +12,15 @@ import ReactFlow, {
   ReactFlowProvider,
   NodeChange,
   EdgeChange,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { nodeTypes, customEdgeStyle, selectedEdgeStyle } from './NodeTypes';
 import { colors, shadows, borders, spacing } from '../../theme/theme';
 import Button from '../common/Button';
+import { FaPlus, FaMinus, FaCompress, FaExpand, FaInfoCircle } from 'react-icons/fa';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import Badge from '../common/Badge';
 
 interface PipelineFlowProps {
   initialNodes?: Node[];
@@ -48,7 +52,18 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
   const [zoom, setZoom] = useState(1);
+  const [showStats, setShowStats] = useState(false);
   const flowRef = useRef<HTMLDivElement>(null);
+  const reactFlowInstance = useReactFlow();
+
+  // Update nodes and edges when initialNodes or initialEdges change
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [initialNodes, setNodes]);
+
+  useEffect(() => {
+    setEdges(initialEdges);
+  }, [initialEdges, setEdges]);
 
   // Handle nodes change
   const handleNodesChange = useCallback(
@@ -127,19 +142,15 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({
 
   // Fit view when nodes change significantly
   useEffect(() => {
-    // Only trigger fit view when nodes are added or removed, not on position changes
     const nodeCount = initialNodes.length;
     if (nodeCount !== nodes.length && flowRef.current) {
-      // There's a need to access the flow instance, which would require a ref
-      // This is a simplified approach without direct access to the fit view method
       setTimeout(() => {
-        // Trigger fit view with some delay to ensure rendering is complete
-        if (flowRef.current) {
-          // We would typically call fitView() on the instance here
+        if (reactFlowInstance) {
+          reactFlowInstance.fitView({ padding: 0.2 });
         }
       }, 100);
     }
-  }, [initialNodes.length, nodes.length]);
+  }, [initialNodes.length, nodes.length, reactFlowInstance]);
 
   // Custom edge options
   const edgeOptions = {
@@ -149,16 +160,41 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({
   };
 
   // Manage zoom levels
-  const handleZoomIn = () => {
-    setZoom(z => Math.min(z + 0.2, 2));
-  };
+  const handleZoomIn = useCallback(() => {
+    if (reactFlowInstance) {
+      const { x, y, zoom } = reactFlowInstance.getViewport();
+      reactFlowInstance.setViewport({ x, y, zoom: zoom * 1.2 });
+      setZoom(zoom * 1.2);
+    }
+  }, [reactFlowInstance]);
 
-  const handleZoomOut = () => {
-    setZoom(z => Math.max(z - 0.2, 0.5));
-  };
+  const handleZoomOut = useCallback(() => {
+    if (reactFlowInstance) {
+      const { x, y, zoom } = reactFlowInstance.getViewport();
+      reactFlowInstance.setViewport({ x, y, zoom: zoom / 1.2 });
+      setZoom(zoom / 1.2);
+    }
+  }, [reactFlowInstance]);
 
-  const handleZoomReset = () => {
-    setZoom(1);
+  const handleZoomReset = useCallback(() => {
+    if (reactFlowInstance) {
+      reactFlowInstance.fitView({ padding: 0.2 });
+      setZoom(1);
+    }
+  }, [reactFlowInstance]);
+
+  const toggleStats = useCallback(() => {
+    setShowStats(prev => !prev);
+  }, []);
+
+  // Count nodes by type
+  const nodeStats = {
+    source: nodes.filter(node => node.type === 'source').length,
+    destination: nodes.filter(node => node.type === 'destination').length,
+    transform: nodes.filter(node => node.type === 'transform').length,
+    function: nodes.filter(node => node.type === 'function').length,
+    total: nodes.length,
+    connections: edges.length,
   };
 
   return (
@@ -183,9 +219,11 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({
           panOnDrag={!readOnly}
           selectNodesOnDrag={false}
           fitView
-          minZoom={0.5}
-          maxZoom={2}
+          minZoom={0.2}
+          maxZoom={4}
           defaultZoom={zoom}
+          className="animated-flow"
+          proOptions={{ hideAttribution: true }}
         >
           <Background 
             color={colors.neutral.darkGray} 
@@ -193,7 +231,7 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({
             size={1} 
             variant="dots" 
           />
-          
+           
           {showMiniMap && (
             <MiniMap
               nodeStrokeColor={(n) => {
@@ -212,51 +250,98 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({
                 backgroundColor: colors.background.paper,
                 border: borders.standard,
                 borderRadius: borders.radiusSm,
+                boxShadow: shadows.sm,
               }}
             />
           )}
-          
+           
           {showControls && (
             <Controls
               style={{
                 backgroundColor: colors.background.paper,
                 border: borders.standard,
                 borderRadius: borders.radiusSm,
+                boxShadow: shadows.sm,
               }}
             />
           )}
-          
+           
           <Panel position="top-right" style={{ 
             display: 'flex', 
             gap: '8px', 
-            backgroundColor: colors.background.paper,
-            padding: '8px',
-            borderRadius: borders.radiusSm,
-            boxShadow: shadows.sm,
+            backgroundColor: colors.background.paper, 
+            padding: '8px', 
+            borderRadius: borders.radiusSm, 
+            boxShadow: shadows.sm, 
             border: borders.standard,
+            animation: 'fadeIn 0.3s ease',
           }}>
             <Button 
-              size="sm"
-              variant="outline"
+              size="sm" 
+              variant="outline" 
               onClick={handleZoomIn}
+              title="Zoom in"
             >
-              +
+              <FaPlus />
             </Button>
             <Button 
-              size="sm"
-              variant="outline"
+              size="sm" 
+              variant="outline" 
               onClick={handleZoomReset}
+              title="Reset view"
             >
-              Reset
+              <FaCompress />
             </Button>
             <Button 
-              size="sm"
-              variant="outline"
+              size="sm" 
+              variant="outline" 
               onClick={handleZoomOut}
+              title="Zoom out"
             >
-              -
+              <FaMinus />
+            </Button>
+            <Button 
+              size="sm" 
+              variant={showStats ? "primary" : "outline"} 
+              onClick={toggleStats}
+              title="Toggle statistics"
+            >
+              <FaInfoCircle />
             </Button>
           </Panel>
+
+          {showStats && (
+            <Panel position="bottom-left" style={{ 
+              backgroundColor: colors.background.paper, 
+              padding: '12px', 
+              borderRadius: borders.radiusSm, 
+              boxShadow: shadows.sm, 
+              border: borders.standard,
+              animation: 'slideUp 0.3s ease',
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Pipeline Statistics</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <Badge variant="primary" size="sm">
+                  Sources: {nodeStats.source}
+                </Badge>
+                <Badge variant="success" size="sm">
+                  Destinations: {nodeStats.destination}
+                </Badge>
+                <Badge variant="info" size="sm">
+                  Transforms: {nodeStats.transform}
+                </Badge>
+                <Badge variant="warning" size="sm">
+                  Functions: {nodeStats.function}
+                </Badge>
+                <Badge variant="secondary" size="sm">
+                  Total Nodes: {nodeStats.total}
+                </Badge>
+                <Badge variant="dark" size="sm">
+                  Connections: {nodeStats.connections}
+                </Badge>
+              </div>
+            </Panel>
+          )}
         </ReactFlow>
       </ReactFlowProvider>
     </div>
