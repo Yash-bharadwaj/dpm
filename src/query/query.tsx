@@ -209,3 +209,61 @@ export const SAVE_ROUTING = gql`
     }
   }
 `;
+
+export const PUBLISH_ROUTING = gql`
+  mutation publishRouting($id: ID!) {
+    publishRouting(id: $id) {
+      success
+      message
+    }
+  }
+`;
+
+export const FETCH_DEVICE_DETAILS = gql`
+  query fetchDeviceDetails($id: ID!) {
+    device(id: $id) {
+      id
+      name
+      description
+      status
+      version
+      createdAt
+      updatedAt
+      metrics {
+        cpu
+        memory
+        disk
+        uptime
+      }
+      alerts {
+        id
+        timestamp
+        level
+        message
+      }
+    }
+  }
+`;
+
+export const FETCH_VERSIONS = gql`
+  query fetchVersions {
+    versions {
+      id
+      timestamp
+      deviceId
+      deviceName
+      user
+      status
+      changes
+    }
+  }
+`;
+
+export const DEPLOY_VERSION = gql`
+  mutation deployVersion($id: ID!) {
+    deployVersion(id: $id) {
+      success
+      message
+    }
+  }
+`;
