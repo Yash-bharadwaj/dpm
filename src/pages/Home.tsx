@@ -1,78 +1,104 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useContext } from "react";
-import { Container, Row, Col, Alert } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useContext, useCallback } from "react";
+import { Container, Row, Col, Form, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
-import DeviceToolbar from "../components/devices/DeviceToolbar";
+import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@apollo/client";
+import { DeviceContext } from "../utils/DeviceContext";
+import {
+  FETCH_DEVICES,
+  DELETE_DEVICE,
+  ADD_DEVICE,
+  UPDATE_DEVICE,
+} from "../query/query";
+import { FaPlus, FaSearch, FaSyncAlt } from "react-icons/fa";
 import DeviceList from "../components/devices/DeviceList";
+import DeviceToolbar from "../components/devices/DeviceToolbar";
 import DeviceModal from "../components/devices/DeviceModal";
 import DeleteConfirmationModal from "../components/devices/DeleteConfirmationModal";
-import { DeviceContext } from "../utils/DeviceContext";
-import { useQuery, useMutation } from "@apollo/client";
-import {
-  FETCH_ALL_DEVICES,
-  CREATE_DEVICE,
-  UPDATE_DEVICE,
-  DELETE_DEVICE,
-} from "../query/query";
-import "../App.css";
+import Button from "../components/common/Button";
+import { colors } from "../theme/theme";
 
-// Interface for device data
+// Define types
 interface Device {
   id: string;
   name: string;
   description: string;
-  status: 'online' | 'offline' | 'warning' | 'error';
-  lastSeen?: string;
-  version?: string;
+  status: "online" | "offline" | "warning" | "error";
 }
 
-// Interface for form data
 interface DeviceFormData {
   id?: string;
   name: string;
   description: string;
-  status: 'online' | 'offline' | 'warning' | 'error';
+  status: "online" | "offline" | "warning" | "error";
 }
+
+// Status Options for filtering
+const statusOptions = [
+  { value: "all", label: "All Statuses" },
+  { value: "online", label: "Online" },
+  { value: "offline", label: "Offline" },
+  { value: "warning", label: "Warning" },
+  { value: "error", label: "Error" },
+];
 
 const Home: React.FC = () => {
   // State
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortField, setSortField] = useState("name");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [currentDevice, setCurrentDevice] = useState<Device | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Context and hooks
   const navigate = useNavigate();
   const deviceContext = useContext(DeviceContext);
 
   if (!deviceContext) {
-    return <Alert variant="danger">Device context not available</Alert>;
+    return <div>Device context not available</div>;
   }
 
-  const { selectedDevice, setSelectedDevice } = deviceContext;
+  const { setSelectedDevice: setGlobalSelectedDevice } = deviceContext;
 
-  // GraphQL queries
-  const { loading, error, data, refetch } = useQuery(FETCH_ALL_DEVICES);
-  
-  const [createDevice] = useMutation(CREATE_DEVICE, {
+  // GraphQL query to fetch devices
+  const {
+    loading,
+    error,
+    data,
+    refetch,
+  } = useQuery(FETCH_DEVICES, {
+    fetchPolicy: "cache-and-network",
+  });
+
+  // Delete device mutation
+  const [deleteDevice] = useMutation(DELETE_DEVICE, {
     onCompleted: () => {
-      toast.success("Device created successfully!");
+      toast.success(`Device "${selectedDevice?.name}" deleted successfully`);
       refetch();
     },
     onError: (error) => {
-      toast.error(`Error creating device: ${error.message}`);
+      toast.error(`Error deleting device: ${error.message}`);
     },
   });
 
+  // Add device mutation
+  const [addDevice] = useMutation(ADD_DEVICE, {
+    onCompleted: () => {
+      toast.success("Device added successfully");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error adding device: ${error.message}`);
+    },
+  });
+
+  // Update device mutation
   const [updateDevice] = useMutation(UPDATE_DEVICE, {
     onCompleted: () => {
-      toast.success("Device updated successfully!");
+      toast.success(`Device "${selectedDevice?.name}" updated successfully`);
       refetch();
     },
     onError: (error) => {
@@ -80,200 +106,188 @@ const Home: React.FC = () => {
     },
   });
 
-  const [deleteDevice] = useMutation(DELETE_DEVICE, {
-    onCompleted: () => {
-      toast.success("Device deleted successfully!");
-      refetch();
-      // Reset selected device if it was deleted
-      if (selectedDevice === currentDevice?.id) {
-        setSelectedDevice(null);
-      }
-    },
-    onError: (error) => {
-      toast.error(`Error deleting device: ${error.message}`);
-    },
-  });
-
-  // Filter and sort devices
+  // Filter devices based on search query and status filter
   useEffect(() => {
     if (data?.devices) {
       let filtered = [...data.devices];
 
-      // Apply search filter
+      // Filter by search query
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         filtered = filtered.filter(
-          (device: Device) =>
+          (device) =>
             device.name.toLowerCase().includes(query) ||
             device.description.toLowerCase().includes(query)
         );
       }
 
-      // Apply status filter
+      // Filter by status
       if (statusFilter !== "all") {
-        filtered = filtered.filter(
-          (device: Device) => device.status === statusFilter
-        );
+        filtered = filtered.filter((device) => device.status === statusFilter);
       }
-
-      // Apply sorting
-      filtered.sort((a: any, b: any) => {
-        let comparison = 0;
-        
-        if (a[sortField] < b[sortField]) {
-          comparison = -1;
-        } else if (a[sortField] > b[sortField]) {
-          comparison = 1;
-        }
-        
-        return sortDirection === "asc" ? comparison : -comparison;
-      });
 
       setFilteredDevices(filtered);
     }
-  }, [data, searchQuery, statusFilter, sortField, sortDirection]);
+  }, [data, searchQuery, statusFilter]);
 
-  // Event handlers
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
+  // Show add device modal
+  const handleShowAddModal = () => {
+    setSelectedDevice(null);
+    setIsEditing(false);
+    setShowAddModal(true);
   };
 
-  const handleFilterChange = (filter: string) => {
-    setStatusFilter(filter);
+  // Show edit device modal
+  const handleShowEditModal = (device: Device) => {
+    setSelectedDevice(device);
+    setIsEditing(true);
+    setShowAddModal(true);
   };
 
-  const handleSortChange = (field: string, direction: "asc" | "desc") => {
-    setSortField(field);
-    setSortDirection(direction);
+  // Show delete device modal
+  const handleShowDeleteModal = (device: Device) => {
+    setSelectedDevice(device);
+    setShowDeleteModal(true);
   };
 
-  const handleSelectDevice = (id: string) => {
-    setSelectedDevice(id);
+  // Hide modals
+  const handleHideModal = () => {
+    setShowAddModal(false);
+    setShowDeleteModal(false);
+  };
+
+  // Handle device selection for pipeline configuration
+  const handleDeviceSelect = (device: Device) => {
+    setGlobalSelectedDevice(device.id);
     navigate("/routing");
   };
 
-  const handleAddDevice = () => {
-    setCurrentDevice(null);
-    setIsEditMode(false);
-    setShowDeviceModal(true);
-  };
-
-  const handleEditDevice = (id: string) => {
-    const deviceToEdit = data?.devices.find((d: Device) => d.id === id);
-    if (deviceToEdit) {
-      setCurrentDevice(deviceToEdit);
-      setIsEditMode(true);
-      setShowDeviceModal(true);
-    }
-  };
-
-  const handleDeleteClick = (id: string) => {
-    const deviceToDelete = data?.devices.find((d: Device) => d.id === id);
-    if (deviceToDelete) {
-      setCurrentDevice(deviceToDelete);
-      setShowDeleteModal(true);
-    }
-  };
-
+  // Handle save device
   const handleSaveDevice = (formData: DeviceFormData) => {
-    if (isEditMode && formData.id) {
+    if (isEditing && formData.id) {
       // Update existing device
       updateDevice({
         variables: {
           id: formData.id,
-          input: {
-            name: formData.name,
-            description: formData.description,
-            status: formData.status,
-          },
+          name: formData.name,
+          description: formData.description,
+          status: formData.status,
         },
       });
     } else {
-      // Create new device
-      createDevice({
+      // Add new device
+      addDevice({
         variables: {
-          input: {
-            name: formData.name,
-            description: formData.description,
-            status: formData.status,
-          },
+          name: formData.name,
+          description: formData.description,
+          status: formData.status,
         },
       });
     }
-    
-    setShowDeviceModal(false);
   };
 
-  const handleConfirmDelete = () => {
-    if (currentDevice) {
+  // Handle delete device
+  const handleDeleteDevice = () => {
+    if (selectedDevice) {
       deleteDevice({
-        variables: { id: currentDevice.id },
+        variables: {
+          id: selectedDevice.id,
+        },
       });
+      setShowDeleteModal(false);
     }
-    setShowDeleteModal(false);
   };
 
-  // Error handling
+  // Handle refetch
+  const handleRefetch = () => {
+    refetch();
+    toast.info("Refreshing device list...");
+  };
+
+  // Render loading state
+  if (loading && !data) {
+    return (
+      <Container className="mt-5 pt-5 text-center">
+        <Spinner animation="border" role="status" className="me-2" />
+        <span>Loading devices...</span>
+      </Container>
+    );
+  }
+
+  // Render error state
   if (error) {
     return (
-      <Container className="mt-5 pt-5">
-        <Alert variant="danger">
+      <Container className="mt-5 pt-5 text-center">
+        <div className="alert alert-danger">
           Error loading devices: {error.message}
-        </Alert>
+        </div>
+        <Button onClick={handleRefetch} className="mt-3" variant="primary">
+          <FaSyncAlt className="me-2" /> Try Again
+        </Button>
       </Container>
     );
   }
 
   return (
-    <Container fluid className="mt-5 pt-4 device-container slide-up">
-      <Row className="mb-4">
-        <Col>
-          <h1 className="page-title mb-4">Device Management</h1>
-          <p className="text-muted">
-            Manage your pipeline devices. Select a device to view and configure its pipelines.
-          </p>
-        </Col>
-      </Row>
+    <div className="page-container slide-up">
+      <Container fluid className="pt-4 mt-5">
+        <Row className="mb-4">
+          <Col>
+            <div className="d-flex justify-content-between align-items-center flex-wrap">
+              <div>
+                <h1 className="page-title mb-2">Device Management</h1>
+                <p className="text-muted">
+                  Manage your data pipeline devices and configure their routes
+                </p>
+              </div>
+              <div>
+                <Button 
+                  variant="primary" 
+                  onClick={handleShowAddModal}
+                  className="d-flex align-items-center"
+                >
+                  <FaPlus className="me-2" /> Add Device
+                </Button>
+              </div>
+            </div>
+          </Col>
+        </Row>
 
-      <DeviceToolbar
-        onSearch={handleSearch}
-        onAddDevice={handleAddDevice}
-        onFilterChange={handleFilterChange}
-        onSortChange={handleSortChange}
-      />
+        <DeviceToolbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          onRefresh={handleRefetch}
+          statusOptions={statusOptions}
+        />
 
-      <DeviceList
-        devices={filteredDevices}
-        isLoading={loading}
-        onSelectDevice={handleSelectDevice}
-        onEditDevice={handleEditDevice}
-        onDeleteDevice={handleDeleteClick}
-        selectedDeviceId={selectedDevice || undefined}
-        emptyMessage={
-          searchQuery || statusFilter !== "all"
-            ? "No devices match your search criteria"
-            : "No devices found. Click 'Add Device' to create one."
-        }
-      />
+        <DeviceList
+          devices={filteredDevices}
+          onEdit={handleShowEditModal}
+          onDelete={handleShowDeleteModal}
+          onSelect={handleDeviceSelect}
+        />
 
-      {/* Device Add/Edit Modal */}
-      <DeviceModal
-        show={showDeviceModal}
-        onHide={() => setShowDeviceModal(false)}
-        onSave={handleSaveDevice}
-        device={currentDevice || undefined}
-        isEdit={isEditMode}
-      />
+        {/* Add/Edit Device Modal */}
+        <DeviceModal
+          show={showAddModal}
+          onHide={handleHideModal}
+          onSave={handleSaveDevice}
+          device={selectedDevice || undefined}
+          isEdit={isEditing}
+        />
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        show={showDeleteModal}
-        onHide={() => setShowDeleteModal(false)}
-        onConfirm={handleConfirmDelete}
-        itemName={currentDevice?.name || ""}
-        itemType="device"
-      />
-    </Container>
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          show={showDeleteModal}
+          onHide={handleHideModal}
+          onConfirm={handleDeleteDevice}
+          itemName={selectedDevice?.name || ""}
+          itemType="device"
+        />
+      </Container>
+    </div>
   );
 };
 
