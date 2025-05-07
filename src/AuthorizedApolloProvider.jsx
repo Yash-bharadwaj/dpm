@@ -20,6 +20,9 @@ import {
 } from "aws-appsync-auth-link";
 import MainLoading from "./components/MainLoading";
 
+// Import our mock link for development
+import { mockLink } from "./utils/mockLink";
+
 // Dummy token for development
 const DUMMY_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikphc3dhbnRoIiwiZW1haWwiOiJqYXN3YW50aEBibHVzYXBwaGlyZS5jb20iLCJpYXQiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
@@ -42,17 +45,10 @@ export default function AuthorizedApolloProvider(props) {
     jwtToken: authToken,
   };
 
-  const link = ApolloLink.from([
-    awsCreateAuthLink({ url, region, auth }),
-
-    createHttpLink({ uri: url }),
-  ]);
-
+  // Use mockLink for development
   const client = new ApolloClient({
-    link,
-
-    connectToDevTools: false,
-
+    link: mockLink,
+    connectToDevTools: import.meta.env.DEV,
     cache: new InMemoryCache({
       typePolicies: {
         gquery: {
@@ -66,13 +62,8 @@ export default function AuthorizedApolloProvider(props) {
 
   // Skip the authentication process in development
   useEffect(() => {
-    console.log("Using development mode with dummy token");
+    console.log("Using development mode with mock data");
   }, []);
-
-  // Skip token refresh in development
-  useEffect(() => {
-    console.log("Token refresh disabled in development mode");
-  }, [refreshTokenExpiresAt]);
 
   // Always render the children
   return <ApolloProvider client={client}>{props.children}</ApolloProvider>;
