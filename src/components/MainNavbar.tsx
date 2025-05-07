@@ -1,11 +1,13 @@
 import React, { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Navbar, Nav, Offcanvas } from "react-bootstrap";
+import { Navbar, Nav, Offcanvas, Container } from "react-bootstrap";
 import Logo from "../assets/images/logoBlusapphire.png";
-import { FaBell } from "react-icons/fa";
+import { FaBell, FaUserCircle } from "react-icons/fa";
 import { DeviceContext } from "../utils/DeviceContext";
-import { MdHelpOutline } from "react-icons/md";
+import { MdHelpOutline, MdSettings } from "react-icons/md";
 import '../App.css';
+import { colors } from "../theme/theme";
+import Badge from "../components/common/Badge";
 
 const MainNavbar: React.FC = () => {
   const location = useLocation();
