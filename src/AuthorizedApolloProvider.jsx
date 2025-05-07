@@ -20,6 +20,9 @@ import {
 } from "aws-appsync-auth-link";
 import MainLoading from "./components/MainLoading";
 
+// Dummy token for development
+const DUMMY_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikphc3dhbnRoIiwiZW1haWwiOiJqYXN3YW50aEBibHVzYXBwaGlyZS5jb20iLCJpYXQiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
 AuthorizedApolloProvider.propTypes = {
   children: PropTypes.node,
 };
@@ -27,7 +30,8 @@ AuthorizedApolloProvider.propTypes = {
 export default function AuthorizedApolloProvider(props) {
   const { token } = useParams();
 
-  const [authToken, setAuthToken] = useState(token);
+  // For development, use the dummy token
+  const [authToken, setAuthToken] = useState(DUMMY_TOKEN);
   const [refreshTokenExpiresAt, setRefreshTokenExpiresAt] = useState(null);
 
   const url = import.meta.env.VITE_REACT_APP_AWS_APPSYNC_GRAPHQLENDPOINT;
@@ -51,11 +55,6 @@ export default function AuthorizedApolloProvider(props) {
 
     cache: new InMemoryCache({
       typePolicies: {
-        // qquery: {
-        //   fields: {
-        //     getLogs: offsetLimitPagination(),
-        //   },
-        // },
         gquery: {
           fields: {
             productsByGroupID: offsetLimitPagination(),
@@ -65,79 +64,16 @@ export default function AuthorizedApolloProvider(props) {
     }),
   });
 
+  // Skip the authentication process in development
   useEffect(() => {
-    if (!authToken) {
-      if (!keycloak.didInitialize) {
-        keycloak
-          .init({
-            onLoad: "login-required",
-            checkLoginIframe: false,
-          })
-          .then(
-            (auth) => {
-              if (!auth) {
-                window.location.reload();
-              } else {
-                setAuthToken(keycloak.token);
+    console.log("Using development mode with dummy token");
+  }, []);
 
-                const refreshToken = keycloak.refreshTokenParsed;
-                if (refreshToken && refreshToken.exp) {
-                  setRefreshTokenExpiresAt(refreshToken.exp * 1000);
-                }
-
-                keycloak.onTokenExpired = () => {
-                  keycloak.updateToken(30).catch(() => {
-                    window.alert("Session expired. Please refresh the page.");
-                    keycloak.logout();
-                  });
-                };
-
-                const refreshTokenInterval = setInterval(() => {
-                  keycloak
-                    .updateToken(30)
-                    .then((refreshed) => {
-                      if (refreshed) {
-                        setAuthToken(keycloak.token);
-                      }
-                    })
-                    .catch(() => {
-                      clearInterval(refreshTokenInterval);
-                      window.alert("Session expired. Please refresh the page.");
-                      keycloak.logout();
-                    });
-                }, 60000); // Check every 60 seconds
-
-                return () => clearInterval(refreshTokenInterval);
-              }
-            },
-            () => {
-              console.log("Authentication Failed");
-            }
-          );
-      }
-    }
-  }, [authToken]);
-
+  // Skip token refresh in development
   useEffect(() => {
-    if (refreshTokenExpiresAt) {
-      const refreshTokenTimeout = refreshTokenExpiresAt - new Date().getTime();
-
-      const timeoutId = setTimeout(() => {
-        window.alert("Your session has expired. Please log in again.");
-        keycloak.logout();
-      }, refreshTokenTimeout);
-
-      return () => clearTimeout(timeoutId);
-    }
+    console.log("Token refresh disabled in development mode");
   }, [refreshTokenExpiresAt]);
 
-  if (authToken !== null && authToken !== undefined) {
-    // if (import.meta.env.VITE_REACT_APP_ENV === "development") {
-    //   console.log("auth", authToken);
-    // }
-
-    return <ApolloProvider client={client}>{props.children}</ApolloProvider>;
-  }
-
-  return <MainLoading />;
+  // Always render the children
+  return <ApolloProvider client={client}>{props.children}</ApolloProvider>;
 }
