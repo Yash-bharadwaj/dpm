@@ -190,3 +190,22 @@ export const DELETE_LC_DEVICE = gql`
     }
   }
 `;
+
+export const FETCH_DEVICE_ROUTING = gql`
+  query fetchDeviceRouting($id: ID!) {
+    device(id: $id) {
+      id
+      name
+      routing
+    }
+  }
+`;
+
+export const SAVE_ROUTING = gql`
+  mutation saveRouting($id: ID!, $routing: String!) {
+    saveRouting(id: $id, routing: $routing) {
+      success
+      message
+    }
+  }
+`;
