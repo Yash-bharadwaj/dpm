@@ -1,762 +1,279 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/rules-of-hooks */
-import React, { useState, useContext, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { Container, Row, Col, Alert } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import DeviceToolbar from "../components/devices/DeviceToolbar";
+import DeviceList from "../components/devices/DeviceList";
+import DeviceModal from "../components/devices/DeviceModal";
+import DeleteConfirmationModal from "../components/devices/DeleteConfirmationModal";
+import { DeviceContext } from "../utils/DeviceContext";
 import { useQuery, useMutation } from "@apollo/client";
 import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  CircularProgress,
-} from "@mui/material";
-import DeviceDetailsSidebar from "./DeviceDetailsSidebar";
-import "../index.css";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import computeranimation from "../assets/computeranimation.gif";
-import { ImLocation2 } from "react-icons/im";
-import { DeviceContext } from "../utils/DeviceContext";
-import {
-  differenceInMinutes,
-  parseISO,
-  formatDistanceToNow,
-  isValid,
-} from "date-fns";
-import {
-  GET_DEVICES_LIST,
-  ADD_LC_DEVICE,
-  DELETE_LC_DEVICE,
-  GET_HEARTBEAT_STATUS,
+  FETCH_ALL_DEVICES,
+  CREATE_DEVICE,
+  UPDATE_DEVICE,
+  DELETE_DEVICE,
 } from "../query/query";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "../index.css";
-import { FaInfoCircle } from "react-icons/fa";
-import { LuCopy } from "react-icons/lu";
-import { MdDeleteForever } from "react-icons/md";
-import { IoIosWarning, IoMdRefresh } from "react-icons/io";
+import "../App.css";
 
+// Interface for device data
 interface Device {
-  versionid: any;
-  deviceid: string;
-  orgcode: string;
-  devicecode: string;
-  devicetype: string;
-  devicename: string;
-  devicelocation: string;
-  deviceip: string;
+  id: string;
+  name: string;
+  description: string;
+  status: 'online' | 'offline' | 'warning' | 'error';
+  lastSeen?: string;
+  version?: string;
 }
 
-interface HeartbeatStatus {
-  status: string | null;
-  lastSeen: string | null;
-  serviceStatus: string | null;
-  ipAddress: string | null;
-  hardwareInfo: {
-    cpuUsage: number | null;
-    totalMemory: string | null;
-    memoryUsage: string | null;
-    memoryPercent: number | null;
-    cpuCores: number | null;
-  };
+// Interface for form data
+interface DeviceFormData {
+  id?: string;
+  name: string;
+  description: string;
+  status: 'online' | 'offline' | 'warning' | 'error';
 }
 
 const Home: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const orgCode = searchParams.get("orgCode") || "d3b6842d";
-  const [deviceCode, setDeviceCode] = useState<string>("DEM-HYD-248");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
-  const [deleteInput, setDeleteInput] = useState<string>("");
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-  const [formOpen, setFormOpen] = useState<boolean>(false);
-  const [newDevice, setNewDevice] = useState<{
-    code: string;
-    location: string;
-    generatedCode: string;
-    accessKey: string;
-    secretKey: string;
-  }>({
-    code: "",
-    location: "",
-    generatedCode: "",
-    accessKey: "",
-    secretKey: "",
-  });
-  const [heartbeatStatus, setHeartbeatStatus] = useState<{
-    [key: string]: HeartbeatStatus;
-  }>({});
-  const [refreshingDevices, setRefreshingDevices] = useState<string[]>([]);
+  // State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortField, setSortField] = useState("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [currentDevice, setCurrentDevice] = useState<Device | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
 
-  const [deleteDevice] = useMutation(DELETE_LC_DEVICE);
-  const [getHeartbeatStatus] = useMutation(GET_HEARTBEAT_STATUS);
-
-  const deviceContext = useContext(DeviceContext);
+  // Context and hooks
   const navigate = useNavigate();
+  const deviceContext = useContext(DeviceContext);
 
   if (!deviceContext) {
-    return <p>Error: DeviceContext is not available.</p>;
+    return <Alert variant="danger">Device context not available</Alert>;
   }
 
-  const { setSelectedDevice: setDeviceInContext } = deviceContext;
+  const { selectedDevice, setSelectedDevice } = deviceContext;
 
-  const {
-    loading: devicesLoading,
-    error: devicesError,
-    data: devicesData,
-    refetch: refetchDevices,
-  } = useQuery(GET_DEVICES_LIST, {
-    variables: { input: { orgcode: orgCode, devicecode: deviceCode } },
+  // GraphQL queries
+  const { loading, error, data, refetch } = useQuery(FETCH_ALL_DEVICES);
+  
+  const [createDevice] = useMutation(CREATE_DEVICE, {
+    onCompleted: () => {
+      toast.success("Device created successfully!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error creating device: ${error.message}`);
+    },
   });
 
-  const [addDevice] = useMutation(ADD_LC_DEVICE);
+  const [updateDevice] = useMutation(UPDATE_DEVICE, {
+    onCompleted: () => {
+      toast.success("Device updated successfully!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error updating device: ${error.message}`);
+    },
+  });
 
-  const refreshHeartbeatStatus = useCallback(
-    async (device: Device) => {
-      setRefreshingDevices((prev) => [...prev, device.devicecode]);
-      try {
-        const { data } = await getHeartbeatStatus({
-          variables: {
-            input: {
-              orgcode: device.orgcode,
-              devicecode: device.devicecode,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          },
-        });
-
-        if (data.getHeartbeat && data.getHeartbeat.responsestatus) {
-          const responseData = JSON.parse(data.getHeartbeat.responsedata);
-          setHeartbeatStatus((prev) => ({
-            ...prev,
-            [device.devicecode]: {
-              status: responseData.status || null,
-              lastSeen: responseData.system_info?.last_seen || null,
-              serviceStatus: responseData.service_status || null,
-              ipAddress: responseData.system_info?.ip_address || null,
-              hardwareInfo: {
-                cpuUsage: responseData.hardware_info?.cpu_usage || null,
-                totalMemory: responseData.hardware_info?.total_memory || null,
-                memoryUsage: responseData.hardware_info?.used_memory_gb || null,
-                memoryPercent:
-                  responseData.hardware_info?.memory_usage_percent || null,
-                cpuCores: responseData.hardware_info?.cpu_cores || null,
-              },
-            },
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching heartbeat status:", error);
-        toast.error(`Failed to refresh status for device ${device.devicecode}`);
-      } finally {
-        setRefreshingDevices((prev) =>
-          prev.filter((code) => code !== device.devicecode)
-        );
+  const [deleteDevice] = useMutation(DELETE_DEVICE, {
+    onCompleted: () => {
+      toast.success("Device deleted successfully!");
+      refetch();
+      // Reset selected device if it was deleted
+      if (selectedDevice === currentDevice?.id) {
+        setSelectedDevice(null);
       }
     },
-    [getHeartbeatStatus]
-  );
+    onError: (error) => {
+      toast.error(`Error deleting device: ${error.message}`);
+    },
+  });
 
-  const handleRefresh = useCallback(() => {
-    devicesData?.getLcdeviceList.forEach((device: Device) => {
-      refreshHeartbeatStatus(device);
-    });
-  }, [devicesData, refreshHeartbeatStatus]);
-
+  // Filter and sort devices
   useEffect(() => {
-    if (devicesData?.getLcdeviceList && !devicesLoading) {
-      handleRefresh();
+    if (data?.devices) {
+      let filtered = [...data.devices];
+
+      // Apply search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(
+          (device: Device) =>
+            device.name.toLowerCase().includes(query) ||
+            device.description.toLowerCase().includes(query)
+        );
+      }
+
+      // Apply status filter
+      if (statusFilter !== "all") {
+        filtered = filtered.filter(
+          (device: Device) => device.status === statusFilter
+        );
+      }
+
+      // Apply sorting
+      filtered.sort((a: any, b: any) => {
+        let comparison = 0;
+        
+        if (a[sortField] < b[sortField]) {
+          comparison = -1;
+        } else if (a[sortField] > b[sortField]) {
+          comparison = 1;
+        }
+        
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+
+      setFilteredDevices(filtered);
     }
-  }, [devicesData, devicesLoading, handleRefresh]);
+  }, [data, searchQuery, statusFilter, sortField, sortDirection]);
 
-  const handleDeviceCodeClick = (device: Device) => {
-    setDeviceInContext(device.devicecode);
-    navigate(`/config/${device.orgcode}/${device.devicecode}`);
+  // Event handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
   };
 
-  const handleViewDetailsClick = (device: Device) => {
-    setSelectedDevice(device);
-    setSidebarOpen(true);
+  const handleFilterChange = (filter: string) => {
+    setStatusFilter(filter);
   };
 
-  const handleCloseSidebar = () => {
-    setSidebarOpen(false);
-    setSelectedDevice(null);
+  const handleSortChange = (field: string, direction: "asc" | "desc") => {
+    setSortField(field);
+    setSortDirection(direction);
   };
 
-  if (devicesLoading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <img
-          src={import.meta.env.VITE_BLUSAPPHIRE_LOADING_GIF}
-          height="50em"
-          alt="Loading"
-        />
-      </div>
-    );
-  }
-
-  if (devicesError) {
-    return <p>Error loading devices: {devicesError.message}</p>;
-  }
-
-  const formatLastSeen = (lastSeen?: string | null) => {
-    if (!lastSeen) return "N/A";
-    const lastSeenDate = parseISO(lastSeen);
-    if (!isValid(lastSeenDate)) return "N/A";
-    return formatDistanceToNow(lastSeenDate, { addSuffix: true });
+  const handleSelectDevice = (id: string) => {
+    setSelectedDevice(id);
+    navigate("/routing");
   };
 
-  const handleAddDeviceClick = () => {
-    setFormOpen(true);
+  const handleAddDevice = () => {
+    setCurrentDevice(null);
+    setIsEditMode(false);
+    setShowDeviceModal(true);
   };
 
-  const handleCloseForm = () => {
-    setFormOpen(false);
-    setNewDevice({
-      code: "",
-      location: "",
-      generatedCode: "",
-      accessKey: "",
-      secretKey: "",
-    });
+  const handleEditDevice = (id: string) => {
+    const deviceToEdit = data?.devices.find((d: Device) => d.id === id);
+    if (deviceToEdit) {
+      setCurrentDevice(deviceToEdit);
+      setIsEditMode(true);
+      setShowDeviceModal(true);
+    }
   };
 
-  const generateDeviceCode = (code: string, location: string) => {
-    const codePrefix = code.slice(0, 3).toUpperCase();
-    const locationPrefix = location.slice(0, 3).toUpperCase();
-    const randomNumbers = Math.floor(100 + Math.random() * 900);
-    return `${codePrefix}-${locationPrefix}-${randomNumbers}`;
+  const handleDeleteClick = (id: string) => {
+    const deviceToDelete = data?.devices.find((d: Device) => d.id === id);
+    if (deviceToDelete) {
+      setCurrentDevice(deviceToDelete);
+      setShowDeleteModal(true);
+    }
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const devicecode = newDevice.generatedCode;
-    try {
-      const { data } = await addDevice({
+  const handleSaveDevice = (formData: DeviceFormData) => {
+    if (isEditMode && formData.id) {
+      // Update existing device
+      updateDevice({
         variables: {
+          id: formData.id,
           input: {
-            orgcode: orgCode,
-            devicecode: devicecode,
-            devicename: newDevice.code,
-            devicelocation: newDevice.location,
+            name: formData.name,
+            description: formData.description,
+            status: formData.status,
           },
         },
       });
-      toast.success(data.addLcDevice.message);
-      handleCloseForm();
-      refetchDevices();
-    } catch (error) {
-      toast.error("Failed to add device. Please try again.");
-    }
-  };
-
-  const copyToClipboard = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const copyText =
-      document.getElementById("installScript")?.textContent || "";
-    navigator.clipboard
-      .writeText(copyText)
-      .then(() => {
-        toast.success("Copied to clipboard");
-      })
-      .catch(() => {
-        toast.error("Failed to copy");
+    } else {
+      // Create new device
+      createDevice({
+        variables: {
+          input: {
+            name: formData.name,
+            description: formData.description,
+            status: formData.status,
+          },
+        },
       });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const updatedDevice = { ...newDevice, [name]: value };
-
-    if (name === "code" || name === "location") {
-      const generatedCode = generateDeviceCode(
-        updatedDevice.code,
-        updatedDevice.location
-      );
-      updatedDevice.generatedCode = generatedCode;
     }
-
-    setNewDevice(updatedDevice);
+    
+    setShowDeviceModal(false);
   };
 
-  const handleDeleteClick = (device: Device) => {
-    setDeviceToDelete(device);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deviceToDelete) return;
-
-    const input = {
-      orgcode: deviceToDelete.orgcode,
-      devicecode: deviceToDelete.devicecode,
-      devicename: deviceToDelete.devicename,
-      devicelocation: deviceToDelete.devicelocation,
-      versionid: deviceToDelete.deviceid,
-    };
-
-    try {
-      toast.success(`${deviceToDelete.devicename} deleted successfully`);
-      setDeleteDialogOpen(false);
-      setDeleteInput("");
-      refetchDevices();
-    } catch (error) {
-      console.error("Error details:", error);
-      toast.error("Failed to delete device. Please try again.");
+  const handleConfirmDelete = () => {
+    if (currentDevice) {
+      deleteDevice({
+        variables: { id: currentDevice.id },
+      });
     }
+    setShowDeleteModal(false);
   };
 
-  const handleCloseDeleteDialog = () => {
-    setDeleteDialogOpen(false);
-    setDeleteInput("");
-  };
+  // Error handling
+  if (error) {
+    return (
+      <Container className="mt-5 pt-5">
+        <Alert variant="danger">
+          Error loading devices: {error.message}
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
-    <div
-      style={{
-        marginTop: "4.5rem",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "start",
-        gap: "1.3rem",
-        width: "90%",
-        marginInline: "3rem",
-        height: "100vh",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          justifyContent: "space-between",
-          padding: "2px",
-          alignItems: "center",
-        }}
-      >
-        <h3 style={{ color: "#5a5a5a", fontSize: "1.6rem" }}>
-          Pipeline Managers
-        </h3>
-        <div>
-          <Button
-            variant="outlined"
-            onClick={handleRefresh}
-            style={{
-              marginLeft: "auto",
-              color: "#11a1cd",
-              fontWeight: "600",
-              border: "1px solid #11a1cd",
-              margin: "4px",
-            }}
-          >
-            <IoMdRefresh style={{ marginRight: "4px" }} />
-            refresh
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleAddDeviceClick}
-            style={{
-              marginLeft: "auto",
-              color: "#11a1cd",
-              fontWeight: "600",
-              border: "1px solid #11a1cd",
-            }}
-          >
-            + Add Device
-          </Button>
-        </div>
-      </div>
-
-      <TableContainer
-        component={Paper}
-        style={{
-          width: "100%",
-          marginInline: "auto",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow style={{ backgroundColor: "#EEEEEE", color: "black" }}>
-              <TableCell>
-                <strong>Device Code</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Device Name</strong>
-              </TableCell>
-              <TableCell>
-                <strong>IP Address</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Status</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Last Heartbeat</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Memory</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Device Location</strong>
-              </TableCell>
-              <TableCell style={{ textAlign: "center" }}>
-                <strong>Actions</strong>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {devicesData?.getLcdeviceList.map((device: Device) => (
-              <TableRow
-                key={device.deviceid}
-                hover
-                style={{ cursor: "pointer" }}
-              >
-                <TableCell
-                  component="th"
-                  scope="row"
-                  onClick={() => handleDeviceCodeClick(device)}
-                  style={{
-                    color: "#11a1cd",
-                    fontSize: "15px",
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                  }}
-                >
-                  <img
-                    src={computeranimation}
-                    alt=""
-                    style={{ marginRight: "6px" }}
-                  />
-                  {device.devicecode}
-                </TableCell>
-                <TableCell>{device.devicename}</TableCell>
-                <TableCell>
-                  {heartbeatStatus[device.devicecode]?.ipAddress}
-                </TableCell>
-                <TableCell>
-                  {refreshingDevices.includes(device.devicecode) ? (
-                    <CircularProgress size={20} />
-                  ) : heartbeatStatus[device.devicecode]?.serviceStatus ===
-                      "active" &&
-                    heartbeatStatus[device.devicecode]?.lastSeen &&
-                    differenceInMinutes(
-                      new Date(),
-                      parseISO(
-                        heartbeatStatus[device.devicecode].lastSeen || ""
-                      )
-                    ) <= 10 ? (
-                    <Button
-                      variant="contained"
-                      style={{
-                        height: "25px",
-                        fontWeight: "600",
-                        backgroundColor: "#DDF1EA",
-                        color: "#007867",
-                        boxShadow: "none",
-                      }}
-                    >
-                      ACTIVE
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      style={{
-                        height: "25px",
-                        fontWeight: "600",
-                        backgroundColor: "#FFF2F2",
-                        color: "#E23428",
-                        boxShadow: "none",
-                      }}
-                    >
-                      INACTIVE
-                    </Button>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {formatLastSeen(heartbeatStatus[device.devicecode]?.lastSeen)}
-                </TableCell>
-                <TableCell>
-                  {refreshingDevices.includes(device.devicecode) ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    `${
-                      heartbeatStatus[device.devicecode]?.hardwareInfo
-                        ?.memoryUsage || "0"
-                    } / ${
-                      heartbeatStatus[device.devicecode]?.hardwareInfo
-                        ?.totalMemory || "0"
-                    } (${
-                      heartbeatStatus[device.devicecode]?.hardwareInfo
-                        ?.memoryPercent || "0"
-                    })`
-                  )}
-                </TableCell>
-                <TableCell>
-                  <ImLocation2
-                    style={{ marginRight: "5px", color: "#ff1919" }}
-                  />
-                  {device.devicelocation}
-                </TableCell>
-                <TableCell
-                  style={{
-                    textAlign: "center",
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: "15px",
-                  }}
-                >
-                  <VisibilityIcon
-                    onClick={() => handleViewDetailsClick(device)}
-                    style={{
-                      color: "#5a5a5a",
-                      fontSize: "25px",
-                      cursor: "pointer",
-                    }}
-                  />
-                  <MdDeleteForever
-                    onClick={() => handleDeleteClick(device)}
-                    style={{
-                      color: "#c70000",
-                      fontSize: "24px",
-                      cursor: "pointer",
-                    }}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-        <DialogTitle style={{ fontWeight: "600", height: "55px" }}>
-          <IoIosWarning
-            style={{
-              color: "#c70000",
-              marginRight: "4px",
-              marginBottom: "3px",
-            }}
-          />{" "}
-          Confirm Deletion
-        </DialogTitle>
-        <DialogTitle style={{ borderTop: "2px solid #c70000", height: "9rem" }}>
-          <p style={{ fontSize: "16px", padding: "08px" }}>
-            <p>
-              Are you sure you want to permanently delete the device{" "}
-              <b>{deviceToDelete?.devicename}</b>
-              <br />
-              and its configuration?
-            </p>
-            <div style={{ marginTop: "8px" }}>
-              <span>
-                Device Name: <b>{deviceToDelete?.devicename}</b>
-                <br />
-                Device Location: <b>{deviceToDelete?.devicelocation}</b>
-              </span>
-            </div>
+    <Container fluid className="mt-5 pt-4 device-container slide-up">
+      <Row className="mb-4">
+        <Col>
+          <h1 className="page-title mb-4">Device Management</h1>
+          <p className="text-muted">
+            Manage your pipeline devices. Select a device to view and configure its pipelines.
           </p>
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Enter device name"
-            placeholder="Enter device Name to delete.."
-            value={deleteInput}
-            onChange={(e) => setDeleteInput(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-        </DialogContent>
-        <DialogActions style={{ marginBottom: "1rem", marginRight: "10px" }}>
-          <Button
-            onClick={handleCloseDeleteDialog}
-            style={{ color: "#11a1cd" }}
-          >
-            No, Keep it
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            style={{
-              backgroundColor:
-                deleteInput === deviceToDelete?.devicename
-                  ? "#c70000"
-                  : "#D3D3D3",
-              color:
-                deleteInput === deviceToDelete?.devicename
-                  ? "white"
-                  : "#3b3b3b",
-            }}
-            disabled={deleteInput !== deviceToDelete?.devicename}
-          >
-            Yes, Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Col>
+      </Row>
 
-      <Dialog open={formOpen} onClose={handleCloseForm}>
-        <DialogTitle
-          style={{
-            borderTop: "7px solid #11a1cd",
-            height: "40px",
-            marginBottom: "0.5rem",
-          }}
-        >
-          Add New Device
-        </DialogTitle>
-        <DialogContent>
-          <form onSubmit={handleFormSubmit}>
-            <TextField
-              label="Device Name"
-              name="code"
-              value={newDevice.code}
-              onChange={handleInputChange}
-              required
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Device Location"
-              name="location"
-              value={newDevice.location}
-              onChange={handleInputChange}
-              required
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Access Key"
-              name="accessKey"
-              value={newDevice.accessKey}
-              onChange={handleInputChange}
-              required
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Secret Key"
-              name="secretKey"
-              value={newDevice.secretKey}
-              onChange={handleInputChange}
-              required
-              fullWidth
-              margin="normal"
-              type="password"
-            />
-            <TextField
-              label="Device Code"
-              name="generatedCode"
-              value={newDevice.generatedCode}
-              disabled
-              fullWidth
-              margin="normal"
-            />
-            <div
-              style={{
-                fontSize: "16px",
-                fontWeight: "600",
-                marginTop: ".6rem",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                height: "36px",
-              }}
-            >
-              <p> Install Script :</p>
-
-              <button
-                onClick={copyToClipboard}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "grey",
-                }}
-              >
-                <p style={{ fontSize: "13px" }}>
-                  {" "}
-                  <LuCopy style={{ marginRight: "5px" }} />
-                  Copy
-                </p>
-              </button>
-            </div>
-            <div
-              style={{
-                position: "relative",
-                backgroundColor: "#F5F5F5",
-                padding: "1rem",
-                marginTop: "-3px",
-              }}
-            >
-              <pre id="installScript">
-                curl -Ls
-                https://prod1-us.blusapphire.net/export/install/scripts/install-dpm.sh
-                | bash -s -- \ <br />
-                --orgcode "{orgCode}" \ <br />
-                --devicecode "{newDevice.generatedCode}" \ <br />
-                --accesskey "{newDevice.accessKey}" \ <br />
-                --secretkey "{newDevice.secretKey}"
-              </pre>
-            </div>
-            <p
-              style={{
-                fontSize: "13px",
-                marginTop: "5px",
-                marginBottom: "0px",
-              }}
-            >
-              {" "}
-              <FaInfoCircle style={{ fontSize: "13px" }} /> Copy this script and
-              execute as root on DPM host{" "}
-            </p>
-            <DialogActions>
-              <Button style={{ color: "#11a1cd" }} onClick={handleCloseForm}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                style={{
-                  backgroundColor: "#11a1cd",
-                  height: "30px",
-                  fontWeight: "600",
-                }}
-              >
-                Add
-              </Button>
-            </DialogActions>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <DeviceDetailsSidebar
-        open={sidebarOpen}
-        onClose={handleCloseSidebar}
-        device={selectedDevice}
-        heartbeatStatus={heartbeatStatus[selectedDevice?.devicecode || ""]}
+      <DeviceToolbar
+        onSearch={handleSearch}
+        onAddDevice={handleAddDevice}
+        onFilterChange={handleFilterChange}
+        onSortChange={handleSortChange}
       />
-      <ToastContainer />
-    </div>
+
+      <DeviceList
+        devices={filteredDevices}
+        isLoading={loading}
+        onSelectDevice={handleSelectDevice}
+        onEditDevice={handleEditDevice}
+        onDeleteDevice={handleDeleteClick}
+        selectedDeviceId={selectedDevice || undefined}
+        emptyMessage={
+          searchQuery || statusFilter !== "all"
+            ? "No devices match your search criteria"
+            : "No devices found. Click 'Add Device' to create one."
+        }
+      />
+
+      {/* Device Add/Edit Modal */}
+      <DeviceModal
+        show={showDeviceModal}
+        onHide={() => setShowDeviceModal(false)}
+        onSave={handleSaveDevice}
+        device={currentDevice || undefined}
+        isEdit={isEditMode}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        itemName={currentDevice?.name || ""}
+        itemType="device"
+      />
+    </Container>
   );
 };
 
