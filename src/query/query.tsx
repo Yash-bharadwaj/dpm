@@ -14,6 +14,49 @@ export const GET_DEVICES_LIST = gql`
   }
 `;
 
+export const FETCH_ALL_DEVICES = gql`
+  query fetchAllDevices {
+    devices {
+      id
+      name
+      description
+      status
+      lastSeen
+      version
+    }
+  }
+`;
+
+export const CREATE_DEVICE = gql`
+  mutation createDevice($input: DeviceInput!) {
+    createDevice(input: $input) {
+      id
+      name
+      description
+      status
+    }
+  }
+`;
+
+export const UPDATE_DEVICE = gql`
+  mutation updateDevice($id: ID!, $input: DeviceInput!) {
+    updateDevice(id: $id, input: $input) {
+      id
+      name
+      description
+      status
+    }
+  }
+`;
+
+export const DELETE_DEVICE = gql`
+  mutation deleteDevice($id: ID!) {
+    deleteDevice(id: $id) {
+      success
+      message
+    }
+  }
+`;
 
 export const ADD_LC_DEVICE = gql`
   mutation addLcDevice($input: deviceinput!) {
