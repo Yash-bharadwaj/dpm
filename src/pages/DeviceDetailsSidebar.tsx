@@ -1,448 +1,440 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useState, useEffect } from 'react';
-import { Drawer, Typography, Box, Table, TableBody, TableCell, TableRow, Paper, TableContainer, Button, Snackbar, Alert, CircularProgress, Tooltip, IconButton } from '@mui/material';
-import LaunchIcon from '@mui/icons-material/Launch';
-import { Icon } from '@iconify/react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useLazyQuery } from '@apollo/client';
-import { gql } from '@apollo/client';
+import { Drawer, IconButton, Typography, Divider, List, ListItem, ListItemText, Box, Chip, Grid, 
+  Avatar, CircularProgress, TextField, Tab, Tabs } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { Close, SignalCellular4Bar, SignalCellular0Bar, SignalCellular2Bar, 
+  Warning, Error, CheckCircle, AccessTime, Memory, Storage, DeveloperBoard } from '@mui/icons-material';
+import { useQuery } from '@apollo/client';
+import { FETCH_DEVICE_DETAILS } from '../query/query';
+import { colors, spacing } from '../theme/theme';
+import Badge from '../components/common/Badge';
+import Card from '../components/common/Card';
 
-// Define GraphQL mutations and queries
-const DEPLOY_PACKAGE = gql`
-  mutation deployPackage($input: deviceinput!) {
-    deployPackage(input: $input) {
-      responsestatus
-      message
-    }
-  }
-`;
+// Custom styled components
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
+  '& .MuiDrawer-paper': {
+    width: '43%',
+    padding: spacing.lg,
+    borderLeft: `1px solid ${colors.neutral.lightGray}`,
+    boxShadow: '0 0 15px rgba(0,0,0,0.1)',
+  },
+  '@media (max-width: 768px)': {
+    '& .MuiDrawer-paper': {
+      width: '100%',
+    },
+  },
+}));
 
-const GET_PACKAGE_STATUS = gql`
-  query getPackageStatus($input: deviceinput!) {
-    getPackageStatus(input: $input) {
-      responsestatus
-      packagestatus
-      packagetags {
-        tagkey
-        tagvalue
-      }
-      versionid
-      comment
-    }
-  }
-`;
+const DeviceAvatar = styled(Avatar)(({ theme }) => ({
+  width: 64,
+  height: 64,
+  backgroundColor: colors.primary.main,
+  color: colors.neutral.white,
+  fontWeight: 'bold',
+  marginRight: spacing.md,
+}));
 
-const GET_PACKAGE_VERSION = gql`
-  query getPackageVersion($input: deviceinput!) {
-    getPackageVersion(input: $input) {
-      lastmodified
-      comment
-      status
-      versionid
-    }
-  }
-`;
+const StyledTab = styled(Tab)(({ theme }) => ({
+  textTransform: 'none',
+  fontWeight: 500,
+  minHeight: 48,
+}));
 
-interface Device {
-  deviceid: string;
-  orgcode: string;
-  devicecode: string;
-  devicetype: string;
-  devicename: string;
-  devicelocation: string;
-  deviceip: string; 
+const StatCard = styled(Box)(({ theme }) => ({
+  padding: spacing.md,
+  borderRadius: '8px',
+  backgroundColor: colors.neutral.white,
+  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    transform: 'translateY(-2px)',
+  },
+}));
+
+// Define interfaces for data types
+interface DeviceMetric {
+  id: string;
+  timestamp: string;
+  value: number;
+  type: string;
 }
 
-interface DeviceDetailsSidebarProps {
+interface DeviceStat {
+  name: string;
+  value: string | number;
+  icon: React.ReactNode;
+}
+
+interface DeviceAlert {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warning' | 'error';
+  message: string;
+}
+
+interface DeviceProps {
   open: boolean;
+  deviceId: string;
   onClose: () => void;
-  device: Device | null;
-  heartbeatStatus: any; // Accept any type for heartbeat status to match structure from Home component
 }
 
-interface PackageTag {
-  tagkey: string;
-  tagvalue: string;
-}
-
-interface PackageStatus {
-  responsestatus: boolean;
-  packagestatus: string;
-  packagetags: PackageTag[];
-  versionid: string;
-  comment: string;
-}
-
-
-const DeviceDetailsSidebar: React.FC<DeviceDetailsSidebarProps> = ({ open, onClose, device, heartbeatStatus }) => {
-  const navigate = useNavigate();
-  const deviceHeartbeat = heartbeatStatus;
+const DeviceDetailsSidebar: React.FC<DeviceProps> = ({ open, deviceId, onClose }) => {
+  const [tabValue, setTabValue] = useState(0);
+  const [searchAlerts, setSearchAlerts] = useState('');
+  const [filteredAlerts, setFilteredAlerts] = useState<DeviceAlert[]>([]);
   
-  // Single snackbar state
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
-  
-  // State for package status
-  const [packageStatus, setPackageStatus] = useState<PackageStatus | null>(null);
-  
-  // State for loading specific fields
-  const [loadingStatus, setLoadingStatus] = useState(false);
-  const [loadingVersion, setLoadingVersion] = useState(false);
-  
-  // State for deploy message
-  const [deployMessage, setDeployMessage] = useState<string | null>(null);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  
-  // State to track the current device ID to detect changes
-  const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
+  // Query device details
+  const { loading, error, data } = useQuery(FETCH_DEVICE_DETAILS, {
+    variables: { id: deviceId },
+    skip: !deviceId || !open,
+    fetchPolicy: 'cache-and-network',
+  });
 
-  // Mutations and lazy queries
-  const [deployPackage] = useMutation(DEPLOY_PACKAGE);
-  const [getPackageStatus] = useLazyQuery(GET_PACKAGE_STATUS, { fetchPolicy: 'network-only' });
-  const [getPackageVersion] = useLazyQuery(GET_PACKAGE_VERSION, { fetchPolicy: 'network-only' });
-
-  const handleDeviceCodeClick = () => {
-    if (device) {
-      navigate(`/config/${device.orgcode}/${device.devicecode}`);
-    }
-  };
-
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
-
-  // Reset states when device changes
-  const resetStates = () => {
-    setPackageStatus(null);
-    setDeployMessage(null);
-    setUpdateAvailable(false);
-    setLoadingStatus(false);
-    setLoadingVersion(false);
-  };
-
-  // Effect to detect device changes and reset states
+  // Filter alerts based on search
   useEffect(() => {
-    if (device && device.deviceid !== currentDeviceId) {
-      // Device has changed, reset all package-related states
-      resetStates();
-      setCurrentDeviceId(device.deviceid);
+    if (data?.device?.alerts) {
+      const filtered = searchAlerts
+        ? data.device.alerts.filter((alert: DeviceAlert) => 
+            alert.message.toLowerCase().includes(searchAlerts.toLowerCase())
+          )
+        : data.device.alerts;
       
-      // Load data for the new device if sidebar is open
-      if (open) {
-        handleCheckDeviceStatusSilently();
-      }
+      setFilteredAlerts(filtered);
     }
-  }, [device, open]);
+  }, [data, searchAlerts]);
 
-  // Effect to load data when sidebar opens (if device is already set)
-  useEffect(() => {
-    if (open && device && currentDeviceId === device.deviceid) {
-      // Only fetch if we haven't already loaded data for this device
-      if (!packageStatus) {
-        handleCheckDeviceStatusSilently();
-      }
-    }
-  }, [open, device]);
-  
-  // Silently check status without showing snackbar (for initial load)
-  const handleCheckDeviceStatusSilently = async () => {
-    if (!device) return;
+  // Generate device stats
+  const getDeviceStats = (): DeviceStat[] => {
+    if (!data || !data.device) return [];
     
-    setLoadingStatus(true);
-    setLoadingVersion(true);
+    const device = data.device;
+    return [
+      { 
+        name: 'CPU Usage', 
+        value: `${device.metrics.cpu.toFixed(1)}%`,
+        icon: <Memory fontSize="large" style={{ color: colors.primary.main }} />
+      },
+      { 
+        name: 'Memory', 
+        value: `${device.metrics.memory.toFixed(1)}%`,
+        icon: <Storage fontSize="large" style={{ color: colors.status.info }} />
+      },
+      { 
+        name: 'Uptime', 
+        value: formatUptime(device.metrics.uptime),
+        icon: <AccessTime fontSize="large" style={{ color: colors.status.success }} />
+      },
+      { 
+        name: 'Disk Space', 
+        value: `${device.metrics.disk.toFixed(1)}%`,
+        icon: <DeveloperBoard fontSize="large" style={{ color: colors.status.warning }} />
+      },
+    ];
+  };
+
+  // Format uptime from seconds to human-readable format
+  const formatUptime = (seconds: number): string => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     
-    try {
-      // Call deployPackage API
-      const deployResult = await deployPackage({
-        variables: {
-          input: {
-            devicecode: device.devicecode,
-            orgcode: device.orgcode
-          }
-        }
-      });
-      
-      const deployData = deployResult.data.deployPackage;
-      
-      // Set deploy message based on response status
-      setDeployMessage(deployData.message);
-      setUpdateAvailable(deployData.responsestatus);
-      
-      await fetchPackageInfo();
-    } catch (error) {
-      console.error('Error deploying package:', error);
-    } finally {
-      setLoadingStatus(false);
-      setLoadingVersion(false);
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
     }
   };
 
-  // Function to fetch package info (version and status)
-  const fetchPackageInfo = async () => {
-    if (!device) return;
-    
-    try {
-      // Call getPackageVersion API
-      const versionResult = await getPackageVersion({
-        variables: {
-          input: {
-            devicecode: device.devicecode,
-            orgcode: device.orgcode,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          }
-        }
-      });
-      
-      // Check if the version result contains data
-      if (versionResult.data && 
-          versionResult.data.getPackageVersion && 
-          Array.isArray(versionResult.data.getPackageVersion)) {
-        
-        if (versionResult.data.getPackageVersion.length > 0) {
-          const latestVersionId = versionResult.data.getPackageVersion[0].versionid;
-          setLoadingVersion(false);
-          
-          // Call getPackageStatus API with the latest versionId
-          try {
-            const statusResult = await getPackageStatus({
-              variables: {
-                input: {
-                  devicecode: device.devicecode,
-                  orgcode: device.orgcode,
-                  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                  versionid: latestVersionId
-                }
-              }
-            });
-            
-            if (statusResult.data && statusResult.data.getPackageStatus) {
-              const packageStatusData = statusResult.data.getPackageStatus;
-              setPackageStatus(packageStatusData);
-            }
-          } catch (statusError) {
-            console.error('Error getting package status:', statusError);
-          }
-        }
-      }
-    } catch (versionError) {
-      console.error('Error getting package version:', versionError);
+  // Render status icon based on device status
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'online':
+        return <SignalCellular4Bar style={{ color: colors.status.success }} />;
+      case 'offline':
+        return <SignalCellular0Bar style={{ color: colors.status.error }} />;
+      case 'warning':
+        return <SignalCellular2Bar style={{ color: colors.status.warning }} />;
+      case 'error':
+        return <Error style={{ color: colors.status.error }} />;
+      default:
+        return <SignalCellular0Bar />;
     }
   };
 
-  // Handle check update button click - shows snackbar
-  const handleCheckDeviceStatus = async () => {
-    if (!device) return;
-    
-    setLoadingStatus(true);
-    setLoadingVersion(true);
-    
-    try {
-      // Call deployPackage API
-      const deployResult = await deployPackage({
-        variables: {
-          input: {
-            devicecode: device.devicecode,
-            orgcode: device.orgcode
-          }
-        }
-      });
-      
-      const deployData = deployResult.data.deployPackage;
-      
-      // Set deploy message based on response status
-      setDeployMessage(deployData.message);
-      setUpdateAvailable(deployData.responsestatus);
-      
-      // Display snackbar with message from API
-      setSnackbarMessage(deployData.message);
-      setSnackbarSeverity(deployData.responsestatus ? 'success' : 'info');
-      setSnackbarOpen(true);
-      
-      await fetchPackageInfo();
-    } catch (error) {
-      console.error('Error deploying package:', error);
-      setSnackbarMessage('Failed to check for updates. Please try again.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    } finally {
-      setLoadingStatus(false);
-      setLoadingVersion(false);
+  // Render alert severity badge
+  const renderAlertBadge = (level: string) => {
+    switch (level) {
+      case 'error':
+        return <Badge variant="danger" size="sm">Error</Badge>;
+      case 'warning':
+        return <Badge variant="warning" size="sm">Warning</Badge>;
+      case 'info':
+        return <Badge variant="info" size="sm">Info</Badge>;
+      default:
+        return <Badge variant="light" size="sm">{level}</Badge>;
     }
+  };
+
+  // Format timestamp
+  const formatTimestamp = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Handle tab change
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box p={2.5} width="500px" role="presentation" style={{ borderTop: '10px solid #11a1cd' }}>
-        <Typography variant="h6" style={{ fontWeight: '600' }}>Device Details:</Typography>
-        
-        {device && (
-          <>
-            <TableContainer component={Paper}>
-              <Table style={{ boxShadow: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px' }}>
-                <TableBody>
-                  <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                    <TableCell><strong>ID:</strong></TableCell>
-                    <TableCell>{device.deviceid}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Org Code:</strong></TableCell>
-                    <TableCell>{device.orgcode}</TableCell>
-                  </TableRow>
-                  <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                    <TableCell><strong>Code:</strong></TableCell>
-                    <TableCell
-                      onClick={handleDeviceCodeClick}
-                      style={{ cursor: 'pointer', fontWeight: 'normal' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.textDecoration = 'underline';
-                        e.currentTarget.style.fontWeight = 'bold';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.textDecoration = 'none';
-                        e.currentTarget.style.fontWeight = 'normal';
-                      }}
-                    >
-                      {device.devicecode} <LaunchIcon style={{ fontSize: 'large', marginBottom: '2px' }} />
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Name:</strong></TableCell>
-                    <TableCell>{device.devicename}</TableCell>
-                  </TableRow>
-                  <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                    <TableCell><strong>Location:</strong></TableCell>
-                    <TableCell>{device.devicelocation}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>IP Address:</strong></TableCell>
-                    <TableCell>{deviceHeartbeat?.ipAddress || 'N/A'}</TableCell>
-                  </TableRow>
-                  <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                    <TableCell><strong>Hostname:</strong></TableCell>
-                    <TableCell>{deviceHeartbeat?.systemInfo?.hostname || 'N/A'}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Cores:</strong></TableCell>
-                    <TableCell>{deviceHeartbeat?.hardwareInfo?.cpuCores || 'N/A'} ( Usage: {deviceHeartbeat?.hardwareInfo?.cpuUsage ? `${deviceHeartbeat.hardwareInfo.cpuUsage}%` : 'N/A'} )</TableCell>
-                  </TableRow>
-                  <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                    <TableCell><strong>Memory:</strong></TableCell>
-                    <TableCell>{deviceHeartbeat?.hardwareInfo?.memoryUsage || '0'} / {deviceHeartbeat?.hardwareInfo?.totalMemory || 'N/A'} ( {deviceHeartbeat?.hardwareInfo?.memoryPercent || 'N/A'} )</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Last Seen:</strong></TableCell>
-                    <TableCell>{deviceHeartbeat?.lastSeen || 'N/A'}</TableCell>
-                  </TableRow>
-                  <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                    <TableCell><strong>Service Status:</strong></TableCell>
-                    <TableCell>{deviceHeartbeat?.serviceStatus || 'N/A'}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-            
-            {/* Package Status Section - Always shown */}
-            <Box mt={3}>
-              <div style={{display:'flex', justifyContent:'space-between'}}>
-                <Typography variant="h6" style={{ fontWeight: '600', marginBottom: '10px' }}>
-                  Package Details:
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleCheckDeviceStatus}
-                  disabled={!device}
-                  style={{ 
-                    backgroundColor: '#11a1cd',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    height: '35px'
-                  }}
-                  startIcon={<Icon icon="material-symbols:deployed-code-update-outline-sharp" width="20" height="20" />}
-                >
-                  CHECK UPDATE
-                </Button>
-              </div>
-              
-              <TableContainer component={Paper}>
-                <Table style={{ boxShadow: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px' }}>
-                  <TableBody>
-                    <TableRow style={{ backgroundColor: '#fbfbfb' }}>
-                      <TableCell><strong>Status:</strong></TableCell>
-                      <TableCell>
-                        {loadingStatus ? (
-                          <CircularProgress size={20} color="primary" />
-                        ) : packageStatus ? (
-                          <Button
-                            variant="contained"
-                            style={{
-                              height: '25px',
-                              fontWeight: '600',
-                              backgroundColor: packageStatus.packagestatus === 'deployed' ? '#DDF1EA' : 
-                                           packageStatus.packagestatus === 'pending' ? '#FFFAEB' : '#FFF2F2',
-                              color: packageStatus.packagestatus === 'deployed' ? '#007867' : 
-                                   packageStatus.packagestatus === 'pending' ? '#946300' : '#E23428',
-                              boxShadow: 'none',
-                              textTransform: 'uppercase'
-                            }}
-                          >
-                            {packageStatus.packagestatus}
-                          </Button>
-                        ) : (
-                          'N/A'
-                        )}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell><strong>Version ID:</strong></TableCell>
-                      <TableCell>
-                        {loadingVersion ? (
-                          <CircularProgress size={20} color="primary" />
-                        ) : (
-                          packageStatus ? packageStatus.versionid : (deviceHeartbeat?.configVersion?.versionId || 'N/A')
-                        )}
-                      </TableCell>
-                    </TableRow>
-                   
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          </>
-        )}
+    <StyledDrawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      className="slide-left"
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h5" component="h2" fontWeight="600">
+          Device Details
+        </Typography>
+        <IconButton onClick={onClose} aria-label="close">
+          <Close />
+        </IconButton>
       </Box>
-      
-      <Snackbar 
-  open={snackbarOpen} 
-  autoHideDuration={5000} 
-  onClose={handleSnackbarClose}
-  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-  sx={{ 
-    zIndex: 1500,
-    '& .MuiSnackbarContent-root': {
-      padding: 0,
-      minWidth: 'unset',
-      boxShadow: '0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)'
-    }
-  }}
->
-  <div
-    style={{
-      backgroundColor: '#4CAF50',
-      color: 'white',
-      padding: '8px 13px',
-      borderRadius: '4px',
-      fontWeight: 500, 
-      fontSize:'14.5px'
-    }}
-  >
-    {snackbarMessage}
-  </div>
-</Snackbar>
-    </Drawer>
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Box sx={{ p: 2, bgcolor: colors.status.error + '20', borderRadius: 1, color: colors.status.error }}>
+          <Typography>Error loading device details: {error.message}</Typography>
+        </Box>
+      ) : data && data.device ? (
+        <>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, pb: 2, borderBottom: `1px solid ${colors.neutral.lightGray}` }}>
+            <DeviceAvatar>
+              {data.device.name.substring(0, 1).toUpperCase()}
+            </DeviceAvatar>
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="h6" component="h3">
+                  {data.device.name}
+                </Typography>
+                {getStatusIcon(data.device.status)}
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                ID: {data.device.id}
+              </Typography>
+              <Chip 
+                label={data.device.status} 
+                size="small" 
+                sx={{ 
+                  mt: 1, 
+                  bgcolor: data.device.status === 'online' 
+                    ? colors.status.success + '20' 
+                    : data.device.status === 'warning' 
+                      ? colors.status.warning + '20' 
+                      : colors.status.error + '20',
+                  color: data.device.status === 'online' 
+                    ? colors.status.success 
+                    : data.device.status === 'warning' 
+                      ? colors.status.warning 
+                      : colors.status.error,
+                  fontWeight: 500
+                }} 
+              />
+            </Box>
+          </Box>
+
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange} 
+            sx={{ 
+              mb: 3, 
+              borderBottom: `1px solid ${colors.neutral.lightGray}`,
+              '& .MuiTabs-indicator': {
+                backgroundColor: colors.primary.main,
+              }
+            }}
+          >
+            <StyledTab label="Overview" />
+            <StyledTab label="Metrics" />
+            <StyledTab label="Alerts" />
+          </Tabs>
+
+          {tabValue === 0 && (
+            <Box>
+              <Typography variant="h6" component="h3" sx={{ mb: 2 }}>
+                Device Information
+              </Typography>
+              
+              <Card className="mb-4">
+                <List sx={{ p: 0 }}>
+                  <ListItem sx={{ py: 1.5, px: 2, borderBottom: `1px solid ${colors.neutral.lightGray}` }}>
+                    <ListItemText 
+                      primary="Description" 
+                      secondary={data.device.description || "No description available"} 
+                      primaryTypographyProps={{ fontWeight: 500, fontSize: '0.875rem', color: colors.neutral.darkGray }}
+                      secondaryTypographyProps={{ color: colors.neutral.darkerGray }}
+                    />
+                  </ListItem>
+                  <ListItem sx={{ py: 1.5, px: 2, borderBottom: `1px solid ${colors.neutral.lightGray}` }}>
+                    <ListItemText 
+                      primary="Last Updated" 
+                      secondary={formatTimestamp(data.device.updatedAt)} 
+                      primaryTypographyProps={{ fontWeight: 500, fontSize: '0.875rem', color: colors.neutral.darkGray }}
+                    />
+                  </ListItem>
+                  <ListItem sx={{ py: 1.5, px: 2, borderBottom: `1px solid ${colors.neutral.lightGray}` }}>
+                    <ListItemText 
+                      primary="Created" 
+                      secondary={formatTimestamp(data.device.createdAt)} 
+                      primaryTypographyProps={{ fontWeight: 500, fontSize: '0.875rem', color: colors.neutral.darkGray }}
+                    />
+                  </ListItem>
+                  <ListItem sx={{ py: 1.5, px: 2 }}>
+                    <ListItemText 
+                      primary="Version" 
+                      secondary={data.device.version} 
+                      primaryTypographyProps={{ fontWeight: 500, fontSize: '0.875rem', color: colors.neutral.darkGray }}
+                    />
+                  </ListItem>
+                </List>
+              </Card>
+
+              <Typography variant="h6" component="h3" sx={{ mb: 2 }}>
+                Current Statistics
+              </Typography>
+              
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {getDeviceStats().map((stat, index) => (
+                  <Grid item xs={6} md={3} key={index}>
+                    <StatCard>
+                      {stat.icon}
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
+                        {stat.name}
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {stat.value}
+                      </Typography>
+                    </StatCard>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+
+          {tabValue === 1 && (
+            <Box>
+              <Typography variant="h6" component="h3" sx={{ mb: 2 }}>
+                Performance Metrics
+              </Typography>
+              
+              <Card className="mb-4">
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Historical metrics would be displayed here with charts and graphs.
+                </Typography>
+                
+                <Divider sx={{ my: 2 }} />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px', bgcolor: colors.neutral.offWhite, borderRadius: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Metrics visualization would appear here
+                  </Typography>
+                </Box>
+              </Card>
+            </Box>
+          )}
+
+          {tabValue === 2 && (
+            <Box>
+              <Typography variant="h6" component="h3" sx={{ mb: 2 }}>
+                Device Alerts
+              </Typography>
+              
+              <TextField
+                fullWidth
+                placeholder="Search alerts..."
+                variant="outlined"
+                size="small"
+                value={searchAlerts}
+                onChange={(e) => setSearchAlerts(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              
+              <Card className="mb-4">
+                {filteredAlerts.length === 0 ? (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No alerts found
+                    </Typography>
+                  </Box>
+                ) : (
+                  <List sx={{ p: 0 }}>
+                    {filteredAlerts.map((alert: DeviceAlert) => (
+                      <ListItem 
+                        key={alert.id} 
+                        sx={{ 
+                          py: 1.5, 
+                          px: 2, 
+                          borderBottom: `1px solid ${colors.neutral.lightGray}`,
+                          transition: 'background-color 0.3s ease',
+                          '&:hover': {
+                            backgroundColor: colors.neutral.offWhite,
+                          }
+                        }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {alert.level === 'error' ? (
+                                <Error fontSize="small" color="error" />
+                              ) : alert.level === 'warning' ? (
+                                <Warning fontSize="small" color="warning" />
+                              ) : (
+                                <CheckCircle fontSize="small" color="success" />
+                              )}
+                              {alert.message}
+                            </Box>
+                          }
+                          secondary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                {formatTimestamp(alert.timestamp)}
+                              </Typography>
+                              {renderAlertBadge(alert.level)}
+                            </Box>
+                          }
+                          primaryTypographyProps={{ fontWeight: 500 }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Card>
+            </Box>
+          )}
+        </>
+      ) : (
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="body1">No device information available</Typography>
+        </Box>
+      )}
+    </StyledDrawer>
   );
 };
 
