@@ -1,166 +1,139 @@
-import React from 'react';
-import { Node, Edge } from 'reactflow';
-import { DragEvent } from 'react';
-import { colors, shadows, borders, spacing, typography } from '../../theme/theme';
+import React, { useState } from 'react';
+import { Row, Col, Form } from 'react-bootstrap';
+import { FaPlus, FaSave, FaTrash, FaUndo, FaPalette, FaCheck } from 'react-icons/fa';
 import Button from '../common/Button';
 import Card from '../common/Card';
-
-// Types for the draggable node items
-interface NodeItem {
-  type: string;
-  label: string;
-  description?: string;
-  icon?: React.ReactNode;
-}
+import { colors } from '../../theme/theme';
 
 interface PipelineControlsProps {
-  onAddNode?: (type: string, position: { x: number; y: number }) => void;
-  onClearPipeline?: () => void;
-  onSavePipeline?: () => void;
-  onLoadPipeline?: () => void;
-  nodeItems: NodeItem[];
-  isReadOnly?: boolean;
-  className?: string;
+  onAddSource?: () => void;
+  onAddDestination?: () => void;
+  onAddTransform?: () => void;
+  onAddFunction?: () => void;
+  onSave?: () => void;
+  onClear?: () => void;
+  onAutoLayout?: () => void;
+  onPublish?: () => void;
+  readOnly?: boolean;
 }
 
 const PipelineControls: React.FC<PipelineControlsProps> = ({
-  onAddNode,
-  onClearPipeline,
-  onSavePipeline,
-  onLoadPipeline,
-  nodeItems,
-  isReadOnly = false,
-  className = '',
+  onAddSource,
+  onAddDestination,
+  onAddTransform,
+  onAddFunction,
+  onSave,
+  onClear,
+  onAutoLayout,
+  onPublish,
+  readOnly = false,
 }) => {
-  // Handle drag start for a node item
-  const onDragStart = (event: DragEvent<HTMLDivElement>, nodeType: string) => {
-    // Add node data to the drag event
-    event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
-  };
+  const [expanded, setExpanded] = useState(true);
+  
+  if (readOnly) return null;
 
-  // Node item styles
-  const nodeItemStyle = {
-    padding: `${spacing.sm}px`,
-    marginBottom: `${spacing.sm}px`,
-    backgroundColor: colors.background.card,
-    borderRadius: borders.radiusSm,
-    cursor: 'grab',
-    transition: 'all 0.2s ease',
-    border: `1px solid ${colors.neutral.lightGray}`,
-    '&:hover': {
-      boxShadow: shadows.sm,
-      borderColor: colors.primary.light,
-    },
+  const handleToggleExpand = () => {
+    setExpanded(!expanded);
   };
-
-  // Color mapping for node types
-  const getNodeColor = (type: string) => {
-    switch (type) {
-      case 'source':
-        return colors.pipeline.source;
-      case 'destination':
-        return colors.pipeline.destination;
-      case 'transform':
-        return colors.pipeline.transform;
-      case 'function':
-        return colors.pipeline.function;
-      default:
-        return colors.neutral.darkGray;
-    }
-  };
-
-  // Node item card styles based on type
-  const getNodeItemStyles = (type: string) => ({
-    ...nodeItemStyle,
-    borderLeftColor: getNodeColor(type),
-    borderLeftWidth: '4px',
-  });
 
   return (
-    <div className={`pipeline-controls ${className}`}>
-      <Card 
-        title="Pipeline Components" 
-        elevation="sm"
-        noPadding={false}
-      >
-        <div className="node-items" style={{ marginBottom: spacing.md }}>
-          {nodeItems.map((item, index) => (
-            <div
-              key={`${item.type}-${index}`}
-              draggable={!isReadOnly}
-              onDragStart={(event) => onDragStart(event, item.type)}
-              style={getNodeItemStyles(item.type)}
-              className="node-item"
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {item.icon && (
-                  <div style={{ marginRight: spacing.sm, color: getNodeColor(item.type) }}>
-                    {item.icon}
-                  </div>
-                )}
-                <div>
-                  <h4 style={{ 
-                    margin: 0,
-                    fontSize: typography.fontSizes.sm,
-                    fontWeight: typography.fontWeights.semiBold,
-                  }}>
-                    {item.label}
-                  </h4>
-                  {item.description && (
-                    <p style={{ 
-                      margin: '4px 0 0 0',
-                      fontSize: typography.fontSizes.xs,
-                      color: colors.neutral.darkGray,
-                    }}>
-                      {item.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {!isReadOnly && (
-          <div className="pipeline-actions" style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: spacing.sm 
-          }}>
-            {onSavePipeline && (
-              <Button 
-                variant="primary" 
-                onClick={onSavePipeline}
-                fullWidth
-              >
-                Save Pipeline
-              </Button>
-            )}
-            
-            {onLoadPipeline && (
+    <Card
+      title="Pipeline Controls"
+      collapsible
+      collapsed={!expanded}
+      onCollapse={handleToggleExpand}
+      className="pipeline-controls"
+    >
+      <div className="d-flex flex-column gap-3">
+        <div>
+          <strong>Add Elements</strong>
+          <Row className="mt-2">
+            <Col xs={6} md={3} className="mb-2">
               <Button 
                 variant="outline" 
-                onClick={onLoadPipeline}
-                fullWidth
+                onClick={onAddSource} 
+                className="w-100 d-flex align-items-center justify-content-center"
+                style={{ borderColor: colors.pipeline.source, color: colors.pipeline.source }}
               >
-                Load Pipeline
+                <FaPlus className="me-2" /> Source
               </Button>
-            )}
-            
-            {onClearPipeline && (
+            </Col>
+            <Col xs={6} md={3} className="mb-2">
               <Button 
-                variant="text" 
-                onClick={onClearPipeline}
-                fullWidth
+                variant="outline" 
+                onClick={onAddDestination} 
+                className="w-100 d-flex align-items-center justify-content-center"
+                style={{ borderColor: colors.pipeline.destination, color: colors.pipeline.destination }}
               >
-                Clear Pipeline
+                <FaPlus className="me-2" /> Destination
               </Button>
-            )}
-          </div>
-        )}
-      </Card>
-    </div>
+            </Col>
+            <Col xs={6} md={3} className="mb-2">
+              <Button 
+                variant="outline" 
+                onClick={onAddTransform} 
+                className="w-100 d-flex align-items-center justify-content-center"
+                style={{ borderColor: colors.pipeline.transform, color: colors.pipeline.transform }}
+              >
+                <FaPlus className="me-2" /> Transform
+              </Button>
+            </Col>
+            <Col xs={6} md={3} className="mb-2">
+              <Button 
+                variant="outline" 
+                onClick={onAddFunction} 
+                className="w-100 d-flex align-items-center justify-content-center"
+                style={{ borderColor: colors.pipeline.function, color: colors.pipeline.function }}
+              >
+                <FaPlus className="me-2" /> Function
+              </Button>
+            </Col>
+          </Row>
+        </div>
+
+        <div>
+          <strong>Pipeline Actions</strong>
+          <Row className="mt-2">
+            <Col xs={6} md={3} className="mb-2">
+              <Button 
+                variant="primary" 
+                onClick={onSave} 
+                className="w-100 d-flex align-items-center justify-content-center"
+              >
+                <FaSave className="me-2" /> Save
+              </Button>
+            </Col>
+            <Col xs={6} md={3} className="mb-2">
+              <Button 
+                variant="outline"
+                onClick={onAutoLayout} 
+                className="w-100 d-flex align-items-center justify-content-center"
+              >
+                <FaPalette className="me-2" /> Auto Layout
+              </Button>
+            </Col>
+            <Col xs={6} md={3} className="mb-2">
+              <Button 
+                variant="danger" 
+                onClick={onClear} 
+                className="w-100 d-flex align-items-center justify-content-center"
+              >
+                <FaTrash className="me-2" /> Clear
+              </Button>
+            </Col>
+            <Col xs={6} md={3} className="mb-2">
+              <Button 
+                variant="success" 
+                onClick={onPublish} 
+                className="w-100 d-flex align-items-center justify-content-center"
+              >
+                <FaCheck className="me-2" /> Publish
+              </Button>
+            </Col>
+          </Row>
+        </div>
+      </div>
+    </Card>
   );
 };
 

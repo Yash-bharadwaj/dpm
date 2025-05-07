@@ -1,215 +1,310 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Container, Row, Col, Alert, Spinner } from "react-bootstrap";
-import { useParams, useSearchParams } from "react-router-dom";
-import { useQuery, useLazyQuery } from "@apollo/client";
-import { DeviceContext } from "../utils/DeviceContext";
-import { GET_CONFIG_VERSION, GET_CONFIG_TIMELINE } from "../query/query";
-import VersionTable, { Version, TimelineEvent } from "../components/versions/VersionTable";
-import StatusFilterModal from "../components/versions/StatusFilterModal";
-import { FaHistory, FaFilter } from "react-icons/fa";
-import Card from "../components/common/Card";
-import Badge from "../components/common/Badge";
-import { colors } from "../theme/theme";
-import "../App.css";
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Table, Spinner, Form } from 'react-bootstrap';
+import { useMutation, useQuery } from '@apollo/client';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import { FaClock, FaFilter, FaRedo, FaSyncAlt, FaCheck, FaTimes, FaInfoCircle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FETCH_VERSIONS, DEPLOY_VERSION } from '../query/query';
+import Button from '../components/common/Button';
+import Card from '../components/common/Card';
+import Badge from '../components/common/Badge';
+import Modal from '../components/common/Modal';
+import { formatDate } from '../utils/formatters';
+import { colors } from '../theme/theme';
 
-// Status mapping for icon reference
-const statusIcons = {
-  invalid: true,
-  notvalid: true,
-  notdeployed: true,
-  failed: true,
-  draft: true,
-  new: true,
-  converted: true,
-  deployed: true,
-  valid: true,
-  received: true,
-  inprogress: true,
-  "in-progress": true,
-  "not-deployed": true,
-};
+// Define interface for version data
+interface Version {
+  id: string;
+  timestamp: string;
+  deviceId: string;
+  deviceName: string;
+  user: string;
+  status: 'deployed' | 'pending' | 'failed';
+  changes: string[];
+}
 
 const Versions: React.FC = () => {
-  // Get device code from URL params or context
-  const { devicecode } = useParams();
-  const context = useContext(DeviceContext);
-
-  if (context === undefined) {
-    throw new Error("DeviceContext must be used within a DeviceProvider");
-  }
-
-  const { selectedDevice } = context;
-  const deviceCodeFromContext = selectedDevice || devicecode;
-
-  // Get organization code from URL params
-  const [searchParams] = useSearchParams();
-  const orgCode = searchParams.get("orgCode") || "d3b6842d";
-
-  // State management
-  const [versionsData, setVersionsData] = useState<Version[]>([]);
-  const [timelineData, setTimelineData] = useState<Record<string, TimelineEvent[]>>({});
+  // State
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
+  const [showDeployModal, setShowDeployModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
-    new Set(Object.keys(statusIcons))
-  );
+  const [filteredVersions, setFilteredVersions] = useState<Version[]>([]);
+  
+  const navigate = useNavigate();
 
-  // Get current timezone information
-  const getCurrentTimezone = () => {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  };
+  // GraphQL query to fetch versions
+  const { loading, error, data, refetch } = useQuery(FETCH_VERSIONS, {
+    fetchPolicy: 'cache-and-network',
+  });
 
-  const getCurrentTimezoneOffset = () => {
-    const offset = new Date().getTimezoneOffset();
-    const hours = Math.floor(Math.abs(offset) / 60);
-    const minutes = Math.abs(offset % 60);
-    const sign = offset <= 0 ? "+" : "-";
-    return `UTC ${sign}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-  };
-
-  // GraphQL queries
-  const {
-    loading: versionsLoading,
-    error: versionsError,
-    data: versionsDataResponse,
-  } = useQuery(GET_CONFIG_VERSION, {
-    variables: {
-      orgcode: orgCode,
-      devicecode: deviceCodeFromContext,
-      timezone: getCurrentTimezone(),
+  // Mutation to deploy a version
+  const [deployVersion, { loading: deploying }] = useMutation(DEPLOY_VERSION, {
+    onCompleted: () => {
+      toast.success(`Version deployed successfully`);
+      setShowDeployModal(false);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error deploying version: ${error.message}`);
     },
   });
 
-  const [fetchTimeline, { error: timelineError }] = useLazyQuery(GET_CONFIG_TIMELINE);
-
-  // Process versions data when it's loaded
+  // Filter versions based on status
   useEffect(() => {
-    if (versionsDataResponse) {
-      const fetchedVersions = versionsDataResponse.getConfigVersion.map((version: any) => ({
-        id: version.versionid,
-        lastUpdated: version.lastmodified,
-        status: version.status,
-        comment: version.comment || "No comment",
-      }));
-      setVersionsData(fetchedVersions);
-    }
-  }, [versionsDataResponse]);
+    if (data?.versions) {
+      const filtered = statusFilter === 'all'
+        ? [...data.versions]
+        : data.versions.filter((version: Version) => version.status === statusFilter);
 
-  // Fetch timeline data for a specific version
-  const fetchTimelineData = async (versionid: string) => {
-    try {
-      const { data } = await fetchTimeline({
+      setFilteredVersions(filtered);
+    }
+  }, [data, statusFilter]);
+
+  // Handle row expansion
+  const handleRowClick = (id: string) => {
+    setExpandedRowId(expandedRowId === id ? null : id);
+  };
+
+  // Handle version deployment
+  const handleDeployClick = (version: Version) => {
+    setSelectedVersion(version);
+    setShowDeployModal(true);
+  };
+
+  // Confirm deployment
+  const handleConfirmDeploy = () => {
+    if (selectedVersion) {
+      deployVersion({
         variables: {
-          input: {
-            orgcode: orgCode,
-            devicecode: deviceCodeFromContext,
-            versionid: versionid,
-            timezone: getCurrentTimezone(),
-          },
+          id: selectedVersion.id,
         },
       });
-
-      const timeline = data?.getConfigTimeline || [];
-      setTimelineData((prevData) => ({
-        ...prevData,
-        [versionid]: timeline,
-      }));
-    } catch (error) {
-      console.error(`Error fetching timeline for version ${versionid}:`, error);
     }
   };
 
-  // Filter toggle handlers
-  const handleStatusChange = (status: string) => {
-    setSelectedStatuses((prev) => {
-      const newStatuses = new Set(prev);
-      if (newStatuses.has(status)) {
-        newStatuses.delete(status);
-      } else {
-        newStatuses.add(status);
-      }
-      return newStatuses;
-    });
+  // Render version status badge
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'deployed':
+        return <Badge variant="success" pill>Deployed</Badge>;
+      case 'pending':
+        return <Badge variant="warning" pill>Pending</Badge>;
+      case 'failed':
+        return <Badge variant="danger" pill>Failed</Badge>;
+      default:
+        return <Badge variant="secondary" pill>{status}</Badge>;
+    }
   };
 
-  const handleSelectAllStatuses = () => {
-    setSelectedStatuses(new Set(Object.keys(statusIcons)));
-  };
-
-  const handleClearAllStatuses = () => {
-    setSelectedStatuses(new Set());
-  };
-
-  // Filter versions based on selected statuses
-  const filteredVersionsData = versionsData.filter((version) =>
-    selectedStatuses.has(version.status)
-  );
-
-  // Loading state
-  if (versionsLoading) {
+  // Render loading state
+  if (loading && !data) {
     return (
-      <Container className="mt-5 pt-5 d-flex justify-content-center">
-        <div className="text-center">
-          <Spinner animation="border" role="status" variant="primary" />
-          <p className="mt-3">Loading versions...</p>
-        </div>
+      <Container className="mt-5 pt-5 text-center">
+        <Spinner animation="border" role="status" className="me-2" />
+        <span>Loading versions...</span>
       </Container>
     );
   }
 
-  // Error state
-  if (versionsError || timelineError) {
+  // Render error state
+  if (error) {
     return (
-      <Container className="mt-5 pt-5">
-        <Alert variant="danger">
-          {versionsError 
-            ? `Error loading versions: ${versionsError.message}` 
-            : `Error loading timeline: ${timelineError?.message}`}
-        </Alert>
+      <Container className="mt-5 pt-5 text-center">
+        <div className="alert alert-danger">
+          Error loading versions: {error.message}
+        </div>
+        <Button onClick={() => refetch()} className="mt-3" variant="primary">
+          <FaSyncAlt className="me-2" /> Try Again
+        </Button>
       </Container>
     );
   }
 
   return (
-    <Container fluid className="mt-5 pt-4 versions-container slide-up">
-      <Row className="mb-4">
-        <Col>
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <h1 className="page-title">Version History</h1>
-            <div>
-              <Badge variant="primary" size="lg" icon={<FaHistory />}>
-                Device: {deviceCodeFromContext}
-              </Badge>
+    <div className="page-container slide-up">
+      <Container fluid className="pt-4 mt-5">
+        <Row className="mb-4">
+          <Col>
+            <div className="d-flex justify-content-between align-items-center flex-wrap">
+              <div>
+                <h1 className="page-title mb-2">Version Management</h1>
+                <p className="text-muted">
+                  View and manage pipeline deployment versions
+                </p>
+              </div>
+              <div className="d-flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilterModal(true)}
+                  className="d-flex align-items-center"
+                >
+                  <FaFilter className="me-2" /> Filter
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  className="d-flex align-items-center"
+                >
+                  <FaRedo className="me-2" /> Refresh
+                </Button>
+              </div>
             </div>
-          </div>
-          <p className="text-muted">
-            View and manage device configuration versions and their deployment status.
-          </p>
-        </Col>
-      </Row>
+          </Col>
+        </Row>
 
-      <Row>
-        <Col>
-          <VersionTable
-            versions={filteredVersionsData}
-            timelineData={timelineData}
-            onFetchTimeline={fetchTimelineData}
-            currentTimezoneOffset={getCurrentTimezoneOffset()}
-            onFilterClick={() => setShowFilterModal(true)}
-          />
-        </Col>
-      </Row>
+        <Card>
+          <Table responsive hover className="version-table mb-0">
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>Version</th>
+                <th>User</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+                <th>Actions</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredVersions.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-4">
+                    <FaInfoCircle className="me-2" size={18} />
+                    No versions found. Create a pipeline configuration first.
+                  </td>
+                </tr>
+              ) : (
+                filteredVersions.map((version) => (
+                  <React.Fragment key={version.id}>
+                    <tr
+                      onClick={() => handleRowClick(version.id)}
+                      className={expandedRowId === version.id ? 'expanded-row' : ''}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <td>{version.deviceName}</td>
+                      <td>{version.id.substring(0, 8)}...</td>
+                      <td>{version.user}</td>
+                      <td>{formatDate(version.timestamp)}</td>
+                      <td>{renderStatusBadge(version.status)}</td>
+                      <td>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          disabled={version.status === 'deployed'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeployClick(version);
+                          }}
+                        >
+                          <FaCheck className="me-1" /> Deploy
+                        </Button>
+                      </td>
+                      <td className="text-center">
+                        {expandedRowId === version.id ? (
+                          <FaChevronUp color={colors.neutral.darkGray} />
+                        ) : (
+                          <FaChevronDown color={colors.neutral.darkGray} />
+                        )}
+                      </td>
+                    </tr>
+                    {expandedRowId === version.id && (
+                      <tr className="expanded-row">
+                        <td colSpan={7}>
+                          <div className="p-3 slide-up">
+                            <h6 className="mb-3">Changes</h6>
+                            <div className="timeline-container">
+                              <div className="timeline">
+                                {version.changes.map((change, index) => (
+                                  <div className="timeline-step" key={index}>
+                                    <div className="timeline-icon">
+                                      <FaClock />
+                                    </div>
+                                    <div className="timeline-content">
+                                      <div className="timeline-time">
+                                        {formatDate(new Date(new Date(version.timestamp).getTime() - (index * 60000)).toISOString())}
+                                      </div>
+                                      <div className="timeline-status">
+                                        {change}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))
+              )}
+            </tbody>
+          </Table>
+        </Card>
+      </Container>
+
+      {/* Deploy Confirmation Modal */}
+      <Modal
+        show={showDeployModal}
+        onHide={() => setShowDeployModal(false)}
+        title="Deploy Version"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDeployModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleConfirmDeploy}
+              loading={deploying}
+            >
+              Deploy Version
+            </Button>
+          </>
+        }
+      >
+        <p>
+          Are you sure you want to deploy the selected version to
+          <strong> {selectedVersion?.deviceName}</strong>?
+        </p>
+        <p>This will replace the currently deployed configuration for this device.</p>
+      </Modal>
 
       {/* Status Filter Modal */}
-      <StatusFilterModal
+      <Modal
         show={showFilterModal}
         onHide={() => setShowFilterModal(false)}
-        availableStatuses={Object.keys(statusIcons)}
-        selectedStatuses={selectedStatuses}
-        onStatusChange={handleStatusChange}
-        onSelectAll={handleSelectAllStatuses}
-        onClearAll={handleClearAllStatuses}
-      />
-    </Container>
+        title="Filter Versions"
+        footer={
+          <Button
+            variant="primary"
+            onClick={() => setShowFilterModal(false)}
+          >
+            Apply Filters
+          </Button>
+        }
+      >
+        <Form>
+          <Form.Group className="mb-3">
+            <Form.Label>Status</Form.Label>
+            <Form.Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Statuses</option>
+              <option value="deployed">Deployed</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </Form.Select>
+          </Form.Group>
+        </Form>
+      </Modal>
+    </div>
   );
 };
 
